@@ -1,12 +1,12 @@
 from nephthys.utils.env import env
 
 
-async def can_resolve(user_id: str, ts: str) -> bool:
+async def can_resolve(user_id: int, ts: str) -> bool:
     """
     Check if the user has permission to resolve tickets.
 
     Args:
-        user_id (str): The ID of the user to check permissions for.
+        user_id (str): The database ID of the user to check permissions for.
         ts (str): The timestamp of the ticket message to check.
 
     Returns:

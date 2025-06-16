@@ -16,7 +16,8 @@ enum TicketStatus {
 }
 
 model User {
-  id       String  @id @unique
+  id       Int     @id @unique @default(autoincrement())
+  slackId  String  @unique
   username String? @unique
   admin    Boolean @default(false)
 
@@ -31,7 +32,7 @@ model User {
 }
 
 model Ticket {
-  id          String       @id @unique @default(cuid())
+  id          Int          @id @unique @default(autoincrement())
   title       String
   description String
   status      TicketStatus @default(OPEN)
@@ -40,14 +41,14 @@ model Ticket {
   ticketTs String @unique
 
   openedBy   User   @relation("OpenedTickets", fields: [openedById], references: [id])
-  openedById String
+  openedById Int
 
   closedBy   User?     @relation("ClosedTickets", fields: [closedById], references: [id])
-  closedById String?
+  closedById Int?
   closedAt   DateTime?
 
   assignedTo   User?   @relation("AssignedTickets", fields: [assignedToId], references: [id])
-  assignedToId String?
+  assignedToId Int?
 
   tagsOnTickets TagsOnTickets[]
 
@@ -55,7 +56,7 @@ model Ticket {
 }
 
 model Tag {
-  id   String @id @unique @default(cuid())
+  id   Int    @id @unique @default(autoincrement())
   name String @unique
 
   ticketsOnTags TagsOnTickets[]
@@ -66,9 +67,9 @@ model Tag {
 
 model TagsOnTickets {
   ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  ticketId String
+  ticketId Int
   tag      Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  tagId    String
+  tagId    Int
 
   assignedAt DateTime @default(now())
 
@@ -78,9 +79,9 @@ model TagsOnTickets {
 
 model UserTagSubscription {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String
+  userId Int
   tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  tagId  String
+  tagId  Int
 
   subscribedAt DateTime @default(now())
 

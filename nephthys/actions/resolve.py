@@ -11,7 +11,15 @@ from prisma.enums import TicketStatus
 
 
 async def resolve(ts: str, resolver: str, client: AsyncWebClient):
-    allowed = await can_resolve(resolver, ts)
+    resolving_user = await env.db.user.find_unique(where={"slackId": resolver})
+    if not resolving_user:
+        await send_heartbeat(
+            f"User {resolver} attempted to resolve ticket with ts {ts} but isn't in the database.",
+            messages=[f"Ticket TS: {ts}", f"Resolver ID: {resolver}"],
+        )
+        return
+    
+    allowed = await can_resolve(resolving_user.id, ts)
     if not allowed:
         await send_heartbeat(
             f"User {resolver} attempted to resolve ticket with ts {ts} without permission.",
@@ -25,11 +33,12 @@ async def resolve(ts: str, resolver: str, client: AsyncWebClient):
         return
 
     now = datetime.now()
+    
     tkt = await env.db.ticket.update(
         where={"msgTs": ts},
         data={
             "status": TicketStatus.CLOSED,
-            "closedBy": {"connect": {"id": resolver}},
+            "closedBy": {"connect": {"id": resolving_user.id}},
             "closedAt": now,
         },
     )

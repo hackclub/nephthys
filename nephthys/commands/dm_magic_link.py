@@ -16,7 +16,7 @@ async def dm_magic_link_cmd_callback(
     await ack()
     logging.info(f"Received command: {command}")
     user_id = body["user_id"]
-    user = await env.db.user.find_unique(where={"id": user_id})
+    user = await env.db.user.find_unique(where={"slackId": user_id})
     if not user or not user.helper:
         await client.chat_postEphemeral(
             channel=body["channel_id"],
