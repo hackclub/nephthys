@@ -16,7 +16,7 @@ async def assign_tag_callback(
     user_id = body["user"]["id"]
     raw_tags = body["actions"][0]["selected_options"]
     tags = [
-        {"name": tag["text"]["text"], "value": tag["value"]}
+        {"name": tag["text"]["text"], "value": int(tag["value"])}
         for tag in raw_tags
         if "value" in tag
     ]
@@ -62,20 +62,26 @@ async def assign_tag_callback(
     )
 
     await env.db.tagsontickets.delete_many(
-        where={"tagId": {"in": [tag.tagId for tag in old_tags]}, "ticketId": ts}
+        where={"tagId": {"in": [tag.tagId for tag in old_tags]}, "ticketId": ticket.id}
     )
 
     tags = await env.db.usertagsubscription.find_many(
         where={"tagId": {"in": [tag["value"] for tag in new_tags]}}
     )
 
-    users = [
-        {
-            "id": tag.userId,
-            "tags": [tag.tagId for tag in tags if tag.userId == tag.userId],
-        }
-        for tag in tags
-    ]
+    user_ids = [tag.userId for tag in tags]
+    db_users = await env.db.user.find_many(where={"id": {"in": user_ids}})
+
+    users = []
+    for user in db_users:
+        tag_ids = [tag.tagId for tag in tags if tag.userId == user.id]
+        users.append(
+            {
+                "id": user.slackId,
+                "tags": tag_ids,
+            }
+        )
+
     url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{ticket.msgTs.replace('.', '')}"
     ticket_url = f"https://hackclub.slack.com/archives/{env.slack_ticket_channel}/p{ticket.ticketTs.replace('.', '')}"
 
