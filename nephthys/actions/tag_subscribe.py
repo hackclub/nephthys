@@ -16,29 +16,29 @@ async def tag_subscribe_callback(
     Callback for the tag subscribe button
     """
     await ack()
-    user_id = body["user"]["id"]
+    slack_id = body["user"]["id"]
 
-    user = await env.db.user.find_unique(where={"id": user_id})
+    user = await env.db.user.find_unique(where={"slackId": slack_id})
     if not user:
         await send_heartbeat(
-            f"Attempted to subscribe to tag by unknown user <@{user_id}>"
+            f"Attempted to subscribe to tag by unknown user <@{slack_id}>"
         )
         return
 
     tag_id, tag_name = body["actions"][0]["value"].split(";")
     # check if user is subcribed
     if await env.db.usertagsubscription.find_first(
-        where={"userId": user_id, "tagId": tag_id}
+        where={"tagId": int(tag_id), "userId": user.id}
     ):
         await env.db.usertagsubscription.delete(
-            where={"userId_tagId": {"tagId": tag_id, "userId": user_id}}
+            where={"userId_tagId": {"tagId": int(tag_id), "userId": user.id}}
         )
     else:
         await env.db.usertagsubscription.create(
             data={
-                "user": {"connect": {"id": user_id}},
-                "tag": {"connect": {"id": tag_id}},
+                "user": {"connect": {"id": user.id}},
+                "tag": {"connect": {"id": int(tag_id)}},
             }
         )
 
-    await open_app_home("tags", client, user_id)
+    await open_app_home("tags", client, slack_id)

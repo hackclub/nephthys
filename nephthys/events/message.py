@@ -25,9 +25,9 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
 
     thread_url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{event['ts'].replace('.', '')}"
 
-    db_user = await env.db.user.find_first(where={"id": user})
+    db_user = await env.db.user.find_first(where={"slackId": user})
     if db_user:
-        past_tickets = await env.db.ticket.count(where={"openedById": user})
+        past_tickets = await env.db.ticket.count(where={"openedById": db_user.id})
     else:
         past_tickets = 0
         user_info = await client.users_info(user=user) or {}
@@ -41,11 +41,11 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
             )
         db_user = await env.db.user.upsert(
             where={
-                "id": user,
+                "slackId": user,
             },
             data={
-                "create": {"id": user, "username": username},
-                "update": {"id": user, "username": username},
+                "create": {"slackId": user, "username": username},
+                "update": {"slackId": user, "username": username},
             },
         )
 
@@ -95,7 +95,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
             "description": text,
             "msgTs": event["ts"],
             "ticketTs": ticket["ts"],
-            "openedBy": {"connect": {"id": user}},
+            "openedBy": {"connect": {"id": db_user.id}},
         },
     )
 

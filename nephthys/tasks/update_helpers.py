@@ -17,19 +17,19 @@ async def update_helpers():
 
     # unset helpers not in the team
     await env.db.user.update_many(
-        where={"helper": True, "id": {"not_in": team_ids}},
+        where={"helper": True, "slackId": {"not_in": team_ids}},
         data={"helper": False},
     )
 
     # update existing users in the db
     await env.db.user.update_many(
-        where={"id": {"in": team_ids}},
+        where={"slackId": {"in": team_ids}},
         data={"helper": True},
     )
 
     # create new users not in the db
-    existing_users_in_db = await env.db.user.find_many(where={"id": {"in": team_ids}})
-    existing_user_ids_in_db = {user.id for user in existing_users_in_db}
+    existing_users_in_db = await env.db.user.find_many(where={"slackId": {"in": team_ids}})
+    existing_user_ids_in_db = {user.slackId for user in existing_users_in_db}
 
     new_member_data_to_create = []
     for member_id in team_ids:
@@ -41,7 +41,7 @@ async def update_helpers():
             logging.info(f"User info for {member_id}: {user_info}")
             new_member_data_to_create.append(
                 {
-                    "id": member_id,
+                    "slackId": member_id,
                     "helper": True,
                     "username": user_info.get("user", {}).get("name"),
                 }

@@ -24,7 +24,7 @@ async def assign_tag_callback(
     channel_id = body["channel"]["id"]
     ts = body["message"]["ts"]
 
-    user = await env.db.user.find_unique(where={"id": user_id})
+    user = await env.db.user.find_unique(where={"slackId": user_id})
     if not user or not user.helper:
         await client.chat_postEphemeral(
             channel=channel_id,

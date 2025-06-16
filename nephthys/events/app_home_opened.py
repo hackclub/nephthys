@@ -23,7 +23,7 @@ async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
     try:
         await client.views_publish(view=get_loading_view(), user_id=user_id)
 
-        user = await env.db.user.find_unique(where={"id": user_id})
+        user = await env.db.user.find_unique(where={"slackId": user_id})
 
         if not user or not user.helper:
             user_info = await client.users_info(user=user_id) or {}

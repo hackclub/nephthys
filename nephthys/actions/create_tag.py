@@ -14,7 +14,7 @@ async def create_tag_view_callback(ack: AsyncAck, body: dict, client: AsyncWebCl
     await ack()
     user_id = body["user"]["id"]
 
-    user = await env.db.user.find_unique(where={"id": user_id})
+    user = await env.db.user.find_unique(where={"slackId": user_id})
     if not user or not user.admin:
         await send_heartbeat(f"Attempted to create tag by non-admin user <@{user_id}>")
         return
@@ -33,7 +33,7 @@ async def create_tag_btn_callback(ack: AsyncAck, body: dict, client: AsyncWebCli
     user_id = body["user"]["id"]
     trigger_id = body["trigger_id"]
 
-    user = await env.db.user.find_unique(where={"id": user_id})
+    user = await env.db.user.find_unique(where={"slackId": user_id})
     if not user or not user.admin:
         await send_heartbeat(
             f"Attempted to open create tag modal by non-admin user <@{user_id}>"
