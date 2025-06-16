@@ -1,7 +1,7 @@
 from nephthys.utils.env import env
 
 
-async def can_resolve(user_id: str, ts: str) -> bool:
+async def can_resolve(slack_id: str, user_id: int, ts: str) -> bool:
     """
     Check if the user has permission to resolve tickets.
 
@@ -15,7 +15,7 @@ async def can_resolve(user_id: str, ts: str) -> bool:
     res = await env.slack_client.conversations_members(channel=env.slack_ticket_channel)
     team = res.get("members", [])
 
-    if user_id in team:
+    if slack_id in team:
         return True
 
     tkt = await env.db.ticket.find_unique(where={"msgTs": ts})

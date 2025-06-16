@@ -19,7 +19,7 @@ async def resolve(ts: str, resolver: str, client: AsyncWebClient):
         )
         return
 
-    allowed = await can_resolve(resolving_user.slackId, ts)
+    allowed = await can_resolve(resolving_user.slackId, resolving_user.id, ts)
     if not allowed:
         await send_heartbeat(
             f"User {resolver} attempted to resolve ticket with ts {ts} without permission.",
