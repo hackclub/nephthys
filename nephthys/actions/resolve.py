@@ -18,8 +18,8 @@ async def resolve(ts: str, resolver: str, client: AsyncWebClient):
             messages=[f"Ticket TS: {ts}", f"Resolver ID: {resolver}"],
         )
         return
-    
-    allowed = await can_resolve(resolving_user.id, ts)
+
+    allowed = await can_resolve(resolving_user.slackId, ts)
     if not allowed:
         await send_heartbeat(
             f"User {resolver} attempted to resolve ticket with ts {ts} without permission.",
@@ -33,7 +33,7 @@ async def resolve(ts: str, resolver: str, client: AsyncWebClient):
         return
 
     now = datetime.now()
-    
+
     tkt = await env.db.ticket.update(
         where={"msgTs": ts},
         data={
