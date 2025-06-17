@@ -104,6 +104,8 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         if past_tickets == 0
         else Transcript.ticket_create.replace("(user)", display_name)
     )
+    ticket_url = f"https://hackclub.slack.com/archives/{env.slack_ticket_channel}/p{ticket['ts'].replace('.', '')}"
+
     await client.chat_postMessage(
         channel=event["channel"],
         text=text,
@@ -118,6 +120,15 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                         "style": "primary",
                         "action_id": "mark_resolved",
                         "value": f"{event['ts']}",
+                    }
+                ],
+            },
+            {
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": f"<{ticket_url}|backend> (for support team).",
                     }
                 ],
             },
