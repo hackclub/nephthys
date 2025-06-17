@@ -70,6 +70,9 @@ async def assign_tag_callback(
     )
 
     user_ids = [tag.userId for tag in tags]
+    if user_id in user_ids:
+        user_ids.remove(user_id)
+
     db_users = await env.db.user.find_many(where={"id": {"in": user_ids}})
 
     users = []
