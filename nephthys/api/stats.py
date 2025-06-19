@@ -44,19 +44,27 @@ async def stats(req: Request):
     )
     prev_day_total = len(prev_day_tickets)
 
+    one_day_ago = datetime.now(timezone.utc) - timedelta(days=1)
     prev_24_resolvers = [
         user
         for user in users_with_closed_tickets
         if user.closedTickets
         and any(
-            ticket.closedAt
-            and ticket.closedAt >= datetime.now(timezone.utc) - timedelta(days=1)
+            ticket.closedAt and ticket.closedAt >= one_day_ago
             for ticket in user.closedTickets
         )
     ]
 
     prev_day_top_3_users = sorted(
-        prev_24_resolvers, key=lambda user: len(user.closedTickets or []), reverse=True
+        prev_24_resolvers,
+        key=lambda user: len(
+            [
+                t
+                for t in (user.closedTickets or [])
+                if t.closedAt and t.closedAt >= one_day_ago
+            ]
+        ),
+        reverse=True,
     )[:3]
 
     return JSONResponse(
@@ -81,7 +89,13 @@ async def stats(req: Request):
                 {
                     "user_id": user.id,
                     "slack_id": user.slackId,
-                    "closed_ticket_count": len(user.closedTickets or []),
+                    "closed_ticket_count": len(
+                        [
+                            t
+                            for t in (user.closedTickets or [])
+                            if t.closedAt and t.closedAt >= one_day_ago
+                        ]
+                    ),
                 }
                 for user in prev_day_top_3_users
             ],
