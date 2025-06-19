@@ -19,7 +19,7 @@ async def send_daily_stats():
         hour=0, minute=0, second=0, microsecond=0
     )
 
-    # This gives us the 24-hour period of the previous day
+    # this gives us the 24-hour period of the previous day
     start_of_yesterday = today_midnight_london - timedelta(days=1)
     end_of_yesterday = today_midnight_london
 
@@ -29,6 +29,10 @@ async def send_daily_stats():
 
     try:
         tickets = await env.db.ticket.find_many() or []
+        users_with_closed_tickets = await env.db.user.find_many(
+            include={"closedTickets": True}, where={"helper": True}
+        )
+
         total_open = len([t for t in tickets if t.status == TicketStatus.OPEN])
         total_in_progress = len(
             [t for t in tickets if t.status == TicketStatus.IN_PROGRESS]
@@ -36,18 +40,19 @@ async def send_daily_stats():
         total_closed = len([t for t in tickets if t.status == TicketStatus.CLOSED])
         total = len(tickets)
 
-        users_with_closed_tickets = await env.db.user.find_many(
-            include={"closedTickets": {}}, where={"helper": True}
-        )
-
-        # Sort the users by the count of their closed tickets in descending order
-        sorted_users = sorted(
+        sorted_users_overall = sorted(
             users_with_closed_tickets,
             key=lambda user: len(user.closedTickets or []),
             reverse=True,
         )
-
-        total_top_3_users = sorted_users[:3]
+        overall_leaderboard_lines = [
+            f"{i + 1}. <@{user.slackId}> - {len(user.closedTickets or [])} closed tickets"
+            for i, user in enumerate(sorted_users_overall[:3])
+        ]
+        if not overall_leaderboard_lines:
+            overall_leaderboard_str = "_No one's on the board yet!_"
+        else:
+            overall_leaderboard_str = "\n".join(overall_leaderboard_lines)
 
         prev_day_total = len(
             [t for t in tickets if start_of_yesterday <= t.createdAt < end_of_yesterday]
@@ -62,7 +67,6 @@ async def send_daily_stats():
                 and start_of_yesterday <= t.createdAt < end_of_yesterday
             ]
         )
-
         prev_day_open = len(
             [
                 t
@@ -90,48 +94,55 @@ async def send_daily_stats():
             ]
         )
 
-        prev_24_resolvers = [
-            user
-            for user in users_with_closed_tickets
-            if user.closedTickets
-            and any(
-                ticket.closedAt
-                and ticket.closedAt >= datetime.now(london_tz) - timedelta(days=1)
-                for ticket in user.closedTickets
+        daily_leaderboard_data = []
+        for user in users_with_closed_tickets:
+            daily_closed_count = sum(
+                1
+                for ticket in (user.closedTickets or [])
+                if ticket.closedAt
+                and start_of_yesterday <= ticket.closedAt < end_of_yesterday
             )
-        ]
+            if daily_closed_count > 0:
+                daily_leaderboard_data.append(
+                    {"user": user, "count": daily_closed_count}
+                )
 
-        prev_day_top_3_users = sorted(
-            prev_24_resolvers,
-            key=lambda user: len(user.closedTickets or []),
+        sorted_daily_users = sorted(
+            daily_leaderboard_data,
+            key=lambda data: data["count"],
             reverse=True,
-        )[:3]
+        )
+
+        daily_leaderboard_lines = [
+            f"{i + 1}. <@{data['user'].slackId}> - {data['count']} closed tickets"
+            for i, data in enumerate(sorted_daily_users[:3])
+        ]
+        if not daily_leaderboard_lines:
+            daily_leaderboard_str = "_No tickets were closed yesterday!_"
+        else:
+            daily_leaderboard_str = "\n".join(daily_leaderboard_lines)
 
         msg = f"""
 um, um, hi there! hope i'm not disturbing you, but i just wanted to let you know that i've got some stats for you! :rac_cute:
 
 well, uh, let's see here...
 
-*:rac_graph total stats*
-*tickets opened:* {total}
-*tickets open:* {total_open}
-*tickets in progress:* {total_in_progress}
-*tickets closed:* {total_closed}
+*:rac_graph: total stats*
+tickets opened: *{total}*
+tickets open: *{total_open}*
+tickets in progress: *{total_in_progress}*
+tickets closed: *{total_closed}*
 
 *:rac_lfg: overall leaderboard*
-1. <@{total_top_3_users[0].slackId}> - {len(total_top_3_users[0].closedTickets or [])} closed tickets
-2. <@{total_top_3_users[1].slackId}> - {len(total_top_3_users[1].closedTickets or [])} closed tickets
-3. <@{total_top_3_users[2].slackId}> - {len(total_top_3_users[2].closedTickets or [])} closed tickets
+{overall_leaderboard_str}
 
 *:mc-clock: in the last 24 hours...* _(that's a day, right? right? that's a day, yeah ok)_
-:rac_woah: *{prev_day_total}* total tickets were opened and you managed to close {prev_day_only_closed} of them! congrats!! :D
-:rac_info: *{prev_day_in_progress}* tickets have been assigned to users, and {prev_day_open} are still open
+:rac_woah: *{prev_day_total}* total tickets were opened and you managed to close *{prev_day_only_closed}* of them! congrats!! :D
+:rac_info: *{prev_day_in_progress}* tickets have been assigned to users, and *{prev_day_open}* are still open
 you managed to close a whopping *{prev_day_closed}* tickets in the last 24 hours, well done!
 
 *:rac_shy: today's leaderboard*
-1. <@{prev_day_top_3_users[0].slackId}> - {len(prev_day_top_3_users[0].closedTickets or [])} closed tickets
-2. <@{prev_day_top_3_users[1].slackId}> - {len(prev_day_top_3_users[1].closedTickets or [])} closed tickets
-3. <@{prev_day_top_3_users[2].slackId}> - {len(prev_day_top_3_users[2].closedTickets or [])} closed tickets
+{daily_leaderboard_str}
 """
 
         await env.slack_client.chat_postMessage(
@@ -142,7 +153,6 @@ you managed to close a whopping *{prev_day_closed}* tickets in the last 24 hours
 
     except Exception as e:
         logging.error(f"Failed to send daily stats: {e}", exc_info=True)
-
         try:
             await send_heartbeat(
                 "Failed to send daily stats",
