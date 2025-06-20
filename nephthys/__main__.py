@@ -71,7 +71,7 @@ def start():
         host="0.0.0.0",
         port=env.port,
         log_level="info" if env.environment != "production" else "warning",
-        # reload=env.environment == "development",
+        reload=env.environment == "development",
     )
 
 
