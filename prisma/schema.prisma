@@ -49,6 +49,7 @@ model Ticket {
 
   assignedTo   User?   @relation("AssignedTickets", fields: [assignedToId], references: [id])
   assignedToId Int?
+  assignedAt   DateTime?
 
   tagsOnTickets TagsOnTickets[]
 

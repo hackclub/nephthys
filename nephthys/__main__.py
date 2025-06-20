@@ -4,9 +4,11 @@ import logging
 
 import uvicorn
 from aiohttp import ClientSession
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 from starlette.applications import Starlette
 
+from nephthys.tasks.daily_stats import send_daily_stats
 from nephthys.tasks.update_helpers import update_helpers
 from nephthys.utils.delete_thread import process_queue
 from nephthys.utils.env import env
@@ -30,6 +32,11 @@ async def main(_app: Starlette):
     async with ClientSession() as session:
         env.session = session
         await env.db.connect()
+
+        scheduler = AsyncIOScheduler(timezone="Europe/London")
+        scheduler.add_job(send_daily_stats, "cron", hour=0, minute=0)
+        scheduler.start()
+
         delete_msg_task = asyncio.create_task(process_queue())
         await update_helpers()
         handler = None
@@ -50,6 +57,7 @@ async def main(_app: Starlette):
         logging.info(f"Starting Uvicorn on port {env.port}")
 
         yield
+        scheduler.shutdown()
         delete_msg_task.cancel()
 
         if handler:
