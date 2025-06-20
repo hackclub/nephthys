@@ -2,6 +2,7 @@ generator client {
   provider             = "prisma-client-py"
   interface            = "asyncio"
   recursive_type_depth = 5
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
