@@ -12,6 +12,7 @@ dependencies = [
     "python-dotenv>=1.1.0",
     "slack-bolt>=1.23.0",
     "starlette>=0.46.1",
+    "strawberry-graphql>=0.273.0",
     "thefuzz>=0.22.1",
     "uvicorn>=0.34.0",
     "uvloop>=0.21.0",
