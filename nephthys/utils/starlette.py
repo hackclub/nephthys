@@ -3,11 +3,12 @@ from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.responses import RedirectResponse
-from starlette.routing import Route
+from starlette.routing import Mount, Route
 
 from nephthys.__main__ import main
 from nephthys.utils.env import env
 from nephthys.utils.slack import app as slack_app
+from nephthys.graphql.models import graphql
 
 req_handler = AsyncSlackRequestHandler(slack_app)
 
@@ -44,6 +45,7 @@ app = Starlette(
         Route(path="/", endpoint=root, methods=["GET"]),
         Route(path="/slack/events", endpoint=endpoint, methods=["POST"]),
         Route(path="/health", endpoint=health, methods=["GET"]),
+        Mount(path="/graphql", app=graphql)
     ],
     lifespan=main,
 )
