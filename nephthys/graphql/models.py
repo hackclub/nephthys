@@ -11,7 +11,8 @@ from __future__ import annotations
 import dataclasses
 from datetime import datetime
 import enum
-from typing import Annotated, Generic, Optional, Self, TypeVar
+import logging
+from typing import Annotated, Any, Callable, Generic, Optional, Self, TypeVar
 from prisma.types import TicketWhereInput
 import strawberry
 from strawberry.dataloader import DataLoader
@@ -23,7 +24,12 @@ import prisma.models as models
 
 T = TypeVar("T")
 
-# Data loaders
+logger = logging.getLogger(__name__)
+
+
+# ===
+# DATA LOADERS
+
 
 async def tag_loader_fn(keys: list[int]) -> list[Tag | ValueError]:
     tag_list = await env.db.tag.find_many(
@@ -67,6 +73,10 @@ async def user_loader_fn(keys: list[int]) -> list[User | ValueError]:
 user_loader = DataLoader(load_fn=user_loader_fn)
 
 
+# ===
+# PAGINATION
+
+
 class Cursor(BaseModel):
     ns: str
     id: int
@@ -100,17 +110,77 @@ class Page(Generic[T]):
     edges: list[Edge[T]]
     page_info: PageInfo
 
+    @classmethod
+    async def paginate[
+        D: models.Ticket | models.Tag | models.User,
+        E
+    ](
+        cls,
+        db_query: dict,
+        db: type[D],
+        db_to_model: Callable[[D], E],
+        ns: str,
+        after: Optional[strawberry.ID] = None,
+        before: Optional[strawberry.ID] = None,
+        first: Optional[int] = None,
+        last: Optional[int] = None
+    ) -> Page[E]:
+        # Assert that one of first or last isn't None
+        assert (first is not None) != (last is not None)
 
-@strawberry.type
-class Extension:
-    name: str
-    version: str
+        after_cursor = Cursor.deserialise(after)
+        before_cursor = Cursor.deserialise(before)
 
+        if after_cursor and before_cursor:
+            db_query["id"] = {
+                "gt": after_cursor.id,
+                "lt": before_cursor.id
+            }
+        elif after_cursor:
+            db_query["id"] = {"lte": after_cursor.id}
+        elif before_cursor:
+            db_query["id"] = {"gt": before_cursor.id}
 
-@strawberry.type
-class SupportKitMetadata:
-    interface_version: str = "v0.2025.06.16"
-    extensions: list[Extension] = dataclasses.field(default_factory=list)
+        fetch_count = (first or last or 0) + 1
+        logger.info(f"graphql pagination fetch query: {db_query}")
+        tickets = await db.prisma().find_many(
+            take=fetch_count,
+            order={"id": "desc" if first else "asc"},
+            where=db_query  # type: ignore
+        )
+        logger.info(f"fetched: {tickets}")
+
+        if last is not None:
+            pass
+            #tickets.reverse()
+
+        if db_query.get("id"):
+            del db_query["id"]
+
+        count = await db.prisma().count(
+            where=db_query  # type: ignore
+        )
+
+        return Page(
+            count=count,
+            edges=[
+                Edge(
+                    cursor=strawberry.ID(Cursor(ns=ns, id=edge.id).serialise()),
+                    node=db_to_model(edge)
+                )
+                for edge in tickets[:(first or last)]
+            ],
+            page_info=PageInfo(
+                # It has a next page if we fetched all N + 1 items, we were paging forwards
+                # OR if we were paging backwards, since there would've been a previous page
+                has_next_page=((len(tickets) == fetch_count) and (first is not None)) or (before is not None),
+                has_previous_page=((len(tickets) == fetch_count) and (last is not None)) or (after is not None),
+                
+                # The start cursor and end cursor are the cursors of the first and last elements in the edges
+                start_cursor=strawberry.ID(Cursor(ns=ns, id=tickets[0].id).serialise()) if len(tickets) > 0 else None,
+                end_cursor=strawberry.ID(Cursor(ns=ns, id=tickets[max(len(tickets), (first or last)) - 1].id).serialise()) if len(tickets) > 0 else None
+            )
+        )
 
 
 @strawberry.input
@@ -119,6 +189,33 @@ class Search:
     from_date: Optional[datetime] = None
     to_date: Optional[datetime] = None
 
+    def to_query(
+        self,
+        fts_column: str
+    ) -> dict[str, Any]:
+        query = dict()
+
+        if self.from_date and self.to_date:
+            query["createdAt"] = {
+                "lt": self.to_date,
+                "gt": self.from_date
+            }
+        elif self.from_date:
+            query["createdAt"] = {"gt": self.from_date}
+        elif self.to_date:
+            query["createdAt"] = {"lt": self.to_date}
+
+        if self.text_search:
+            query[fts_column] = {
+                "search": self.text_search.lower()
+            }
+
+        return query
+
+
+# ===
+# TICKETS AND TAGS
+
 
 @strawberry.type
 class Tag:
@@ -126,14 +223,29 @@ class Tag:
     name: str
 
     @strawberry.field
-    def tickets(
+    async def tickets(
         self,
         after: Optional[strawberry.ID] = None,
         before: Optional[strawberry.ID] = None,
-        first: Optional[int] = None, 
+        first: Optional[int] = None,
         last: Optional[int] = None
     ) -> Page[Ticket]:
-        ...
+        return await Page.paginate(
+            db_query={
+                "tagsOnTickets": {
+                    "some": {
+                        "tagId": int(self.id)
+                    }
+                }
+            },
+            db=models.Ticket,
+            db_to_model=Ticket.from_model,
+            ns=f"/tag/{self.id}/tickets_v0",
+            after=after,
+            before=before,
+            first=first,
+            last=last
+        )
 
     @classmethod
     def from_model(cls, model: models.Tag):
@@ -156,22 +268,37 @@ class Ticket:
     state: TicketState
 
     thread_id: str
-    
+
     opened_by_id: strawberry.Private[int]
-    
+
     @strawberry.field
     async def opened_by(self) -> User:
         return await user_loader.load(self.opened_by_id)
 
     @strawberry.field
-    def tags(
+    async def tags(
         self,
         after: Optional[strawberry.ID] = None,
         before: Optional[strawberry.ID] = None,
-        first: Optional[int] = None, 
+        first: Optional[int] = None,
         last: Optional[int] = None
     ) -> Page[Tag]:
-        ...
+        return await Page.paginate(
+            db_query={
+                "ticketsOnTags": {
+                    "some": {
+                        "ticketId": int(self.id)
+                    }
+                }
+            },
+            db=models.Tag,
+            db_to_model=Tag.from_model,
+            ns=f"/ticket/{self.id}/tags_v0",
+            after=after,
+            before=before,
+            first=first,
+            last=last
+        )
 
     @classmethod
     def from_model(cls, model: models.Ticket):
@@ -182,6 +309,10 @@ class Ticket:
             state=TicketState.OPEN if model.status == "OPEN" else TicketState.CLOSED,
             thread_id=model.ticketTs
         )
+
+
+# ===
+# USERS AND MESSAGES
 
 
 @strawberry.type
@@ -206,26 +337,59 @@ class User:
     type: UserType
 
     @strawberry.field
-    def tickets(
+    async def tickets(
         self,
         query: Optional[Search] = None,
         after: Optional[strawberry.ID] = None,
         before: Optional[strawberry.ID] = None,
-        first: Optional[int] = None, 
+        first: Optional[int] = None,
         last: Optional[int] = None
     ) -> Page[Ticket]:
-        ...
+        db_query = {
+            "openedById": int(self.id)
+        }
+
+        if query:
+            query_filters = query.to_query(fts_column="description")
+            db_query.update(query_filters)
+
+        return await Page.paginate(
+            db_query=db_query,
+            db=models.Ticket,
+            db_to_model=Ticket.from_model,
+            ns=f"/user/{self.id}/tickets_v0",
+            after=after,
+            before=before,
+            first=first,
+            last=last
+        )
 
     @strawberry.field
-    def tags(
+    async def tags(
         self,
-        query: Optional[Search] = None,
         after: Optional[strawberry.ID] = None,
         before: Optional[strawberry.ID] = None,
-        first: Optional[int] = None, 
+        first: Optional[int] = None,
         last: Optional[int] = None
     ) -> Page[Tag]:
-        ...
+        db_query = {
+            "userSubscriptions": {
+                "some": {
+                    "userId": int(self.id)
+                }
+            }
+        }
+        
+        return await Page.paginate(
+            db_query=db_query,
+            db=models.Tag,
+            db_to_model=Tag.from_model,
+            ns=f"/user/{self.id}/tags_v0",
+            after=after,
+            before=before,
+            first=first,
+            last=last
+        )
 
     @classmethod
     def from_model(cls, model: models.User):
@@ -234,6 +398,22 @@ class User:
             slack_id=strawberry.ID(model.slackId),
             type=UserType.AGENT if model.helper else UserType.USER
         )
+
+
+# ===
+# QUERIES AND MUTATIONS
+
+
+@strawberry.type
+class Extension:
+    name: str
+    version: str
+
+
+@strawberry.type
+class SupportKitMetadata:
+    interface_version: str = "v0.2025.06.16"
+    extensions: list[Extension] = dataclasses.field(default_factory=list)
 
 
 @strawberry.type
@@ -255,37 +435,64 @@ class Query:
         return await user_loader.load(int(id))
 
     @strawberry.field
-    def ticket_search(
+    async def ticket_search(
         self,
         query: Search,
         after: Optional[strawberry.ID] = None,
         before: Optional[strawberry.ID] = None,
-        first: Optional[int] = None, 
+        first: Optional[int] = None,
         last: Optional[int] = None
     ) -> Page[Ticket]:
-        ...
+        return await Page.paginate(
+            db_query=query.to_query(fts_column="name"),
+            db=models.Ticket,
+            db_to_model=Ticket.from_model,
+            ns="/ticket_search_v0",
+            after=after,
+            before=before,
+            first=first,
+            last=last
+        )
 
     @strawberry.field
-    def tag_search(
+    async def tag_search(
         self,
         query: Search,
         after: Optional[strawberry.ID] = None,
         before: Optional[strawberry.ID] = None,
-        first: Optional[int] = None, 
+        first: Optional[int] = None,
         last: Optional[int] = None
     ) -> Page[Tag]:
-        ...
+        return await Page.paginate(
+            db_query=query.to_query(fts_column="name"),
+            db=models.Tag,
+            db_to_model=Tag.from_model,
+            ns="/tag_search_v0",
+            after=after,
+            before=before,
+            first=first,
+            last=last
+        )
 
     @strawberry.field
-    def user_search(
+    async def user_search(
         self,
         query: Search,
         after: Optional[strawberry.ID] = None,
         before: Optional[strawberry.ID] = None,
-        first: Optional[int] = None, 
+        first: Optional[int] = None,
         last: Optional[int] = None
     ) -> Page[User]:
-        ...
+        return await Page.paginate(
+            db_query=query.to_query(fts_column="username"),
+            db=models.User,
+            db_to_model=User.from_model,
+            ns="/user_search_v0",
+            after=after,
+            before=before,
+            first=first,
+            last=last
+        )
 
 
 @strawberry.type
@@ -314,5 +521,6 @@ schema = strawberry.Schema(
 
 graphql = GraphQL(
     schema=schema,
-    allow_queries_via_get=False
+    allow_queries_via_get=False,
+    debug=env.environment == "development"
 )
