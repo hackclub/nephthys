@@ -134,7 +134,7 @@ class Page(Generic[T]):
         if after_cursor and before_cursor:
             db_query["id"] = {
                 "gt": after_cursor.id,
-                "lt": before_cursor.id
+                "lte": before_cursor.id
             }
         elif after_cursor:
             db_query["id"] = {"lte": after_cursor.id}
@@ -152,7 +152,6 @@ class Page(Generic[T]):
 
         if last is not None:
             pass
-            #tickets.reverse()
 
         if db_query.get("id"):
             del db_query["id"]
@@ -168,7 +167,7 @@ class Page(Generic[T]):
                     cursor=strawberry.ID(Cursor(ns=ns, id=edge.id).serialise()),
                     node=db_to_model(edge)
                 )
-                for edge in tickets[:(first or last)]
+                for edge in tickets[:(first or last or 0)]
             ],
             page_info=PageInfo(
                 # It has a next page if we fetched all N + 1 items, we were paging forwards
@@ -178,7 +177,7 @@ class Page(Generic[T]):
                 
                 # The start cursor and end cursor are the cursors of the first and last elements in the edges
                 start_cursor=strawberry.ID(Cursor(ns=ns, id=tickets[0].id).serialise()) if len(tickets) > 0 else None,
-                end_cursor=strawberry.ID(Cursor(ns=ns, id=tickets[max(len(tickets), (first or last)) - 1].id).serialise()) if len(tickets) > 0 else None
+                end_cursor=strawberry.ID(Cursor(ns=ns, id=tickets[min(len(tickets), (first or last or 0)) - 1].id).serialise()) if len(tickets) > 0 else None
             )
         )
 
