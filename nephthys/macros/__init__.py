@@ -27,7 +27,7 @@ async def run_macro(
             )
 
     await send_heartbeat(
-        f"Macro {name} not found from <@{helper.slackId}>.",
+        f"Macro {name} not found from <@{helper.slackId}.",
         messages=[f"Ticket ID: {ticket.id}", f"Helper ID: {helper.id}"],
     )
     return False
