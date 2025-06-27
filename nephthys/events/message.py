@@ -18,9 +18,6 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
     if "subtype" in event and event["subtype"] not in ALLOWED_SUBTYPES:
         return
 
-    if event.get("thread_ts"):
-        return
-
     user = event.get("user", "unknown")
     text = event.get("text", "")
 
