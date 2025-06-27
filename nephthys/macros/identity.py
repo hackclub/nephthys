@@ -1,0 +1,29 @@
+from nephthys.actions.resolve import resolve
+from nephthys.data.transcript import Transcript
+from nephthys.macros.types import Macro
+from nephthys.utils.env import env
+
+
+class Identity(Macro):
+    name = "identity"
+
+    async def run(self, ticket, helper, **kwargs):
+        """
+        A simple hello world macro that does nothing.
+        """
+        user_info = await env.slack_client.users_info(user=helper.slackId)
+        name = (
+            user_info["user"]["profile"].get("display_name")
+            or user_info["user"]["profile"].get("real_name")
+            or user_info["user"]["name"]
+        )
+        await env.slack_client.chat_postMessage(
+            text=f"hey, {name}! please could you ask questions about identity verification in <#{Transcript.IDENTITY_HELP_CHANNEL}>? :rac_cute:\n\nit helps the verification team keep track of questions easier!",
+            channel=env.slack_help_channel,
+            thread_ts=ticket.msgTs,
+        )
+        await resolve(
+            ts=ticket.msgTs,
+            resolver=helper.slackId,
+            client=env.slack_client,
+        )

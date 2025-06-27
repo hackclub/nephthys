@@ -4,6 +4,7 @@ from nephthys.utils.env import env
 class Transcript:
     FAQ_LINK = "https://hackclub.slack.com/docs/T0266FRGM/F090MQF0H2Q"
     EXPLORPHEUS_PFP = "https://hc-cdn.hel1.your-objectstorage.com/s/v3/d6d828d6ba656d09a62add59dc07e2974bfdb38f_image.png"
+    IDENTITY_HELP_CHANNEL = "C092833JXKK"
 
     first_ticket_create = f"""
 oh, hey (user) it looks like this is your first time here, welcome! someone should be along to help you soon but in the mean time i suggest you read the faq <{FAQ_LINK}|here>, it answers a lot of common questions. 
