@@ -4,6 +4,7 @@ from typing import Dict
 from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.data.transcript import Transcript
+from nephthys.macros import run_macro
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 
@@ -22,6 +23,26 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
 
     user = event.get("user", "unknown")
     text = event.get("text", "")
+
+    db_user = await env.db.user.find_first(where={"slackId": user})
+
+    if event.get("thread_ts"):
+        if db_user and db_user.helper:
+            ticket = await env.db.ticket.find_first(
+                where={"msgTs": event["thread_ts"]},
+                include={"openedBy": True, "tagsOnTickets": True},
+            )
+            first_word = text.split()[0].lower()
+
+            if first_word[0] == "?" and ticket:
+                await run_macro(
+                    name=first_word.lstrip("?"),
+                    ticket=ticket,
+                    helper=db_user,
+                    text=text,
+                    macro_ts=event["ts"],
+                )
+        return
 
     thread_url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{event['ts'].replace('.', '')}"
 
