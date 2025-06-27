@@ -15,12 +15,12 @@ async def channel_left(ack: AsyncAck, event: dict, client: AsyncWebClient):
 
     users = await client.usergroups_users_list(usergroup=env.slack_user_group)
     new_users = users.get("users", [])
-    
+
     try:
         new_users.remove(user_id)
     except ValueError:
-        return 
-        
+        return
+
     await client.usergroups_users_update(
         usergroup=env.slack_user_group, users=new_users
     )

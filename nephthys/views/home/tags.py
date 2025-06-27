@@ -30,11 +30,9 @@ async def get_manage_tags_view(user: User) -> dict:
         )
         if tag.userSubscriptions:
             subIds = [user.userId for user in tag.userSubscriptions]
-            
-            subUsers = await env.db.user.find_many(
-                where={"id": {"in": subIds}}
-            )
-            
+
+            subUsers = await env.db.user.find_many(where={"id": {"in": subIds}})
+
             subs = [user.slackId for user in subUsers]
         else:
             subs = []

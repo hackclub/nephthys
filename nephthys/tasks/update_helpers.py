@@ -28,7 +28,9 @@ async def update_helpers():
     )
 
     # create new users not in the db
-    existing_users_in_db = await env.db.user.find_many(where={"slackId": {"in": team_ids}})
+    existing_users_in_db = await env.db.user.find_many(
+        where={"slackId": {"in": team_ids}}
+    )
     existing_user_ids_in_db = {user.slackId for user in existing_users_in_db}
 
     new_member_data_to_create = []
