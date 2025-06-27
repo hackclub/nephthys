@@ -9,7 +9,7 @@ class FAQ(Macro):
 
     async def run(self, ticket, helper, **kwargs):
         """
-        A simple hello world macro that does nothing.
+        A simple macro reminding people to check the FAQ.
         """
         user_info = await env.slack_client.users_info(user=helper.slackId)
         name = (
