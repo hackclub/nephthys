@@ -1,7 +1,6 @@
 from slack_bolt.context.ack.async_ack import AsyncAck
 from slack_sdk.web.async_client import AsyncWebClient
 
-from nephthys.data.transcript import Transcript
 from nephthys.tasks.update_helpers import update_helpers
 from nephthys.utils.env import env
 
@@ -16,7 +15,7 @@ async def channel_join(ack: AsyncAck, event: dict, client: AsyncWebClient):
         if user_id not in users.get("users", []):
             await client.conversations_kick(channel=channel_id, user=user_id)
             await client.chat_postMessage(
-                channel=user_id, text=Transcript.not_allowed_channel
+                channel=user_id, text=env.transcript.not_allowed_channel
             )
             await update_helpers()
     else:

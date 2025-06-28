@@ -3,7 +3,6 @@ from typing import Dict
 
 from slack_sdk.web.async_client import AsyncWebClient
 
-from nephthys.data.transcript import Transcript
 from nephthys.macros import run_macro
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
@@ -118,9 +117,9 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
     )
 
     text = (
-        Transcript.first_ticket_create.replace("(user)", display_name)
+        env.transcript.first_ticket_create.replace("(user)", display_name)
         if past_tickets == 0
-        else Transcript.ticket_create.replace("(user)", display_name)
+        else env.transcript.ticket_create.replace("(user)", display_name)
     )
     ticket_url = f"https://hackclub.slack.com/archives/{env.slack_ticket_channel}/p{ticket['ts'].replace('.', '')}"
 

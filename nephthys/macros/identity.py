@@ -1,5 +1,4 @@
 from nephthys.actions.resolve import resolve
-from nephthys.data.transcript import Transcript
 from nephthys.macros.types import Macro
 from nephthys.utils.env import env
 
@@ -18,7 +17,7 @@ class Identity(Macro):
             or user_info["user"]["name"]
         )
         await env.slack_client.chat_postMessage(
-            text=f"hey, {name}! please could you ask questions about identity verification in <#{Transcript.IDENTITY_HELP_CHANNEL}>? :rac_cute:\n\nit helps the verification team keep track of questions easier!",
+            text=f"hey, {name}! please could you ask questions about identity verification in <#{env.transcript.identity_help_channel}>? :rac_cute:\n\nit helps the verification team keep track of questions easier!",
             channel=env.slack_help_channel,
             thread_ts=ticket.msgTs,
         )

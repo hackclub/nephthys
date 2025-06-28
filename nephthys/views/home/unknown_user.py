@@ -1,4 +1,4 @@
-from nephthys.data.transcript import Transcript
+from nephthys.utils.env import env
 
 
 def get_unknown_user_view(name: str):
@@ -9,13 +9,16 @@ def get_unknown_user_view(name: str):
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": Transcript.home_unknown_user_title.format(name=name),
+                    "text": env.transcript.home_unknown_user_title.format(name=name),
                     "emoji": True,
                 },
             },
             {
                 "type": "section",
-                "text": {"type": "mrkdwn", "text": Transcript.home_unknown_user_text},
+                "text": {
+                    "type": "mrkdwn",
+                    "text": env.transcript.home_unknown_user_text,
+                },
             },
         ],
     }
