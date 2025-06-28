@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from slack_sdk.web.async_client import AsyncWebClient
 
 from prisma import Prisma
+import prisma
 
 load_dotenv(override=True)
 
@@ -38,6 +39,7 @@ class Environment:
 
         self.session: ClientSession
         self.db = Prisma()
+        prisma.register(self.db)
 
         self.slack_client = AsyncWebClient(token=self.slack_bot_token)
 
