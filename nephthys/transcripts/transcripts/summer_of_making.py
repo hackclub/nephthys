@@ -7,12 +7,12 @@ class SummerOfMaking(Transcript):
     program_name: str = "Summer of Making"
     program_owner: str = "U054VC2KM9P"
 
-    help_channel: str = "C091D312J85"
-    ticket_channel: str = "C091D31UC4D"
-    team_channel: str = "C0917TW3Z2P"
+    help_channel: str = "C090JKDJYN8"
+    ticket_channel: str = "C0904U79G15"
+    team_channel: str = "C090EPTT84E"
 
     faq_link: str = "https://hackclub.slack.com/docs/T0266FRGM/F090MQF0H2Q"
-    summer_help_channel: str = "C091D312J85"
+    summer_help_channel: str = "C090JKDJYN8"
     identity_help_channel: str = "C092833JXKK"
 
     first_ticket_create: str = f"""
@@ -25,6 +25,6 @@ if your question has been answered, please hit the button below to mark it as re
     home_unknown_user_title: str = (
         ":upside-down_orpheus: woah, stop right there {name}!"
     )
-    home_unknown_user_text: str = f"oh, oh! it looks like this post has been marked as resolved by <@{{user_id}}>! if you have any more questions, please make a new post in <#{help_channel}> and someone'll be happy to help you out! not me though, i'm just a silly racoon ^-^"
+    home_unknown_user_text: str = f"heyyyy, heidi here! it looks like i'm not allowed to show ya this. sorry! if you think this is a mistake, please reach out to <@{program_owner}> and she'll lmk what to do!"
 
     not_allowed_channel: str = f"heya, it looks like you're not supposed to be in that channel, pls talk to <@{program_owner}> if that's wrong"
