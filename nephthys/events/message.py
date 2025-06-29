@@ -7,7 +7,7 @@ from nephthys.macros import run_macro
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 
-ALLOWED_SUBTYPES = ["file_share", "me_message"]
+ALLOWED_SUBTYPES = ["file_share", "me_message", "thread_broadcast"]
 
 
 async def on_message(event: Dict[str, Any], client: AsyncWebClient):
@@ -16,6 +16,21 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
     """
     if "subtype" in event and event["subtype"] not in ALLOWED_SUBTYPES:
         return
+
+    if event.get("subtype") == "thread_broadcast":
+        await client.chat_delete(
+            channel=event["channel"],
+            ts=event["ts"],
+            as_user=True,
+            token=env.slack_user_token,
+            broadcast_delete=True,
+        )
+        await client.chat_postEphemeral(
+            channel=event["channel"],
+            user=event["user"],
+            text=env.transcript.thread_broadcast_delete,
+            thread_ts=event["thread_ts"] if "thread_ts" in event else event["ts"],
+        )
 
     user = event.get("user", "unknown")
     text = event.get("text", "")
