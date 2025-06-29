@@ -1,5 +1,4 @@
 from nephthys.actions.resolve import resolve
-from nephthys.data.transcript import Transcript
 from nephthys.macros.types import Macro
 from nephthys.utils.env import env
 
@@ -18,7 +17,7 @@ class FAQ(Macro):
             or user_info["user"]["name"]
         )
         await env.slack_client.chat_postMessage(
-            text=f"hey, {name}! this question is answered in the faq i sent earlier, please make sure to check it out! :rac_cute:\n\n<here it is again|{Transcript.FAQ_LINK}>",
+            text=f"hey, {name}! this question is answered in the faq i sent earlier, please make sure to check it out! :rac_cute:\n\n<here it is again|{env.transcript.faq_link}>",
             channel=env.slack_help_channel,
             thread_ts=ticket.msgTs,
         )

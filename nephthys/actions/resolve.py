@@ -2,7 +2,6 @@ from datetime import datetime
 
 from slack_sdk.web.async_client import AsyncWebClient
 
-from nephthys.data.transcript import Transcript
 from nephthys.utils.delete_thread import add_thread_to_delete_queue
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
@@ -51,7 +50,7 @@ async def resolve(ts: str, resolver: str, client: AsyncWebClient):
 
     await client.chat_postMessage(
         channel=env.slack_help_channel,
-        text=Transcript.ticket_resolve.format(user_id=resolver),
+        text=env.transcript.ticket_resolve.format(user_id=resolver),
         thread_ts=ts,
     )
 

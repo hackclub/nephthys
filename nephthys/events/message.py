@@ -3,12 +3,11 @@ from typing import Dict
 
 from slack_sdk.web.async_client import AsyncWebClient
 
-from nephthys.data.transcript import Transcript
 from nephthys.macros import run_macro
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 
-ALLOWED_SUBTYPES = ["file_share", "me_message"]
+ALLOWED_SUBTYPES = ["file_share", "me_message", "thread_broadcast"]
 
 
 async def on_message(event: Dict[str, Any], client: AsyncWebClient):
@@ -17,6 +16,21 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
     """
     if "subtype" in event and event["subtype"] not in ALLOWED_SUBTYPES:
         return
+
+    if event.get("subtype") == "thread_broadcast":
+        await client.chat_delete(
+            channel=event["channel"],
+            ts=event["ts"],
+            as_user=True,
+            token=env.slack_user_token,
+            broadcast_delete=True,
+        )
+        await client.chat_postEphemeral(
+            channel=event["channel"],
+            user=event["user"],
+            text=env.transcript.thread_broadcast_delete,
+            thread_ts=event["thread_ts"] if "thread_ts" in event else event["ts"],
+        )
 
     user = event.get("user", "unknown")
     text = event.get("text", "")
@@ -118,9 +132,9 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
     )
 
     text = (
-        Transcript.first_ticket_create.replace("(user)", display_name)
+        env.transcript.first_ticket_create.replace("(user)", display_name)
         if past_tickets == 0
-        else Transcript.ticket_create.replace("(user)", display_name)
+        else env.transcript.ticket_create.replace("(user)", display_name)
     )
     ticket_url = f"https://hackclub.slack.com/archives/{env.slack_ticket_channel}/p{ticket['ts'].replace('.', '')}"
 

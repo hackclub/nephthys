@@ -5,7 +5,6 @@ from urllib.parse import quote
 from slack_bolt.async_app import AsyncAck
 from slack_sdk.web.async_client import AsyncWebClient
 
-from nephthys.data.transcript import Transcript
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 
@@ -21,7 +20,7 @@ async def dm_magic_link_cmd_callback(
         await client.chat_postEphemeral(
             channel=body["channel_id"],
             user=user_id,
-            text=Transcript.dm_magic_link_no_permission,
+            text=env.transcript.dm_magic_link_no_permission,
         )
         return
 
@@ -30,7 +29,7 @@ async def dm_magic_link_cmd_callback(
         await client.chat_postEphemeral(
             channel=body["channel_id"],
             user=body["user_id"],
-            text=Transcript.dm_magic_link_no_user,
+            text=env.transcript.dm_magic_link_no_user,
         )
     parsed = re.search(r"<@([UW][A-Z0-9]+)(?:\|[^>]+)?>", cmd_text)
     slack_id = parsed.group(1) if parsed else None
@@ -38,7 +37,7 @@ async def dm_magic_link_cmd_callback(
         await client.chat_postEphemeral(
             channel=body["channel_id"],
             user=body["user_id"],
-            text=Transcript.dm_magic_link_no_user,
+            text=env.transcript.dm_magic_link_no_user,
         )
         return
 
@@ -47,7 +46,7 @@ async def dm_magic_link_cmd_callback(
         await client.chat_postEphemeral(
             channel=body["channel_id"],
             user=body["user_id"],
-            text=Transcript.dm_magic_link_no_user,
+            text=env.transcript.dm_magic_link_no_user,
         )
         return
 
@@ -64,7 +63,7 @@ async def dm_magic_link_cmd_callback(
             await client.chat_postEphemeral(
                 channel=body["channel_id"],
                 user=body["user_id"],
-                text=Transcript.dm_magic_link_error.format(status=res.status),
+                text=env.transcript.dm_magic_link_error.format(status=res.status),
             )
             return
 
@@ -78,18 +77,18 @@ async def dm_magic_link_cmd_callback(
         await client.chat_postEphemeral(
             channel=body["channel_id"],
             user=body["user_id"],
-            text=Transcript.dm_magic_link_error.format(status="No link returned"),
+            text=env.transcript.dm_magic_link_error.format(status="No link returned"),
         )
         return
 
     await client.chat_postEphemeral(
         channel=body["channel_id"],
         user=body["user_id"],
-        text=Transcript.dm_magic_link_success,
+        text=env.transcript.dm_magic_link_success,
     )
 
     await client.chat_postMessage(
         channel=slack_id,
-        text=Transcript.dm_magic_link_message.format(magic_link=magic_link),
+        text=env.transcript.dm_magic_link_message.format(magic_link=magic_link),
     )
     logging.info(f"Sent magic link to {slack_id}")
