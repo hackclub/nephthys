@@ -11,7 +11,7 @@ class Identity(Transcript):
     ticket_channel: str = "C093FV95GGJ"
     team_channel: str = "C091URN0G9G"
 
-    faq_link: str = "https://hackclub.slack.com/docs/T0266FRGM/F090MQF0H2Q"
+    faq_link: str = "https://hackclub.slack.com/docs/T0266FRGM/F0945AV6AKA"
     summer_help_channel: str = "C091D312J85"
     identity_help_channel: str = "C092833JXKK"
 
