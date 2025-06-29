@@ -1,19 +1,36 @@
 from pydantic import BaseModel
-from pydantic import computed_field
 from pydantic import Field
 from pydantic import model_validator
-
-from nephthys.utils.env import env
 
 
 class Transcript(BaseModel):
     """Class to hold all the transcript messages and links used in the bot."""
 
+    class Config:
+        """Configuration for the Pydantic model."""
+
+        extra = "forbid"
+
     program_name: str = Field(
         default="Summer of Making", description="Name of the program"
     )
+    program_owner: str = Field(
+        default="U054VC2KM9P",
+        description="Slack ID of the support manager",
+    )
+    help_channel: str = Field(
+        default="",
+        description="Slack channel ID for help requests",
+    )
+    ticket_channel: str = Field(
+        default="",
+        description="Slack channel ID for ticket creation",
+    )
+    team_channel: str = Field(
+        default="",
+        description="Slack channel ID for team discussions and stats",
+    )
 
-    @computed_field
     @property
     def program_snake_case(self) -> str:
         """Snake case version of the program name."""
@@ -40,6 +57,10 @@ class Transcript(BaseModel):
 
     ticket_resolve: str = Field(
         default="", description="Message when ticket is resolved"
+    )
+
+    thread_broadcast_delete: str = Field(
+        default="hey! please keep your messages *all in one thread* to make it easier to read! i've gone ahead and removed that message from the channel for ya :D",
     )
 
     home_unknown_user_title: str = Field(
@@ -92,19 +113,19 @@ if your question has been answered, please hit the button below to mark it as re
     """
 
         if not self.ticket_resolve:
-            self.ticket_resolve = f"""oh, oh! it looks like this post has been marked as resolved by <@{{user_id}}>! if you have any more questions, please make a new post in <#{env.slack_help_channel}> and someone'll be happy to help you out! not me though, i'm just a silly racoon ^-^
+            self.ticket_resolve = f"""oh, oh! it looks like this post has been marked as resolved by <@{{user_id}}>! if you have any more questions, please make a new post in <#{self.help_channel}> and someone'll be happy to help you out! not me though, i'm just a silly racoon ^-^
     """
 
         if not self.home_unknown_user_text:
-            self.home_unknown_user_text = f"heyyyy, heidi here! it looks like i'm not allowed to show ya this. sorry! if you think this is a mistake, please reach out to <@{env.slack_maintainer_id}> and she'll lmk what to do!"
+            self.home_unknown_user_text = f"heyyyy, heidi here! it looks like i'm not allowed to show ya this. sorry! if you think this is a mistake, please reach out to <@{self.program_owner}> and she'll lmk what to do!"
 
         if not self.not_allowed_channel:
-            self.not_allowed_channel = f"heya, it looks like you're not supposed to be in that channel, pls talk to <@{env.slack_maintainer_id}> if that's wrong"
+            self.not_allowed_channel = f"heya, it looks like you're not supposed to be in that channel, pls talk to <@{self.program_owner}> if that's wrong"
 
         if not self.dm_magic_link_error:
-            self.dm_magic_link_error = f":rac_nooo: something went wrong while generating the magic link, please bug <@{env.slack_maintainer_id}> (status: {{status}})"
+            self.dm_magic_link_error = f":rac_nooo: something went wrong while generating the magic link, please bug <@{self.program_owner}> (status: {{status}})"
 
         if not self.dm_magic_link_no_permission:
-            self.dm_magic_link_no_permission = f":rac_nooo: you don't have permission to use this command, please bug <@{env.slack_maintainer_id}> if you think this is a mistake"
+            self.dm_magic_link_no_permission = f":rac_nooo: you don't have permission to use this command, please bug <@{self.program_owner}> if you think this is a mistake"
 
         return self

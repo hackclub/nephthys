@@ -39,10 +39,14 @@ class Environment:
         if unset:
             raise ValueError(f"Missing environment variables: {', '.join(unset)}")
 
-        if self.program not in [program.program_snake_case for program in transcripts]:
+        transcript_instances = [program() for program in transcripts]
+        valid_programs = [
+            program.program_snake_case for program in transcript_instances
+        ]
+        if self.program not in valid_programs:
             raise ValueError(
                 f"Invalid PROGRAM environment variable: {self.program}. "
-                f"Must be one of {[program.program_snake_case for program in transcripts]}"
+                f"Must be one of {valid_programs}"
             )
 
         self.session: ClientSession
@@ -50,10 +54,10 @@ class Environment:
         self.transcript = next(
             (
                 program
-                for program in transcripts
+                for program in transcript_instances
                 if program.program_snake_case == self.program
             ),
-            Transcript,
+            Transcript(),
         )
 
         self.slack_client = AsyncWebClient(token=self.slack_bot_token)

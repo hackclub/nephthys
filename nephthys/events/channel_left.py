@@ -13,18 +13,6 @@ async def channel_left(ack: AsyncAck, event: dict, client: AsyncWebClient):
     if channel_id == env.slack_help_channel:
         return
 
-    users = await client.usergroups_users_list(usergroup=env.slack_user_group)
-    new_users = users.get("users", [])
-
-    try:
-        new_users.remove(user_id)
-    except ValueError:
-        return
-
-    await client.usergroups_users_update(
-        usergroup=env.slack_user_group, users=new_users
-    )
-
     await env.db.user.update(where={"slackId": user_id}, data={"helper": False})
 
     try:
