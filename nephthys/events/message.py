@@ -17,7 +17,12 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
     if "subtype" in event and event["subtype"] not in ALLOWED_SUBTYPES:
         return
 
-    if event.get("subtype") == "thread_broadcast":
+    user = event.get("user", "unknown")
+    text = event.get("text", "")
+
+    db_user = await env.db.user.find_first(where={"slackId": user})
+
+    if event.get("subtype") == "thread_broadcast" and not (db_user and db_user.helper):
         await client.chat_delete(
             channel=event["channel"],
             ts=event["ts"],
@@ -31,11 +36,6 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
             text=env.transcript.thread_broadcast_delete,
             thread_ts=event["thread_ts"] if "thread_ts" in event else event["ts"],
         )
-
-    user = event.get("user", "unknown")
-    text = event.get("text", "")
-
-    db_user = await env.db.user.find_first(where={"slackId": user})
 
     if event.get("thread_ts"):
         if db_user and db_user.helper:
