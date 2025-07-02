@@ -31,6 +31,13 @@ async def resolve(ts: str, resolver: str, client: AsyncWebClient):
     if not ticket:
         return
 
+    if not resolving_user.helper and ticket.assignedTo:
+        new_resolving_user = await env.db.user.find_unique(
+            where={"id": ticket.assignedTo.id}
+        )
+        if new_resolving_user:
+            resolving_user = new_resolving_user
+
     now = datetime.now()
 
     tkt = await env.db.ticket.update(
