@@ -3,15 +3,17 @@ from nephthys.macros.types import Macro
 from nephthys.utils.env import env
 
 
-class FAQ(Macro):
+class Banned(Macro):
     name = "banned"
 
     async def run(self, ticket, helper, **kwargs):
         """
         hopefully a simple-ish macro to inform someone that they were banned, tell them to gtfo, and close thread --neko
         """
-        client = await ticket.openedBy()
-        user_info = await env.slack_client.users_info(user=client.slackId)
+        sender = await env.db.user.find_first(where={"id": ticket.openedById})
+        if not sender:
+            return
+        user_info = await env.slack_client.users_info(user=sender.slackId)
         name = (
             user_info["user"]["profile"].get("display_name")
             or user_info["user"]["profile"].get("real_name")
