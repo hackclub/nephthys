@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any
 from typing import Dict
 
@@ -6,6 +7,7 @@ from slack_sdk.web.async_client import AsyncWebClient
 from nephthys.macros import run_macro
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
+from prisma.enums import TicketStatus
 
 ALLOWED_SUBTYPES = ["file_share", "me_message", "thread_broadcast"]
 
@@ -43,6 +45,8 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                 where={"msgTs": event["thread_ts"]},
                 include={"openedBy": True, "tagsOnTickets": True},
             )
+            if not ticket:
+                return
             first_word = text.split()[0].lower()
 
             if first_word[0] == "?" and ticket:
@@ -52,6 +56,17 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                     helper=db_user,
                     text=text,
                     macro_ts=event["ts"],
+                )
+            else:
+                await env.db.ticket.update(
+                    where={"msgTs": event["thread_ts"]},
+                    data={
+                        "assignedTo": {"connect": {"id": db_user.id}},
+                        "status": TicketStatus.IN_PROGRESS,
+                        "assignedAt": datetime.now()
+                        if not ticket.assignedAt
+                        else ticket.assignedAt,
+                    },
                 )
         return
 
