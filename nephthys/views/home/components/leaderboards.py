@@ -1,13 +1,11 @@
 from datetime import datetime
 from datetime import timedelta
 
-import pytz
-
 from nephthys.utils.env import env
 from prisma.enums import TicketStatus
 
 
-async def get_leaderboard_view(tz=None):
+async def get_leaderboard_view():
     tickets = await env.db.ticket.find_many() or []
     users_with_closed_tickets = await env.db.user.find_many(
         include={"closedTickets": True, "assignedTickets": True}, where={"helper": True}
@@ -32,15 +30,11 @@ async def get_leaderboard_view(tz=None):
     else:
         overall_leaderboard_str = "\n".join(overall_leaderboard_lines)
 
-    # Use UTC as fallback if no timezone provided
-    if tz is None:
-        tz = pytz.UTC
-
-    now = datetime.now(tz)
+    now = datetime.now()
     prev_day_start = now - timedelta(days=1)
 
     prev_day_total = len(
-        [t for t in tickets if prev_day_start < t.createdAt.replace(tzinfo=tz) < now]
+        [t for t in tickets if prev_day_start < t.createdAt.replace(tzinfo=None) < now]
     )
     prev_day_only_closed = len(
         [
@@ -48,15 +42,15 @@ async def get_leaderboard_view(tz=None):
             for t in tickets
             if t.status == TicketStatus.CLOSED
             and t.closedAt
-            and prev_day_start < t.closedAt.replace(tzinfo=tz) < now
-            and prev_day_start < t.createdAt.replace(tzinfo=tz) < now
+            and prev_day_start < t.closedAt.replace(tzinfo=None) < now
+            and prev_day_start < t.createdAt.replace(tzinfo=None) < now
         ]
     )
     prev_day_open = len(
         [
             t
             for t in tickets
-            if prev_day_start < t.createdAt.replace(tzinfo=tz) < now
+            if prev_day_start < t.createdAt.replace(tzinfo=None) < now
             and t.status == TicketStatus.OPEN
         ]
     )
@@ -65,7 +59,7 @@ async def get_leaderboard_view(tz=None):
             t
             for t in tickets
             if t.assignedAt
-            and prev_day_start < t.assignedAt.replace(tzinfo=tz) < now
+            and prev_day_start < t.assignedAt.replace(tzinfo=None) < now
             and t.status == TicketStatus.IN_PROGRESS
         ]
     )
@@ -75,11 +69,11 @@ async def get_leaderboard_view(tz=None):
             for t in tickets
             if t.status == TicketStatus.CLOSED
             and t.closedAt
-            and prev_day_start < t.closedAt.replace(tzinfo=tz) < now
+            and prev_day_start < t.closedAt.replace(tzinfo=None) < now
         ]
     )
     prev_day_leaderboard_lines = [
-        f"{i + 1}. <@{user.slackId}> - {len([t for t in user.closedTickets or [] if prev_day_start < t.closedAt.replace(tzinfo=tz) < now])} closed, {len([t for t in user.assignedTickets or [] if prev_day_start < t.createdAt.replace(tzinfo=tz) < now and t.status != TicketStatus.CLOSED])} assigned"
+        f"{i + 1}. <@{user.slackId}> - {len([t for t in user.closedTickets or [] if prev_day_start < t.closedAt.replace(tzinfo=None) < now])} closed, {len([t for t in user.assignedTickets or [] if prev_day_start < t.createdAt.replace(tzinfo=None) < now and t.status != TicketStatus.CLOSED])} assigned"
         for i, user in enumerate(
             sorted(
                 users_with_closed_tickets,
@@ -87,7 +81,7 @@ async def get_leaderboard_view(tz=None):
                     [
                         t
                         for t in user.closedTickets or []
-                        if prev_day_start < t.closedAt.replace(tzinfo=tz) < now
+                        if prev_day_start < t.closedAt.replace(tzinfo=None) < now
                     ]
                 ),
                 reverse=True,
