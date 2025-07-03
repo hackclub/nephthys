@@ -5,7 +5,6 @@ from nephthys.views.home.components.buttons import get_buttons
 from nephthys.views.home.components.leaderboards import get_leaderboard_view
 from nephthys.views.home.components.ticket_status_pie import get_ticket_status_pie_chart
 from nephthys.views.home.error import get_error_view
-
 from prisma.models import User
 
 
