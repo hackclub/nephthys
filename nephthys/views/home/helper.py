@@ -18,7 +18,7 @@ async def get_helper_view(user: User):
     tz = pytz.timezone(tz_string)
 
     pie_chart = await get_ticket_status_pie_chart(user, tz)
-    leaderboard = await get_leaderboard_view(tz)
+    leaderboard = await get_leaderboard_view()
 
     btns = get_buttons(user, "dashboard")
 
