@@ -39,7 +39,7 @@ async def get_helper_view(user: User):
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": ":rac-info: funny circle and line things",
+                    "text": ":rac_info: funny circle and line things",
                 },
             },
             pie_chart,
