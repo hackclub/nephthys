@@ -36,10 +36,11 @@ async def get_helper_view(user: User):
             btns,
             {"type": "divider"},
             {
-                "type": "section",
+                "type": "header",
                 "text": {
-                    "type": "mrkdwn",
-                    "text": "*:rac_graph: funny circle and line things*",
+                    "type": "plain_text",
+                    "text": ":rac_graph: funny circle and line things",
+                    "emoji": True,
                 },
             },
             pie_chart,
