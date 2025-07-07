@@ -50,6 +50,7 @@ async def app_home_opened_handler(event: dict[str, Any], client: AsyncWebClient)
 
 
 @app.action("dashboard")
+@app.action("assigned-tickets")
 @app.action("tags")
 @app.action("my-stats")
 async def manage_home_switcher(ack: AsyncAck, body, client: AsyncWebClient):
