@@ -45,7 +45,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                 where={"msgTs": event["thread_ts"]},
                 include={"openedBy": True, "tagsOnTickets": True},
             )
-            if not ticket:
+            if not ticket or ticket.status == TicketStatus.CLOSED:
                 return
             first_word = text.split()[0].lower()
 
