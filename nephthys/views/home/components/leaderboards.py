@@ -54,14 +54,15 @@ async def get_leaderboard_view():
             and t.status == TicketStatus.OPEN
         ]
     )
-    prev_day_in_progress_tickets = [
-        t
-        for t in tickets
-        if t.assignedAt
-        and prev_day_start < t.assignedAt.replace(tzinfo=None) < now
-        and t.status == TicketStatus.IN_PROGRESS
-    ]
-    prev_day_in_progress = len(prev_day_in_progress_tickets)
+    prev_day_in_progress = len(
+        [
+            t
+            for t in tickets
+            if t.assignedAt
+            and prev_day_start < t.assignedAt.replace(tzinfo=None) < now
+            and t.status == TicketStatus.IN_PROGRESS
+        ]
+    )
     prev_day_closed = len(
         [
             t
