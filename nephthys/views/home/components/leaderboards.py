@@ -93,6 +93,48 @@ async def get_leaderboard_view():
     else:
         prev_day_leaderboard_str = "\n".join(prev_day_leaderboard_lines)
 
+    non_open_tickets = [t for t in tickets if t.status != TicketStatus.CLOSED]
+    prev_day_non_open_tickets = [
+        t
+        for t in non_open_tickets
+        if t.status != TicketStatus.CLOSED
+        and prev_day_start < t.createdAt.replace(tzinfo=None) < now
+    ]
+
+    if non_open_tickets:
+        hang_times = []
+        for ticket in non_open_tickets:
+            if ticket.assignedAt:
+                hang_time = (
+                    ticket.assignedAt - ticket.createdAt
+                ).total_seconds() / 60  # Convert to minutes
+                hang_times.append(hang_time)
+
+        if hang_times:
+            avg_hang_time_minutes = sum(hang_times) / len(hang_times)
+            avg_hang_time_str = f"{avg_hang_time_minutes:.2f} minutes"
+        else:
+            avg_hang_time_str = "No hang time data available"
+    else:
+        avg_hang_time_str = "No assigned tickets found"
+
+    if prev_day_non_open_tickets:
+        hang_times = []
+        for ticket in prev_day_non_open_tickets:
+            if ticket.assignedAt:
+                hang_time = (
+                    ticket.assignedAt - ticket.createdAt
+                ).total_seconds() / 60  # Convert to minutes
+                hang_times.append(hang_time)
+
+        if hang_times:
+            avg_hang_time_minutes = sum(hang_times) / len(hang_times)
+            avg_prev_day_hang_time_str = f"{avg_hang_time_minutes:.2f} minutes"
+        else:
+            avg_prev_day_hang_time_str = "No hang time data available"
+    else:
+        avg_prev_day_hang_time_str = "No assigned tickets found"
+
     return [
         {
             "type": "header",
@@ -120,11 +162,11 @@ async def get_leaderboard_view():
             "fields": [
                 {
                     "type": "mrkdwn",
-                    "text": f"*Total Tickets*\nTotal: {total}, Open: {total_open}, In Progress: {total_in_progress}, Closed: {total_closed}",
+                    "text": f"*Total Tickets*\nTotal: {total}, Open: {total_open}, In Progress: {total_in_progress}, Closed: {total_closed}\nHang time: {avg_hang_time_str}",
                 },
                 {
                     "type": "mrkdwn",
-                    "text": f"*Past 24 Hours*\nTotal: {prev_day_total}, Open: {prev_day_open}, In Progress: {prev_day_in_progress}, Closed: {prev_day_closed}, Closed Today: {prev_day_only_closed}",
+                    "text": f"*Past 24 Hours*\nTotal: {prev_day_total}, Open: {prev_day_open}, In Progress: {prev_day_in_progress}, Closed: {prev_day_closed}, Closed Today: {prev_day_only_closed}\nHang time: {avg_prev_day_hang_time_str}",
                 },
             ],
         },
