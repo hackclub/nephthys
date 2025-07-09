@@ -136,6 +136,19 @@ async def get_leaderboard_view():
 
     return [
         {
+            "type": "section",
+            "fields": [
+                {
+                    "type": "mrkdwn",
+                    "text": f"*Total Tickets*\nTotal: {total}, Open: {total_open}, In Progress: {total_in_progress}, Closed: {total_closed}\nHang time: {avg_hang_time_str}",
+                },
+                {
+                    "type": "mrkdwn",
+                    "text": f"*Past 24 Hours*\nTotal: {prev_day_total}, Open: {prev_day_open}, In Progress: {prev_day_in_progress}, Closed: {prev_day_closed}, Closed Today: {prev_day_only_closed}\nHang time: {avg_prev_day_hang_time_str}",
+                },
+            ],
+        },
+        {
             "type": "header",
             "text": {
                 "type": "plain_text",
@@ -153,19 +166,6 @@ async def get_leaderboard_view():
                 {
                     "type": "mrkdwn",
                     "text": f"*:mc-clock: past 24 hours*\n{prev_day_leaderboard_str}",
-                },
-            ],
-        },
-        {
-            "type": "section",
-            "fields": [
-                {
-                    "type": "mrkdwn",
-                    "text": f"*Total Tickets*\nTotal: {total}, Open: {total_open}, In Progress: {total_in_progress}, Closed: {total_closed}\nHang time: {avg_hang_time_str}",
-                },
-                {
-                    "type": "mrkdwn",
-                    "text": f"*Past 24 Hours*\nTotal: {prev_day_total}, Open: {prev_day_open}, In Progress: {prev_day_in_progress}, Closed: {prev_day_closed}, Closed Today: {prev_day_only_closed}\nHang time: {avg_prev_day_hang_time_str}",
                 },
             ],
         },
