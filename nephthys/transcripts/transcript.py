@@ -59,6 +59,11 @@ class Transcript(BaseModel):
         default="", description="Message when ticket is resolved"
     )
 
+    ticket_resolve_stale: str = Field(
+        default="",
+        description="Message when ticket is resolved due to being stale",
+    )
+
     thread_broadcast_delete: str = Field(
         default="hey! please keep your messages *all in one thread* to make it easier to read! i've gone ahead and removed that message from the channel for ya :D",
     )
@@ -115,6 +120,10 @@ if your question has been answered, please hit the button below to mark it as re
         if not self.ticket_resolve:
             self.ticket_resolve = f"""oh, oh! it looks like this post has been marked as resolved by <@{{user_id}}>! if you have any more questions, please make a new post in <#{self.help_channel}> and someone'll be happy to help you out! not me though, i'm just a silly racoon ^-^
     """
+
+        if not self.ticket_resolve_stale:
+            self.ticket_resolve_stale = f""":rac_nooo: it looks like this post is a bit old! if you still need help, please make a new post in <#{self.help_channel}> and someone'll be happy to help you out! ^~^
+        """
 
         if not self.home_unknown_user_text:
             self.home_unknown_user_text = f"heyyyy, heidi here! it looks like i'm not allowed to show ya this. sorry! if you think this is a mistake, please reach out to <@{self.program_owner}> and she'll lmk what to do!"

@@ -9,7 +9,7 @@ from nephthys.utils.permissions import can_resolve
 from prisma.enums import TicketStatus
 
 
-async def resolve(ts: str, resolver: str, client: AsyncWebClient):
+async def resolve(ts: str, resolver: str, client: AsyncWebClient, stale: bool = False):
     resolving_user = await env.db.user.find_unique(where={"slackId": resolver})
     if not resolving_user:
         await send_heartbeat(
@@ -57,7 +57,9 @@ async def resolve(ts: str, resolver: str, client: AsyncWebClient):
 
     await client.chat_postMessage(
         channel=env.slack_help_channel,
-        text=env.transcript.ticket_resolve.format(user_id=resolver),
+        text=env.transcript.ticket_resolve.format(user_id=resolver)
+        if not stale
+        else env.transcript.ticket_resolve_stale.format(user_id=resolver),
         thread_ts=ts,
     )
 
