@@ -26,7 +26,7 @@ async def get_is_stale(ts: str) -> bool:
             return False
         return (
             datetime.now(tz=timezone.utc)
-            - datetime.fromtimestamp(float(ts), tz=timezone.utc)
+            - datetime.fromtimestamp(float(last_reply["ts"]), tz=timezone.utc)
         ) > timedelta(days=3)
     except SlackApiError as e:
         if e.response["error"] == "ratelimited":
@@ -48,7 +48,7 @@ async def get_is_stale(ts: str) -> bool:
 
 async def close_stale_tickets():
     """
-    Closes tickets that have been open for more than 7 days.
+    Closes tickets that have been open for more than 3 days.
     This task is intended to be run periodically.
     """
 
@@ -67,7 +67,9 @@ async def close_stale_tickets():
         ]
 
         for ticket in stale_tickets:
-            await resolve(ticket.msgTs, ticket.openedBy.slackId, env.slack_client)  # type: ignore (this is valid - see include above)
+            await resolve(
+                ticket.msgTs, ticket.openedBy.slackId, env.slack_client, stale=True
+            )  # type: ignore (this is valid - see include above)
 
         await send_heartbeat(f"Closed {len(stale_tickets)} stale tickets.")
 
