@@ -68,8 +68,11 @@ async def close_stale_tickets():
 
         for ticket in stale_tickets:
             await resolve(
-                ticket.msgTs, ticket.openedBy.slackId, env.slack_client, stale=True
-            )  # type: ignore (this is valid - see include above)
+                ticket.msgTs,
+                ticket.openedBy.slackId,  # type: ignore (this is valid - see include above)
+                env.slack_client,
+                stale=True,
+            )
 
         await send_heartbeat(f"Closed {len(stale_tickets)} stale tickets.")
 
