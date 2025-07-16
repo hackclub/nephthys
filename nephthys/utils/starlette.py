@@ -47,7 +47,7 @@ app = Starlette(
         Route(path="/slack/events", endpoint=endpoint, methods=["POST"]),
         Route(path="/api/stats", endpoint=stats, methods=["GET"]),
         Route(path="/health", endpoint=health, methods=["GET"]),
-        Mount(path="/graphql", app=graphql)
+        Mount(path="/graphql", app=graphql),
     ],
     lifespan=main,
 )
