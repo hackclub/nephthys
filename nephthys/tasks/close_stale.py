@@ -62,21 +62,21 @@ async def close_stale_tickets():
                 "openedBy": True,
             },
         )
-        stale_tickets = [
-            ticket for ticket in tickets if await get_is_stale(ticket.msgTs)
-        ]
+        stale = 0
 
-        for ticket in stale_tickets:
-            await resolve(
-                ticket.msgTs,
-                ticket.openedBy.slackId,  # type: ignore (this is valid - see include above)
-                env.slack_client,
-                stale=True,
-            )
+        for ticket in tickets:
+            if await get_is_stale(ticket.msgTs):
+                stale += 1
+                await resolve(
+                    ticket.msgTs,
+                    ticket.openedBy.slackId,  # type: ignore (this is valid - see include above)
+                    env.slack_client,
+                    stale=True,
+                )
 
-        await send_heartbeat(f"Closed {len(stale_tickets)} stale tickets.")
+        await send_heartbeat(f"Closed {stale} stale tickets.")
 
-        logging.info(f"Closed {len(stale_tickets)} stale tickets.")
+        logging.info(f"Closed {stale} stale tickets.")
     except Exception as e:
         logging.error(f"Error closing stale tickets: {e}")
         await send_heartbeat(f"Error closing stale tickets: {e}")
