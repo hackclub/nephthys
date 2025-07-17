@@ -1,6 +1,36 @@
 # Nephthys
 
-This is a Slack template for creating a great Slack app using Python and Starlette.
+Nephthys is the bot powering #summer-of-making-help and #identity-help in the Hack Club Slack! Below is a guide to set her up for developing and here's a list of some of her features :)
+
+## Features
+
+### Tags (OUT OF ORDER)
+
+You can tag tickets in the private tickets channel or with the macro ?tag <tag_name>. This will DM the people who are specialised in responding to those issues and have it show up in their assigned tickets.
+You can assign yourself to get notified for specific tags on the app home
+
+### Macros
+
+Sometimes it’s nice to be able to do things quickly... Here’s where macros come in! Send one of the following messages in an open thread and something will happen
+
+* `?resolve` - the ticket gets closed. Equivalent of hitting i get it now
+* `?identity` - redirect to #identity-help 
+* `?faq` - redirect to the FAQ
+* `?hii` - silly message :3
+* more to come?? feel free to PR your own into hackclub/nephthys or tell me what you want
+
+### Stale
+
+Tickets that have been not had a response for more than 3 days will automatically be closed as stale. The last helper to respond in the thread gets credit for closing them
+
+### Leaderboard
+
+At midnight UK time each day, you get to see the stats for the day in the team channel! Helpers can also see more detailed stats at any time on the app home for the bot! 
+
+### Assigned Tickets
+
+When you send a message in a help thread, that thread is assigned to you and it is up to you to resolve it. You can see a list of threads waiting for you on the app home - just select the Assigned Tickets tab at the top
+
 
 ## Prerequisites
 
@@ -23,8 +53,8 @@ This is a Slack template for creating a great Slack app using Python and Starlet
 1. Clone the repository:
 
    ```
-   git clone https://github.com/your-repo/slack-template.git
-   cd professor-bloom
+   git clone https://github.com/hackclub/nephthys
+   cd nephthys
    ```
 
 2. Install dependencies:
@@ -45,19 +75,6 @@ This is a Slack template for creating a great Slack app using Python and Starlet
 
 4. Edit the `.env` file and fill in the values:
 
-   ```
-   PORT=3000
-   ENVIRONMENT="development"
-   
-   SLACK_BOT_TOKEN="bot-token"
-   SLACK_SIGNING_SECRET="signing-secret"
-   SLACK_APP_TOKEN="app-token" # This is optional - recommended to use socket mode in dev because it allows you to run the app locally without needing to tunnel. Not recommended for production.
-
-   SLACK_HEARTBEAT_CHANNEL="channel-id"
-   ```
-
-   Replace the values with your actual parameters.
-
 
 ## Running the Application
 
@@ -70,8 +87,8 @@ This is a Slack template for creating a great Slack app using Python and Starlet
    - Go to your Slack app's settings.
    - In "Event Subscriptions" and "Interactivity & Shortcuts", update the request URL to your HTTPS URL followed by `/slack/events`.
    - In "OAuth & Permissions", update `Redirect URLs` to your HTTPS URL followed by `/slack/oauth_redirect`.
-
-3. Start the application:
+3. MAKE SURE YOU CHANGE THE COMMAND - DO NOT USE THE SAME COMMAND
+4. Start the application:
    ```
    app
    ```
