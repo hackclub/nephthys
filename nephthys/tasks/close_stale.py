@@ -47,14 +47,26 @@ async def get_is_stale(ts: str, max_retries: int = 3) -> bool:
                     f"Thread not found for ticket {ts}. This might be a deleted thread."
                 )
                 await send_heartbeat(f"Thread not found for ticket {ts}.")
-                await env.db.ticket.update(
-                    where={"msgTs": ts},
-                    data={
-                        "status": TicketStatus.CLOSED,
-                        "closedAt": datetime.now(),
-                        "closedBy": {"connect": {"slackId": env.slack_maintainer_id}},
-                    },
+                maintainer_user = await env.db.user.find_unique(
+                    where={"slackId": env.slack_maintainer_id}
                 )
+                if maintainer_user:
+                    await env.db.ticket.update(
+                        where={"msgTs": ts},
+                        data={
+                            "status": TicketStatus.CLOSED,
+                            "closedAt": datetime.now(),
+                            "closedBy": {"connect": {"id": maintainer_user.id}},
+                        },
+                    )
+                else:
+                    await env.db.ticket.update(
+                        where={"msgTs": ts},
+                        data={
+                            "status": TicketStatus.CLOSED,
+                            "closedAt": datetime.now(),
+                        },
+                    )
                 return False
             else:
                 logging.error(
