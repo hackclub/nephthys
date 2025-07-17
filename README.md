@@ -88,13 +88,18 @@ When you send a message in a help thread, that thread is assigned to you and it 
    - In "Event Subscriptions" and "Interactivity & Shortcuts", update the request URL to your HTTPS URL followed by `/slack/events`.
    - In "OAuth & Permissions", update `Redirect URLs` to your HTTPS URL followed by `/slack/oauth_redirect`.
 3. MAKE SURE YOU CHANGE THE COMMAND - DO NOT USE THE SAME COMMAND
-4. Start your database and update the database schema:
+4. Install pre-commit hooks:
+
+   ```
+   uv run pre-commit install
+   ```
+5. Start your database and update the database schema:
 
    ```
    uv run prisma db push
    uv run prisma generate
    ```
-4. Start the application:
+6. Start the application:
    ```
    nephthys
    ```
