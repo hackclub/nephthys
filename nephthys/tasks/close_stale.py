@@ -48,7 +48,8 @@ async def get_is_stale(ts: str, max_retries: int = 3) -> bool:
                 )
                 await send_heartbeat(f"Thread not found for ticket {ts}.")
                 maintainer_user = await env.db.user.find_unique(
-                    where={"slackId": env.slack_maintainer_id}
+                    # where={"slackId": env.slack_maintainer_id}
+                    where={"slackId": "U054VC2KM9P"}
                 )
                 if maintainer_user:
                     await env.db.ticket.update(
