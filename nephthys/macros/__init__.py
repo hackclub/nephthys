@@ -4,13 +4,14 @@ from nephthys.macros.faq import FAQ
 from nephthys.macros.hello_world import HelloWorld
 from nephthys.macros.identity import Identity
 from nephthys.macros.resolve import Resolve
+from nephthys.macros.banned import Banned
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from prisma.models import Ticket
 from prisma.models import User
 
 
-macros = [Resolve, HelloWorld, FAQ, Identity]
+macros = [Resolve, HelloWorld, FAQ, Identity, Banned]
 
 
 async def run_macro(
