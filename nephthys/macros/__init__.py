@@ -1,10 +1,10 @@
 from typing import Any
 
 from nephthys.macros.faq import FAQ
+from nephthys.macros.fraud import Fraud
 from nephthys.macros.hello_world import HelloWorld
 from nephthys.macros.identity import Identity
 from nephthys.macros.resolve import Resolve
-from nephthys.macros.fraud import Fraud
 from nephthys.macros.shipcertqueue import ShipCertQueue
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
