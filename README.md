@@ -31,13 +31,17 @@ At midnight UK time each day, you get to see the stats for the day in the team c
 
 When you send a message in a help thread, that thread is assigned to you and it is up to you to resolve it. You can see a list of threads waiting for you on the app home - just select the Assigned Tickets tab at the top
 
-
 ## Prerequisites
 
 - Python (3.13 or later)
 - uv
 - A Slack workspace where you have permissions to install apps
 - Tunneling tool (for local development)
+- A PostgreSQL database (you can run one in Docker using the command below)
+
+```bash
+docker run --name hh-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
+```
 
 ## Setting up the Slack App
 
