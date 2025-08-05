@@ -56,7 +56,7 @@ async def get_is_stale(ts: str, max_retries: int = 3) -> bool:
                         where={"msgTs": ts},
                         data={
                             "status": TicketStatus.CLOSED,
-                            "closedAt": datetime.now(),
+                            "closedAt": datetime.now(timezone.utc),
                             "closedBy": {"connect": {"id": maintainer_user.id}},
                         },
                     )
@@ -65,7 +65,7 @@ async def get_is_stale(ts: str, max_retries: int = 3) -> bool:
                         where={"msgTs": ts},
                         data={
                             "status": TicketStatus.CLOSED,
-                            "closedAt": datetime.now(),
+                            "closedAt": datetime.now(timezone.utc),
                         },
                     )
                 return False
