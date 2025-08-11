@@ -18,6 +18,19 @@ async def stats(req: Request):
     total_closed = len([t for t in tickets if t.status == TicketStatus.CLOSED])
     total = len(tickets)
 
+    non_open_tickets = [t for t in tickets if t.status != TicketStatus.CLOSED]
+    hang_times = []
+    for ticket in non_open_tickets:
+        if ticket.assignedAt:
+            hang_time = (
+                ticket.assignedAt - ticket.createdAt
+            ).total_seconds() / 60  # Convert to minutes
+            hang_times.append(hang_time)
+    if hang_times:
+        avg_hang_time_minutes = sum(hang_times) / len(hang_times)
+    else:
+        avg_hang_time_minutes = None
+
     users_with_closed_tickets = await env.db.user.find_many(
         include={"closedTickets": {}}, where={"helper": True}
     )
@@ -43,6 +56,23 @@ async def stats(req: Request):
         [t for t in prev_day_tickets if t.status == TicketStatus.CLOSED]
     )
     prev_day_total = len(prev_day_tickets)
+
+    prev_day_non_open_tickets = [
+        t for t in prev_day_tickets if t.status != TicketStatus.CLOSED
+    ]
+    prev_day_hang_times = []
+    for ticket in prev_day_non_open_tickets:
+        if ticket.assignedAt:
+            hang_time = (
+                ticket.assignedAt - ticket.createdAt
+            ).total_seconds() / 60  # Convert to minutes
+            prev_day_hang_times.append(hang_time)
+    if prev_day_hang_times:
+        avg_prev_day_hang_time_minutes = sum(prev_day_hang_times) / len(
+            prev_day_hang_times
+        )
+    else:
+        avg_prev_day_hang_time_minutes = None
 
     one_day_ago = datetime.now(timezone.utc) - timedelta(days=1)
     prev_24_resolvers = [
@@ -81,6 +111,7 @@ async def stats(req: Request):
                 }
                 for user in total_top_3_users
             ],
+            "average_hang_time_minutes": avg_hang_time_minutes,
             "prev_day_total": prev_day_total,
             "prev_day_open": prev_day_open,
             "prev_day_in_progress": prev_day_in_progress,
@@ -99,5 +130,6 @@ async def stats(req: Request):
                 }
                 for user in prev_day_top_3_users
             ],
+            "prev_day_average_hang_time_minutes": avg_prev_day_hang_time_minutes,
         }
     )
