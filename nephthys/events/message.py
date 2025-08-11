@@ -1,4 +1,5 @@
 from datetime import datetime
+from datetime import timezone
 from typing import Any
 from typing import Dict
 
@@ -63,9 +64,11 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                     data={
                         "assignedTo": {"connect": {"id": db_user.id}},
                         "status": TicketStatus.IN_PROGRESS,
-                        "assignedAt": datetime.now()
-                        if not ticket.assignedAt
-                        else ticket.assignedAt,
+                        "assignedAt": (
+                            datetime.now(timezone.utc)
+                            if not ticket.assignedAt
+                            else ticket.assignedAt
+                        ),
                     },
                 )
         return

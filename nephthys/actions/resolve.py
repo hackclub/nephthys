@@ -1,4 +1,5 @@
 from datetime import datetime
+from datetime import timezone
 
 from slack_sdk.web.async_client import AsyncWebClient
 
@@ -38,14 +39,12 @@ async def resolve(ts: str, resolver: str, client: AsyncWebClient, stale: bool = 
         if new_resolving_user:
             resolving_user = new_resolving_user
 
-    now = datetime.now()
-
     tkt = await env.db.ticket.update(
         where={"msgTs": ts},
         data={
             "status": TicketStatus.CLOSED,
             "closedBy": {"connect": {"id": resolving_user.id}},
-            "closedAt": now,
+            "closedAt": datetime.now(timezone.utc),
         },
     )
     if not tkt:
@@ -57,9 +56,11 @@ async def resolve(ts: str, resolver: str, client: AsyncWebClient, stale: bool = 
 
     await client.chat_postMessage(
         channel=env.slack_help_channel,
-        text=env.transcript.ticket_resolve.format(user_id=resolver)
-        if not stale
-        else env.transcript.ticket_resolve_stale.format(user_id=resolver),
+        text=(
+            env.transcript.ticket_resolve.format(user_id=resolver)
+            if not stale
+            else env.transcript.ticket_resolve_stale.format(user_id=resolver)
+        ),
         thread_ts=ts,
     )
 
