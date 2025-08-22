@@ -1,3 +1,5 @@
+from datetime import datetime
+from datetime import timedelta
 from datetime import timezone
 from io import BytesIO
 
@@ -29,8 +31,22 @@ async def get_ticket_status_pie_chart(helper: User, tz: timezone):
 
     tickets = await env.db.ticket.find_many() or []
 
+    now = datetime.now(timezone.utc)
+    one_week_ago = now - timedelta(days=7)
+
     for ticket in tickets:
-        status_counts[ticket.status] += 1
+        if ticket.status == TicketStatus.CLOSED:
+            # Only count closed tickets resolved in the last week
+            if (
+                hasattr(ticket, "closedAt")
+                and ticket.closedAt
+                and ticket.closedAt >= one_week_ago
+            ):
+                status_counts[TicketStatus.CLOSED] += 1
+        elif ticket.status == TicketStatus.IN_PROGRESS:
+            status_counts[TicketStatus.IN_PROGRESS] += 1
+        elif ticket.status == TicketStatus.OPEN:
+            status_counts[TicketStatus.OPEN] += 1
 
     y = [count for count in status_counts.values()]
     labels = ["Closed", "In Progress", "Open"]
