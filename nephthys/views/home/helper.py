@@ -17,7 +17,7 @@ async def get_helper_view(user: User):
     tz_string = slack_user.get("tz", "Europe/London")
     tz = pytz.timezone(tz_string)
 
-    pie_chart = await get_ticket_status_pie_chart(user, tz)
+    pie_chart = await get_ticket_status_pie_chart(tz)
     leaderboard = await get_leaderboard_view()
 
     btns = get_buttons(user, "dashboard")

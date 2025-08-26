@@ -10,11 +10,10 @@ from nephthys.utils.graphs.pie import generate_pie_chart
 from nephthys.utils.litterbox import upload_litter
 from nephthys.utils.time import is_day
 from prisma.enums import TicketStatus
-from prisma.models import User
 
 
-async def get_ticket_status_pie_chart(helper: User, tz: timezone):
-    is_daytime = is_day(tz)
+async def get_ticket_status_pie_chart(tz: timezone | None = None):
+    is_daytime = is_day(tz) if tz else True
 
     if is_daytime:
         text_colour = "black"
