@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
+from nephthys.views.home.components.ticket_status_pie import get_ticket_status_pie_chart
 from prisma.enums import TicketStatus
 
 
@@ -122,6 +123,8 @@ async def send_daily_stats():
         else:
             daily_leaderboard_str = "\n".join(daily_leaderboard_lines)
 
+        pie_chart = await get_ticket_status_pie_chart()
+
         msg = f"""
 um, um, hi there! hope i'm not disturbing you, but i just wanted to let you know that i've got some stats for you! :rac_cute:
 
@@ -145,9 +148,38 @@ you managed to close a whopping *{prev_day_closed}* tickets in the last 24 hours
 {daily_leaderboard_str}
 """
 
+        blocks = [
+            {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": ":rac_cute: daily stats!",
+                    "emoji": True,
+                },
+            },
+            {"type": "divider"},
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": msg,
+                },
+            },
+            {"type": "divider"},
+            pie_chart,
+            {
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": "_i hope you found these stats helpful!_ :rac_cute:",
+                    }
+                ],
+            },
+        ]
+
         await env.slack_client.chat_postMessage(
-            channel=env.slack_bts_channel,
-            text=msg,
+            channel=env.slack_bts_channel, blocks=blocks
         )
         logging.info("Daily stats message sent successfully.")
 
