@@ -12,7 +12,9 @@ from nephthys.utils.time import is_day
 from prisma.enums import TicketStatus
 
 
-async def get_ticket_status_pie_chart(tz: timezone | None = None):
+async def get_ticket_status_pie_chart(
+    tz: timezone | None = None, raw: bool = False
+) -> dict | bytes:
     is_daytime = is_day(tz) if tz else True
 
     if is_daytime:
@@ -76,6 +78,9 @@ async def get_ticket_status_pie_chart(tz: timezone | None = None):
     plt.savefig(
         b, bbox_inches="tight", pad_inches=0.1, transparent=False, dpi=300, format="png"
     )
+
+    if raw:
+        return b.getvalue()
 
     url = await upload_litter(
         file=b.getvalue(),
