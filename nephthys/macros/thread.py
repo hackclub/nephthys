@@ -8,30 +8,31 @@ class Thread(Macro):
 
     async def run(self, ticket, helper, **kwargs):
         """
-        A simple macro telling people to use threads
+        A macro that deletes the Nephthys message and removes the
+        reaction to avoid duplicate thread clutter
         """
         sender = await env.db.user.find_first(where={"id": ticket.openedById})
         if not sender:
             return
-        user_info = await env.slack_client.users_info(user=sender.slackId)
-        name = (
-            user_info["user"]["profile"].get("display_name")
-            or user_info["user"]["profile"].get("real_name")
-            or user_info["user"]["name"]
-        )
-        await env.slack_client.chat_postMessage(
-            text=f"hey, {name}! would you mind asking your questions in the same thread? :rac_info: it helps us keep track of questions easier!\n\n(to use them, hover over the message and click :speech_balloon:)",
+
+        # Delete the first (FAQ) message sent by the bot
+        bot_info = await env.slack_client.auth_test()
+        bot_user_id = bot_info.get("user_id")
+        bot_messages = await env.slack_client.conversations_replies(
             channel=env.slack_help_channel,
-            thread_ts=ticket.msgTs,
+            ts=ticket.msgTs,
         )
-        # Thread emoji (standard practice on Slack)
-        await env.slack_client.reactions_add(
-            channel=env.slack_help_channel,
-            name="thread",
-            timestamp=ticket.msgTs,
-        )
+        for msg in bot_messages["messages"]:
+            if msg["user"] == bot_user_id:
+                await env.slack_client.chat_delete(
+                    channel=env.slack_help_channel,
+                    ts=msg["ts"],
+                )
+
         await resolve(
             ts=ticket.msgTs,
             resolver=helper.slackId,
             client=env.slack_client,
+            add_reaction=False,
+            send_resolved_message=False,
         )

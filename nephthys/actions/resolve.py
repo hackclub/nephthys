@@ -9,7 +9,14 @@ from nephthys.utils.permissions import can_resolve
 from prisma.enums import TicketStatus
 
 
-async def resolve(ts: str, resolver: str, client: AsyncWebClient, stale: bool = False):
+async def resolve(
+    ts: str,
+    resolver: str,
+    client: AsyncWebClient,
+    stale: bool = False,
+    add_reaction: bool = True,
+    send_resolved_message: bool = True,
+):
     resolving_user = await env.db.user.find_unique(where={"slackId": resolver})
     if not resolving_user:
         await send_heartbeat(
@@ -55,19 +62,21 @@ async def resolve(ts: str, resolver: str, client: AsyncWebClient, stale: bool = 
         )
         return
 
-    await client.chat_postMessage(
-        channel=env.slack_help_channel,
-        text=env.transcript.ticket_resolve.format(user_id=resolver)
-        if not stale
-        else env.transcript.ticket_resolve_stale.format(user_id=resolver),
-        thread_ts=ts,
-    )
+    if send_resolved_message:
+        await client.chat_postMessage(
+            channel=env.slack_help_channel,
+            text=env.transcript.ticket_resolve.format(user_id=resolver)
+            if not stale
+            else env.transcript.ticket_resolve_stale.format(user_id=resolver),
+            thread_ts=ts,
+        )
 
-    await client.reactions_add(
-        channel=env.slack_help_channel,
-        name="white_check_mark",
-        timestamp=ts,
-    )
+    if add_reaction:
+        await client.reactions_add(
+            channel=env.slack_help_channel,
+            name="white_check_mark",
+            timestamp=ts,
+        )
 
     await client.reactions_remove(
         channel=env.slack_help_channel,
