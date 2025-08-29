@@ -6,13 +6,14 @@ from nephthys.macros.hello_world import HelloWorld
 from nephthys.macros.identity import Identity
 from nephthys.macros.resolve import Resolve
 from nephthys.macros.shipcertqueue import ShipCertQueue
+from nephthys.macros.thread import Thread
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from prisma.models import Ticket
 from prisma.models import User
 
 
-macros = [Resolve, HelloWorld, FAQ, Identity, Fraud, ShipCertQueue]
+macros = [Resolve, HelloWorld, FAQ, Identity, Fraud, ShipCertQueue, Thread]
 
 
 async def run_macro(
