@@ -18,7 +18,7 @@ macros = [Resolve, HelloWorld, FAQ, Identity, Fraud, ShipCertQueue, Thread]
 
 async def run_macro(
     name: str, ticket: Ticket, helper: User, macro_ts: str, text: str, **kwargs: Any
-) -> None | bool:
+) -> bool:
     """
     Run the macro with the given name and arguments.
     """
@@ -30,6 +30,7 @@ async def run_macro(
             await env.slack_client.chat_delete(
                 channel=env.slack_help_channel, ts=macro_ts, token=env.slack_user_token
             )
+            return True
 
     await send_heartbeat(
         f"Macro {name} not found from <@{helper.slackId}>.",
