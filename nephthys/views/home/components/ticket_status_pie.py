@@ -85,7 +85,6 @@ async def get_ticket_status_pie_chart(
     url = await upload_file(
         file=b.getvalue(),
         filename="ticket_status.png",
-        expiry="1h",
         content_type="image/png",
     )
     caption = "Ticket stats"
