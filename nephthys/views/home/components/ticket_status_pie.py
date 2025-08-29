@@ -5,9 +5,9 @@ from io import BytesIO
 
 import numpy as np
 
+from nephthys.utils.bucky import upload_file
 from nephthys.utils.env import env
 from nephthys.utils.graphs.pie import generate_pie_chart
-from nephthys.utils.litterbox import upload_litter
 from nephthys.utils.time import is_day
 from prisma.enums import TicketStatus
 
@@ -82,10 +82,9 @@ async def get_ticket_status_pie_chart(
     if raw:
         return b.getvalue()
 
-    url = await upload_litter(
+    url = await upload_file(
         file=b.getvalue(),
         filename="ticket_status.png",
-        expiry="1h",
         content_type="image/png",
     )
     caption = "Ticket stats"
