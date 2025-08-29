@@ -19,7 +19,7 @@ Sometimes it’s nice to be able to do things quickly... Here’s where macros c
 * `?hii` - silly message :3
 * `?shipcertqueue` - tell them to wait and vote because there's a backlog of ships
 * `?fraud` - redirect to fraud dept
-* `?thread` - tell them to use threads
+* `?thread` - remove the reaction and all Nephthys replies to unclutter duplicates
 * more to come?? feel free to PR your own into hackclub/nephthys or tell me what you want
 
 ### Stale
