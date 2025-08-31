@@ -147,6 +147,7 @@ you managed to close a whopping *{prev_day_closed}* tickets in the last 24 hours
 *:rac_shy: today's leaderboard*
 {daily_leaderboard_str}
 """
+
         await env.slack_client.files_upload_v2(
             channel=env.slack_bts_channel,
             file=pie_chart,

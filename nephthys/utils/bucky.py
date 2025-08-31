@@ -1,22 +1,18 @@
 import logging
-from typing import Literal
 
 import aiohttp
 
 from nephthys.utils.env import env
 
 
-async def upload_litter(
+async def upload_file(
     file: bytes,
     filename: str,
-    expiry: Literal["1h", "12h", "24h", "72h"],
     content_type: str,
 ) -> str | None:
-    api = "https://litterbox.catbox.moe/resources/internals/api.php"
+    api = "https://bucky.hackclub.com"
     data = aiohttp.FormData()
-    data.add_field("reqtype", "fileupload")
-    data.add_field("fileToUpload", file, filename=filename, content_type=content_type)
-    data.add_field("time", expiry)
+    data.add_field("file", file, filename=filename, content_type=content_type)
     async with env.session.post(api, data=data) as resp:
         if resp.status != 200:
             logging.error(
