@@ -36,7 +36,8 @@ async def main(_app: Starlette):
         await env.db.connect()
 
         scheduler = AsyncIOScheduler(timezone="Europe/London")
-        scheduler.add_job(send_daily_stats, "cron", hour=0, minute=0)
+        if env.daily_summary:
+            scheduler.add_job(send_daily_stats, "cron", hour=0, minute=0)
         scheduler.add_job(
             close_stale_tickets,
             "interval",
