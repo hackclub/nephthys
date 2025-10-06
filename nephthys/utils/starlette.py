@@ -7,6 +7,7 @@ from starlette.routing import Route
 
 from nephthys.__main__ import main
 from nephthys.api.stats import stats
+from nephthys.api.user import user_stats
 from nephthys.utils.env import env
 from nephthys.utils.slack import app as slack_app
 
@@ -45,6 +46,7 @@ app = Starlette(
         Route(path="/", endpoint=root, methods=["GET"]),
         Route(path="/slack/events", endpoint=endpoint, methods=["POST"]),
         Route(path="/api/stats", endpoint=stats, methods=["GET"]),
+        Route(path="/api/user", endpoint=user_stats, methods=["GET"]),
         Route(path="/health", endpoint=health, methods=["GET"]),
     ],
     lifespan=main,
