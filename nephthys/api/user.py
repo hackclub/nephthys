@@ -10,9 +10,15 @@ async def user_stats(req: Request):
     if not user:
         return JSONResponse({"error": "user_not_found"}, status_code=404)
 
-    closed_tickets = await env.db.ticket.count(where={"closedById": user.id})
+    closed_tickets = await env.db.ticket.count(
+        where={"closedById": user.id, "NOT": [{"openedById": user.id}]}
+    )
     opened_tickets = await env.db.ticket.count(where={"openedById": user.id})
 
     return JSONResponse(
-        {"tickets_opened": opened_tickets, "tickets_closed": closed_tickets}
+        {
+            "tickets_opened": opened_tickets,
+            "tickets_closed": closed_tickets,
+            "helper": user.helper,
+        }
     )
