@@ -42,13 +42,8 @@ async def get_ticket_status_pie_chart(
     open_tickets = await env.db.ticket.count(where={"status": TicketStatus.OPEN})
     time_get_tickets = perf_counter()
     logging.info(f"Fetched tickets in {time_get_tickets - time_start:.4f} seconds")
-    status_counts = {
-        TicketStatus.CLOSED: recently_closed_tickets,
-        TicketStatus.IN_PROGRESS: in_progress_tickets,
-        TicketStatus.OPEN: open_tickets,
-    }
 
-    y = [count for count in status_counts.values()]
+    y = [recently_closed_tickets, in_progress_tickets, open_tickets]
     labels = ["Closed", "In Progress", "Open"]
     colours = [
         "#80EF80",
