@@ -12,8 +12,8 @@ from prisma.enums import TicketStatus
 
 async def create_dummy_records(num_records: int):
     await env.db.connect()
-    # We generate random timestamps from up to 3 months ago
-    timestamp_a = datetime.now() - timedelta(days=90)
+    # We generate random timestamps from up to 2 weeks ago
+    timestamp_a = datetime.now() - timedelta(weeks=2)
     timestamp_b = datetime.now()
     timestamp_range = (int(timestamp_a.timestamp()), int(timestamp_b.timestamp()))
     for i in range(num_records):
