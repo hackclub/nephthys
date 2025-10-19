@@ -27,38 +27,26 @@ async def get_ticket_status_pie_chart(
         text_colour = "white"
         bg_colour = "#181A1E"
 
-    status_counts = {
-        TicketStatus.CLOSED: 0,
-        TicketStatus.IN_PROGRESS: 0,
-        TicketStatus.OPEN: 0,
-    }
-
-    tickets = await env.db.ticket.find_many() or []
-    time_get_tickets = perf_counter()
-    logging.info(
-        f"Fetched {len(tickets)} tickets in {time_get_tickets - time_start:.4f} seconds"
-    )
-
     now = datetime.now(timezone.utc)
     one_week_ago = now - timedelta(days=7)
 
-    for ticket in tickets:
-        if ticket.status == TicketStatus.CLOSED:
-            # Only count closed tickets resolved in the last week
-            if (
-                hasattr(ticket, "closedAt")
-                and ticket.closedAt
-                and ticket.closedAt >= one_week_ago
-            ):
-                status_counts[TicketStatus.CLOSED] += 1
-        elif ticket.status == TicketStatus.IN_PROGRESS:
-            status_counts[TicketStatus.IN_PROGRESS] += 1
-        elif ticket.status == TicketStatus.OPEN:
-            status_counts[TicketStatus.OPEN] += 1
-    time_calculate_totals = perf_counter()
-    logging.info(
-        f"Calculated ticket status totals in {time_calculate_totals - time_get_tickets:.4f} seconds"
+    recently_closed_tickets = await env.db.ticket.count(
+        where={
+            "status": TicketStatus.CLOSED,
+            "closedAt": {"gte": one_week_ago},
+        }
     )
+    in_progress_tickets = await env.db.ticket.count(
+        where={"status": TicketStatus.IN_PROGRESS}
+    )
+    open_tickets = await env.db.ticket.count(where={"status": TicketStatus.OPEN})
+    time_get_tickets = perf_counter()
+    logging.info(f"Fetched tickets in {time_get_tickets - time_start:.4f} seconds")
+    status_counts = {
+        TicketStatus.CLOSED: recently_closed_tickets,
+        TicketStatus.IN_PROGRESS: in_progress_tickets,
+        TicketStatus.OPEN: open_tickets,
+    }
 
     y = [count for count in status_counts.values()]
     labels = ["Closed", "In Progress", "Open"]
@@ -88,7 +76,7 @@ async def get_ticket_status_pie_chart(
     )
     time_generate_chart = perf_counter()
     logging.info(
-        f"Built pie chart in {time_generate_chart - time_calculate_totals:.4f} seconds"
+        f"Built pie chart in {time_generate_chart - time_get_tickets:.4f} seconds"
     )
     plt.savefig(
         b, bbox_inches="tight", pad_inches=0.1, transparent=False, dpi=300, format="png"
