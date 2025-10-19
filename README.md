@@ -13,14 +13,14 @@ You can assign yourself to get notified for specific tags on the app home
 
 Sometimes it’s nice to be able to do things quickly... Here’s where macros come in! Send one of the following messages in an open thread and something will happen
 
-* `?resolve` - the ticket gets closed. Equivalent of hitting i get it now
-* `?identity` - redirect to #identity-help 
-* `?faq` - redirect to the FAQ
-* `?hii` - silly message :3
-* `?shipcertqueue` - tell them to wait and vote because there's a backlog of ships
-* `?fraud` - redirect to fraud dept
-* `?thread` - remove the reaction and all Nephthys replies to unclutter duplicates
-* more to come?? feel free to PR your own into hackclub/nephthys or tell me what you want
+- `?resolve` - the ticket gets closed. Equivalent of hitting i get it now
+- `?identity` - redirect to #identity-help
+- `?faq` - redirect to the FAQ
+- `?hii` - silly message :3
+- `?shipcertqueue` - tell them to wait and vote because there's a backlog of ships
+- `?fraud` - redirect to fraud dept
+- `?thread` - remove the reaction and all Nephthys replies to unclutter duplicates
+- more to come?? feel free to PR your own into hackclub/nephthys or tell me what you want
 
 ### Stale
 
@@ -28,7 +28,7 @@ Tickets that have been not had a response for more than 3 days will automaticall
 
 ### Leaderboard
 
-At midnight UK time each day, you get to see the stats for the day in the team channel! Helpers can also see more detailed stats at any time on the app home for the bot! 
+At midnight UK time each day, you get to see the stats for the day in the team channel! Helpers can also see more detailed stats at any time on the app home for the bot!
 
 ### Assigned Tickets
 
@@ -82,7 +82,6 @@ docker run --name hh-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d post
 
 4. Edit the `.env` file and fill in the values:
 
-
 ## Running the Application
 
 1. Start your tunneling tool and expose the local server. (Not needed in socket mode with `SLACK_APP_TOKEN` set)
@@ -94,18 +93,21 @@ docker run --name hh-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d post
    - Go to your Slack app's settings.
    - In "Event Subscriptions" and "Interactivity & Shortcuts", update the request URL to your HTTPS URL followed by `/slack/events`.
    - In "OAuth & Permissions", update `Redirect URLs` to your HTTPS URL followed by `/slack/oauth_redirect`.
+
 3. MAKE SURE YOU CHANGE THE COMMAND - DO NOT USE THE SAME COMMAND
 4. Install pre-commit hooks:
 
    ```
    uv run pre-commit install
    ```
+
 5. Start your database and update the database schema:
 
    ```
    uv run prisma db push
    uv run prisma generate
    ```
+
 6. Start the application:
    ```
    nephthys
@@ -116,6 +118,19 @@ Your Slack app should now be running and connected to your Slack workspace!
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+### Scripts
+
+The codebase contains some scripts in the `nephthys/scripts/` directory to help with development and testing. They are documented below.
+
+#### Adding Dummy Data
+
+`add_dummy_data.py` is a script that adds a bunch of dummy (i.e. fake) support ticket records to the database, for stress-testing/performance testing.
+
+Usage: `uv run nephthys/scripts/add_dummy_data.py <num_records>`
+
+- Ensure you run it after the `nephthys` has been run at least once (and once the DB has been initialized)
+- Don't run this in production, obviously
 
 ## License
 
