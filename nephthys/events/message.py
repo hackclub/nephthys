@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import Any
 from typing import Dict
@@ -17,6 +18,9 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
     Handle incoming messages in Slack.
     """
     if "subtype" in event and event["subtype"] not in ALLOWED_SUBTYPES:
+        return
+    if "bot_id" in event:
+        logging.info(f"Ignoring bot message from {event['bot_id']}")
         return
 
     user = event.get("user", "unknown")
@@ -63,9 +67,11 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                     data={
                         "assignedTo": {"connect": {"id": db_user.id}},
                         "status": TicketStatus.IN_PROGRESS,
-                        "assignedAt": datetime.now()
-                        if not ticket.assignedAt
-                        else ticket.assignedAt,
+                        "assignedAt": (
+                            datetime.now()
+                            if not ticket.assignedAt
+                            else ticket.assignedAt
+                        ),
                     },
                 )
         return
