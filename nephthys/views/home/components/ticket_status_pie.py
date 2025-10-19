@@ -41,7 +41,7 @@ async def get_ticket_status_pie_chart(
     )
     open_tickets = await env.db.ticket.count(where={"status": TicketStatus.OPEN})
     time_get_tickets = perf_counter()
-    logging.info(f"Fetched tickets in {time_get_tickets - time_start:.4f} seconds")
+    logging.debug(f"Fetched tickets in {time_get_tickets - time_start:.4f} seconds")
 
     y = [recently_closed_tickets, in_progress_tickets, open_tickets]
     labels = ["Closed", "In Progress", "Open"]
@@ -70,14 +70,14 @@ async def get_ticket_status_pie_chart(
         bg_colour=bg_colour,
     )
     time_generate_chart = perf_counter()
-    logging.info(
+    logging.debug(
         f"Built pie chart in {time_generate_chart - time_get_tickets:.4f} seconds"
     )
     plt.savefig(
         b, bbox_inches="tight", pad_inches=0.1, transparent=False, dpi=300, format="png"
     )
     time_save_chart = perf_counter()
-    logging.info(
+    logging.debug(
         f"Saved pie chart to buffer in {time_save_chart - time_generate_chart:.4f} seconds"
     )
 
@@ -92,7 +92,7 @@ async def get_ticket_status_pie_chart(
         content_type="image/png",
     )
     time_upload_file = perf_counter()
-    logging.info(
+    logging.debug(
         f"Uploaded pie chart in {time_upload_file - time_save_chart:.4f} seconds"
     )
     caption = "Ticket stats"
