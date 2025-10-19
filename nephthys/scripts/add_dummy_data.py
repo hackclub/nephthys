@@ -29,6 +29,11 @@ async def create_dummy_records(num_records: int):
                 "openedBy": {"connect": {"id": 1}},
                 # This prevents the "closing stale tickets" job getting angry at the fake tickets
                 "status": TicketStatus.CLOSED,
+                "closedBy": {"connect": {"id": 1}},
+                "assignedTo": {"connect": {"id": 1}},
+                # Let's say it took 10 secs to be assigned and 100 secs to be resolved
+                "assignedAt": datetime.fromtimestamp(timestamp + 10),
+                "closedAt": datetime.fromtimestamp(timestamp + 110),
             }
         )
     await send_heartbeat(f"Created {num_records} dummy ticket records.")
