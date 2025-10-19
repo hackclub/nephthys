@@ -130,6 +130,7 @@ The codebase contains some scripts in the `nephthys/scripts/` directory to help 
 Usage: `uv run nephthys/scripts/add_dummy_data.py <num_records>`
 
 - Ensure you run it after the `nephthys` has been run at least once (and once the DB has been initialized)
+- It takes a while to run (adding 20k records takes ~50 seconds on my machine)
 - Don't run this in production, obviously
 
 ## License
