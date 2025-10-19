@@ -1,7 +1,9 @@
+import logging
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
 from io import BytesIO
+from time import perf_counter
 
 import numpy as np
 
@@ -15,6 +17,7 @@ from prisma.enums import TicketStatus
 async def get_ticket_status_pie_chart(
     tz: timezone | None = None, raw: bool = False
 ) -> dict | bytes:
+    time_start = perf_counter()
     is_daytime = is_day(tz) if tz else True
 
     if is_daytime:
@@ -31,6 +34,10 @@ async def get_ticket_status_pie_chart(
     }
 
     tickets = await env.db.ticket.find_many() or []
+    time_get_tickets = perf_counter()
+    logging.info(
+        f"Fetched {len(tickets)} tickets in {time_get_tickets - time_start:.4f} seconds"
+    )
 
     now = datetime.now(timezone.utc)
     one_week_ago = now - timedelta(days=7)
@@ -78,6 +85,8 @@ async def get_ticket_status_pie_chart(
     plt.savefig(
         b, bbox_inches="tight", pad_inches=0.1, transparent=False, dpi=300, format="png"
     )
+
+    plt.show()
 
     if raw:
         return b.getvalue()
