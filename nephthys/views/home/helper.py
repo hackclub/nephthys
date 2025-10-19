@@ -25,9 +25,7 @@ async def get_helper_view(user: User):
 
     pie_chart = await get_ticket_status_pie_chart(tz)
     time_pie_chart = perf_counter()
-    logging.info(
-        f"Generated pie chart in {time_pie_chart - time_user_info:.4f} seconds"
-    )
+    logging.info(f"Rendered pie chart in {time_pie_chart - time_user_info:.4f} seconds")
     leaderboard = await get_leaderboard_view()
     time_leaderboard = perf_counter()
     logging.info(

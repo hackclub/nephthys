@@ -55,6 +55,10 @@ async def get_ticket_status_pie_chart(
             status_counts[TicketStatus.IN_PROGRESS] += 1
         elif ticket.status == TicketStatus.OPEN:
             status_counts[TicketStatus.OPEN] += 1
+    time_calculate_totals = perf_counter()
+    logging.info(
+        f"Calculated ticket status totals in {time_calculate_totals - time_get_tickets:.4f} seconds"
+    )
 
     y = [count for count in status_counts.values()]
     labels = ["Closed", "In Progress", "Open"]
@@ -82,8 +86,16 @@ async def get_ticket_status_pie_chart(
         text_colour=text_colour,
         bg_colour=bg_colour,
     )
+    time_generate_chart = perf_counter()
+    logging.info(
+        f"Built pie chart in {time_generate_chart - time_calculate_totals:.4f} seconds"
+    )
     plt.savefig(
         b, bbox_inches="tight", pad_inches=0.1, transparent=False, dpi=300, format="png"
+    )
+    time_save_chart = perf_counter()
+    logging.info(
+        f"Saved pie chart to buffer in {time_save_chart - time_generate_chart:.4f} seconds"
     )
 
     plt.show()
@@ -95,6 +107,10 @@ async def get_ticket_status_pie_chart(
         file=b.getvalue(),
         filename="ticket_status.png",
         content_type="image/png",
+    )
+    time_upload_file = perf_counter()
+    logging.info(
+        f"Uploaded pie chart in {time_upload_file - time_save_chart:.4f} seconds"
     )
     caption = "Ticket stats"
 
