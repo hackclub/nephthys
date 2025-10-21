@@ -2,6 +2,7 @@ import logging
 from typing import Any
 from typing import Dict
 
+import slack_sdk.errors
 from slack_bolt.async_app import AsyncApp
 from slack_bolt.context.ack.async_ack import AsyncAck
 from slack_sdk.web.async_client import AsyncWebClient
@@ -25,6 +26,9 @@ app = AsyncApp(token=env.slack_bot_token, signing_secret=env.slack_signing_secre
 
 
 async def on_message_deletion(event: Dict[str, Any], client: AsyncWebClient) -> None:
+    if event.get("subtype") == "message_deleted":
+        # This means the message has been completely deleted with out leaving a "tombstone", so no cleanup to do
+        return
     deleted_msg = event.get("previous_message")
     if not deleted_msg:
         logging.warning("No previous_message found in message deletion event")
@@ -35,9 +39,14 @@ async def on_message_deletion(event: Dict[str, Any], client: AsyncWebClient) -> 
     if not is_top_level_message:
         return
     # Handle a question (i.e. top-level message in help channel) being deleted
-    thread_history = await client.conversations_replies(
-        channel=event["channel"], ts=deleted_msg["ts"]
-    )
+    try:
+        thread_history = await client.conversations_replies(
+            channel=event["channel"], ts=deleted_msg["ts"]
+        )
+    except slack_sdk.errors.SlackApiError as e:
+        if e.response.get("error") == "thread_not_found":
+            # Nothing to clean up; we good
+            return
     bot_info = await env.slack_client.auth_test()
     bot_user_id = bot_info.get("user_id")
     messages_to_delete = []
