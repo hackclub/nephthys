@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 from typing import Dict
 
@@ -18,21 +19,51 @@ from nephthys.events.channel_left import channel_left
 from nephthys.events.message import on_message
 from nephthys.options.tags import get_tags
 from nephthys.utils.env import env
+from nephthys.utils.logging import send_heartbeat
 
 app = AsyncApp(token=env.slack_bot_token, signing_secret=env.slack_signing_secret)
 
 
 async def on_message_deletion(event: Dict[str, Any], client: AsyncWebClient) -> None:
-    print(event)
-    # TODO
+    deleted_msg = event.get("previous_message")
+    if not deleted_msg:
+        logging.warning("No previous_message found in message deletion event")
+        return
+    is_top_level_message = (
+        "thread_ts" not in deleted_msg or deleted_msg["ts"] == deleted_msg["thread_ts"]
+    )
+    if not is_top_level_message:
+        return
+    # Handle a question (i.e. top-level message in help channel) being deleted
+    thread_history = await client.conversations_replies(
+        channel=event["channel"], ts=deleted_msg["ts"]
+    )
+    bot_info = await env.slack_client.auth_test()
+    bot_user_id = bot_info.get("user_id")
+    messages_to_delete = []
+    for msg in thread_history["messages"]:
+        if msg["user"] == bot_user_id:
+            messages_to_delete.append(msg)
+        elif msg["ts"] != deleted_msg["ts"]:
+            # Don't clear the thread if there are non-bot messages in there
+            return
+    await send_heartbeat(
+        f"Removing my {len(messages_to_delete)} message(s) in a thread because the question was deleted."
+    )
+    for msg in messages_to_delete:
+        await client.chat_delete(
+            channel=event["channel"],
+            ts=msg["ts"],
+        )
 
 
 @app.event("message")
 async def handle_message(event: Dict[str, Any], client: AsyncWebClient):
+    print(event)
     is_message_deletion = (
         event.get("subtype") == "message_changed"
         and event["message"]["subtype"] == "tombstone"
-    )
+    ) or event.get("subtype") == "message_deleted"
     if event["channel"] == env.slack_help_channel:
         if is_message_deletion:
             await on_message_deletion(event, client)
