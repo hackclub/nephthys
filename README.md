@@ -4,9 +4,9 @@ Nephthys is the bot powering #summer-of-making-help and #identity-help in the Ha
 
 ## Features
 
-### Tags (OUT OF ORDER)
+### Tags
 
-You can tag tickets in the private tickets channel or with the macro ?tag <tag_name>. This will DM the people who are specialised in responding to those issues and have it show up in their assigned tickets.
+You can tag tickets in the private tickets channel or with the macro `?tag <tag_name>`. This will DM the people who are specialised in responding to those issues and have it show up in their assigned tickets.
 You can assign yourself to get notified for specific tags on the app home
 
 ### Macros
@@ -24,7 +24,9 @@ Sometimes it’s nice to be able to do things quickly... Here’s where macros c
 
 ### Stale
 
-Tickets that have been not had a response for more than 3 days will automatically be closed as stale. The last helper to respond in the thread gets credit for closing them
+~~Tickets that have been not had a response for more than 3 days will automatically be closed as stale. The last helper to respond in the thread gets credit for closing them~~
+
+Stale ticket handling is not working at the moment, but more features for dealing with stale tickets are planned.
 
 ### Leaderboard
 
