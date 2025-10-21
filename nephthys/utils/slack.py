@@ -16,6 +16,7 @@ from nephthys.events.app_home_opened import open_app_home
 from nephthys.events.channel_join import channel_join
 from nephthys.events.channel_left import channel_left
 from nephthys.events.message import on_message
+from nephthys.events.message_deletion import on_message_deletion
 from nephthys.options.tags import get_tags
 from nephthys.utils.env import env
 
@@ -24,8 +25,16 @@ app = AsyncApp(token=env.slack_bot_token, signing_secret=env.slack_signing_secre
 
 @app.event("message")
 async def handle_message(event: Dict[str, Any], client: AsyncWebClient):
+    print(event)
+    is_message_deletion = (
+        event.get("subtype") == "message_changed"
+        and event["message"]["subtype"] == "tombstone"
+    ) or event.get("subtype") == "message_deleted"
     if event["channel"] == env.slack_help_channel:
-        await on_message(event, client)
+        if is_message_deletion:
+            await on_message_deletion(event, client)
+        else:
+            await on_message(event, client)
 
 
 @app.action("mark_resolved")
