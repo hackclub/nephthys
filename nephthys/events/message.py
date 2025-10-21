@@ -28,6 +28,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
 
     db_user = await env.db.user.find_first(where={"slackId": user})
 
+    # Messages sent in a thread with the "send to channel" checkbox checked
     if event.get("subtype") == "thread_broadcast" and not (db_user and db_user.helper):
         await client.chat_delete(
             channel=event["channel"],
