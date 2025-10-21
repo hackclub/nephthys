@@ -56,6 +56,13 @@ async def on_message_deletion(event: Dict[str, Any], client: AsyncWebClient) -> 
         elif msg["ts"] != deleted_msg["ts"]:
             # Don't clear the thread if there are non-bot messages in there
             return
+
+    # Delete ticket from DB
+    ticket = await env.db.ticket.find_first(where={"msgTs": deleted_msg["ts"]})
+    if ticket:
+        await env.db.ticket.delete(where={"msgTs": "ss"})
+
+    # Delete messages
     await send_heartbeat(
         f"Removing my {len(messages_to_delete)} message(s) in a thread because the question was deleted."
     )
