@@ -55,16 +55,19 @@ async def handle_question_deletion(
 async def on_message_deletion(event: Dict[str, Any], client: AsyncWebClient) -> None:
     """Handles the two types of message deletion events
     (i.e. a message being turned into a tombstone, and a message being fully deleted)."""
-    if event.get("subtype") == "message_deleted":
-        # This means the message has been completely deleted with out leaving a "tombstone", so no cleanup to do
-        return
     deleted_msg = event.get("previous_message")
     if not deleted_msg:
         logging.warning("No previous_message found in message deletion event")
         return
-    is_top_level_message = (
-        "thread_ts" not in deleted_msg or deleted_msg["ts"] == deleted_msg["thread_ts"]
+    is_in_thread = (
+        "thread_ts" in deleted_msg and deleted_msg["ts"] != deleted_msg["thread_ts"]
     )
-    if is_top_level_message:
-        # A question (i.e. top-level message in help channel) has been deleted
+    if is_in_thread:
+        return
+    if event.get("subtype") == "message_deleted":
+        # This means the message has been completely deleted with out leaving a "tombstone"
+        # No thread means no messages to delete, but we should delete any associated ticket from the DB
+        await env.db.ticket.delete(where={"msgTs": deleted_msg["ts"]})
+    else:
+        # A parent message (i.e. top-level message in help channel) has been deleted
         await handle_question_deletion(client, event["channel"], deleted_msg)
