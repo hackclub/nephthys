@@ -58,9 +58,7 @@ async def on_message_deletion(event: Dict[str, Any], client: AsyncWebClient) -> 
             return
 
     # Delete ticket from DB
-    ticket = await env.db.ticket.find_first(where={"msgTs": deleted_msg["ts"]})
-    if ticket:
-        await env.db.ticket.delete(where={"msgTs": "ss"})
+    await env.db.ticket.delete(where={"msgTs": deleted_msg["ts"]})
 
     # Delete messages
     await send_heartbeat(
