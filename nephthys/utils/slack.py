@@ -22,10 +22,22 @@ from nephthys.utils.env import env
 app = AsyncApp(token=env.slack_bot_token, signing_secret=env.slack_signing_secret)
 
 
+async def on_message_deletion(event: Dict[str, Any], client: AsyncWebClient) -> None:
+    print(event)
+    # TODO
+
+
 @app.event("message")
 async def handle_message(event: Dict[str, Any], client: AsyncWebClient):
+    is_message_deletion = (
+        event.get("subtype") == "message_changed"
+        and event["message"]["subtype"] == "tombstone"
+    )
     if event["channel"] == env.slack_help_channel:
-        await on_message(event, client)
+        if is_message_deletion:
+            await on_message_deletion(event, client)
+        else:
+            await on_message(event, client)
 
 
 @app.action("mark_resolved")
