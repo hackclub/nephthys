@@ -1,8 +1,6 @@
-import logging
 from typing import Any
 from typing import Dict
 
-import slack_sdk.errors
 from slack_bolt.async_app import AsyncApp
 from slack_bolt.context.ack.async_ack import AsyncAck
 from slack_sdk.web.async_client import AsyncWebClient
@@ -18,59 +16,11 @@ from nephthys.events.app_home_opened import open_app_home
 from nephthys.events.channel_join import channel_join
 from nephthys.events.channel_left import channel_left
 from nephthys.events.message import on_message
+from nephthys.events.message_deletion import on_message_deletion
 from nephthys.options.tags import get_tags
 from nephthys.utils.env import env
-from nephthys.utils.logging import send_heartbeat
 
 app = AsyncApp(token=env.slack_bot_token, signing_secret=env.slack_signing_secret)
-
-
-async def on_message_deletion(event: Dict[str, Any], client: AsyncWebClient) -> None:
-    if event.get("subtype") == "message_deleted":
-        # This means the message has been completely deleted with out leaving a "tombstone", so no cleanup to do
-        return
-    deleted_msg = event.get("previous_message")
-    if not deleted_msg:
-        logging.warning("No previous_message found in message deletion event")
-        return
-    is_top_level_message = (
-        "thread_ts" not in deleted_msg or deleted_msg["ts"] == deleted_msg["thread_ts"]
-    )
-    if not is_top_level_message:
-        return
-    # Handle a question (i.e. top-level message in help channel) being deleted
-    try:
-        thread_history = await client.conversations_replies(
-            channel=event["channel"], ts=deleted_msg["ts"]
-        )
-    except slack_sdk.errors.SlackApiError as e:
-        if e.response.get("error") == "thread_not_found":
-            # Nothing to clean up; we good
-            return
-        else:
-            raise e
-    bot_info = await env.slack_client.auth_test()
-    bot_user_id = bot_info.get("user_id")
-    messages_to_delete = []
-    for msg in thread_history["messages"]:
-        if msg["user"] == bot_user_id:
-            messages_to_delete.append(msg)
-        elif msg["ts"] != deleted_msg["ts"]:
-            # Don't clear the thread if there are non-bot messages in there
-            return
-
-    # Delete ticket from DB
-    await env.db.ticket.delete(where={"msgTs": deleted_msg["ts"]})
-
-    # Delete messages
-    await send_heartbeat(
-        f"Removing my {len(messages_to_delete)} message(s) in a thread because the question was deleted."
-    )
-    for msg in messages_to_delete:
-        await client.chat_delete(
-            channel=event["channel"],
-            ts=msg["ts"],
-        )
 
 
 @app.event("message")
