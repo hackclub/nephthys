@@ -47,6 +47,8 @@ async def on_message_deletion(event: Dict[str, Any], client: AsyncWebClient) -> 
         if e.response.get("error") == "thread_not_found":
             # Nothing to clean up; we good
             return
+        else:
+            raise e
     bot_info = await env.slack_client.auth_test()
     bot_user_id = bot_info.get("user_id")
     messages_to_delete = []
