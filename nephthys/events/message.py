@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any
 from typing import Dict
 
+from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.macros import run_macro
@@ -46,18 +47,18 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
 
     if event.get("thread_ts"):
         if db_user and db_user.helper:
-            ticket = await env.db.ticket.find_first(
+            ticket_message = await env.db.ticket.find_first(
                 where={"msgTs": event["thread_ts"]},
                 include={"openedBy": True, "tagsOnTickets": True},
             )
-            if not ticket or ticket.status == TicketStatus.CLOSED:
+            if not ticket_message or ticket_message.status == TicketStatus.CLOSED:
                 return
             first_word = text.split()[0].lower()
 
-            if first_word[0] == "?" and ticket:
+            if first_word[0] == "?" and ticket_message:
                 await run_macro(
                     name=first_word.lstrip("?"),
-                    ticket=ticket,
+                    ticket=ticket_message,
                     helper=db_user,
                     text=text,
                     macro_ts=event["ts"],
@@ -70,8 +71,8 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                         "status": TicketStatus.IN_PROGRESS,
                         "assignedAt": (
                             datetime.now()
-                            if not ticket.assignedAt
-                            else ticket.assignedAt
+                            if not ticket_message.assignedAt
+                            else ticket_message.assignedAt
                         ),
                     },
                 )
@@ -113,7 +114,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
             or user_info["user"]["real_name"]
         )
 
-    ticket = await client.chat_postMessage(
+    ticket_message = await client.chat_postMessage(
         channel=env.slack_ticket_channel,
         text=f"New message from <@{user}>: {text}",
         blocks=[
@@ -172,7 +173,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
             "title": title,
             "description": text,
             "msgTs": event["ts"],
-            "ticketTs": ticket["ts"],
+            "ticketTs": ticket_message["ts"],
             "openedBy": {"connect": {"id": db_user.id}},
         },
     )
@@ -182,9 +183,9 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         if past_tickets == 0
         else env.transcript.ticket_create.replace("(user)", display_name)
     )
-    ticket_url = f"https://hackclub.slack.com/archives/{env.slack_ticket_channel}/p{ticket['ts'].replace('.', '')}"
+    ticket_url = f"https://hackclub.slack.com/archives/{env.slack_ticket_channel}/p{ticket_message['ts'].replace('.', '')}"
 
-    await client.chat_postMessage(
+    user_facing_message = await client.chat_postMessage(
         channel=event["channel"],
         text=text,
         blocks=[
@@ -216,9 +217,23 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         unfurl_media=True,
     )
 
-    await client.reactions_add(
-        channel=event["channel"], name="thinking_face", timestamp=event["ts"]
-    )
+    try:
+        await client.reactions_add(
+            channel=event["channel"], name="thinking_face", timestamp=event["ts"]
+        )
+    except SlackApiError as e:
+        if e.response.get("error") != "message_not_found":
+            raise e
+        # This means the parent message has been deleted while we've been processing it
+        # therefore we should remove the bot message we just sent
+        await client.chat_delete(
+            channel=event["channel"],
+            ts=user_facing_message["ts"],
+        )
+        await client.chat_delete(
+            channel=env.slack_ticket_channel,
+            ts=ticket_message["ts"],
+        )
 
     if env.uptime_url and env.environment == "production":
         async with env.session.get(env.uptime_url) as res:
