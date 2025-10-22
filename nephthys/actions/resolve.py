@@ -63,12 +63,19 @@ async def resolve(
         return
 
     if send_resolved_message:
-        await client.chat_postMessage(
+        msg = await client.chat_postMessage(
             channel=env.slack_help_channel,
             text=env.transcript.ticket_resolve.format(user_id=resolver)
             if not stale
             else env.transcript.ticket_resolve_stale.format(user_id=resolver),
             thread_ts=ts,
+        )
+        await env.db.botmessage.create(
+            data={
+                "msgTs": msg["ts"],
+                "channelId": env.slack_help_channel,
+                "ticket": {"connect": {"id": tkt.id}},
+            }
         )
 
     if add_reaction:
