@@ -6,7 +6,7 @@ ADD . /app
 WORKDIR /app
 
 RUN apt update
-RUN apt install -y curl
+RUN apt install -y curl libatomic1
 
 RUN uv python install
 RUN uv sync --frozen
