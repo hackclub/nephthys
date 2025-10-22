@@ -168,17 +168,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
             data = await res.json()
             title = data["choices"][0]["message"]["content"].strip()
 
-    await env.db.ticket.create(
-        {
-            "title": title,
-            "description": text,
-            "msgTs": event["ts"],
-            "ticketTs": ticket_message["ts"],
-            "openedBy": {"connect": {"id": db_user.id}},
-        },
-    )
-
-    text = (
+    user_facing_message_text = (
         env.transcript.first_ticket_create.replace("(user)", display_name)
         if past_tickets == 0
         else env.transcript.ticket_create.replace("(user)", display_name)
@@ -187,9 +177,12 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
 
     user_facing_message = await client.chat_postMessage(
         channel=event["channel"],
-        text=text,
+        text=user_facing_message_text,
         blocks=[
-            {"type": "section", "text": {"type": "mrkdwn", "text": text}},
+            {
+                "type": "section",
+                "text": {"type": "mrkdwn", "text": user_facing_message_text},
+            },
             {
                 "type": "actions",
                 "elements": [
@@ -215,6 +208,22 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         thread_ts=event.get("ts"),
         unfurl_links=True,
         unfurl_media=True,
+    )
+
+    await env.db.ticket.create(
+        {
+            "title": title,
+            "description": text,
+            "msgTs": event["ts"],
+            "ticketTs": ticket_message["ts"],
+            "openedBy": {"connect": {"id": db_user.id}},
+            "userFacingMsgs": {
+                "create": {
+                    "channelId": event["channel"],
+                    "msgTs": user_facing_message["ts"],
+                }
+            },
+        },
     )
 
     try:
