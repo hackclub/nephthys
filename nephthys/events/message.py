@@ -104,15 +104,13 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
             },
         )
 
-    user_info = await client.users_info(user=user)
+    user_info_response = await client.users_info(user=user) or {}
+    user_info = user_info_response.get("user")
     profile_pic = None
     display_name = "Explorer"
     if user_info:
-        profile_pic = user_info["user"]["profile"].get("image_512", "")
-        display_name = (
-            user_info["user"]["profile"]["display_name"]
-            or user_info["user"]["real_name"]
-        )
+        profile_pic = user_info["profile"].get("image_512", "")
+        display_name = user_info["profile"]["display_name"] or user_info["real_name"]
 
     ticket_message = await client.chat_postMessage(
         channel=env.slack_ticket_channel,
@@ -144,6 +142,11 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         unfurl_media=True,
     )
 
+    ticket_message_ts = ticket_message["ts"]
+    if not ticket_message_ts:
+        logging.error(f"Ticket message has no ts: {ticket_message}")
+        return
+
     async with env.session.post(
         "https://ai.hackclub.com/chat/completions",
         json={
@@ -173,7 +176,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         if past_tickets == 0
         else env.transcript.ticket_create.replace("(user)", display_name)
     )
-    ticket_url = f"https://hackclub.slack.com/archives/{env.slack_ticket_channel}/p{ticket_message['ts'].replace('.', '')}"
+    ticket_url = f"https://hackclub.slack.com/archives/{env.slack_ticket_channel}/p{ticket_message_ts.replace('.', '')}"
 
     user_facing_message = await client.chat_postMessage(
         channel=event["channel"],
@@ -210,17 +213,22 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         unfurl_media=True,
     )
 
+    user_facing_message_ts = user_facing_message["ts"]
+    if not user_facing_message_ts:
+        logging.error(f"User-facing message has no ts: {user_facing_message}")
+        return
+
     await env.db.ticket.create(
         {
             "title": title,
             "description": text,
             "msgTs": event["ts"],
-            "ticketTs": ticket_message["ts"],
+            "ticketTs": ticket_message_ts,
             "openedBy": {"connect": {"id": db_user.id}},
             "userFacingMsgs": {
                 "create": {
                     "channelId": event["channel"],
-                    "msgTs": user_facing_message["ts"],
+                    "msgTs": user_facing_message_ts,
                 }
             },
         },
