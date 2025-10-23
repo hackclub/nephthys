@@ -1,5 +1,5 @@
 import logging
-from slack_sdk.errors import SlackApiError
+
 from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.utils.delete_thread import add_message_to_delete_queue
@@ -39,6 +39,6 @@ async def delete_replies_to_ticket(ticket: Ticket):
 async def delete_and_clean_up_ticket(ticket: Ticket):
     """Removes a ticket from the DB and deletes all Slack messages associated with it"""
     await delete_replies_to_ticket(ticket)
-    # TODO remove thread msg
+    await add_message_to_delete_queue(env.slack_help_channel, ticket.ticketTs)
     # TODO deal with DMs to tag subscribers?
     await env.db.ticket.delete(where={"id": ticket.id})
