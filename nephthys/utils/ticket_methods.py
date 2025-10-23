@@ -29,7 +29,7 @@ async def reply_to_ticket(ticket: Ticket, client: AsyncWebClient, text: str) -> 
     )
 
 
-async def delete_replies_to_ticket(ticket: Ticket, client: AsyncWebClient):
+async def delete_replies_to_ticket(ticket: Ticket):
     """Deletes all bot replies sent in a ticket thread"""
     for bot_msg in ticket.userFacingMsgs or []:
         await add_message_to_delete_queue(bot_msg.channelId, bot_msg.msgTs)
