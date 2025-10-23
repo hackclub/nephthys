@@ -34,3 +34,10 @@ async def delete_replies_to_ticket(ticket: Ticket):
     for bot_msg in ticket.userFacingMsgs or []:
         await add_message_to_delete_queue(bot_msg.channelId, bot_msg.ts)
         await env.db.botmessage.delete(where={"id": bot_msg.id})
+
+
+async def delete_and_clean_up_ticket(ticket: Ticket):
+    """Removes a ticket from the DB and deletes all Slack messages associated with it"""
+    # TODO delete_replies_to_ticket
+    # TODO remove thread msg
+    # TODO deal with DMs to tag subscribers?
