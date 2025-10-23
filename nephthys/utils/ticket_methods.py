@@ -29,7 +29,7 @@ async def reply_to_ticket(ticket: Ticket, client: AsyncWebClient, text: str) -> 
     )
 
 
-async def delete_replies_to_ticket(ticket: Ticket):
+async def delete_bot_replies(ticket: Ticket):
     """Deletes all bot replies sent in a ticket thread"""
     for bot_msg in ticket.userFacingMsgs or []:
         await add_message_to_delete_queue(bot_msg.channelId, bot_msg.ts)
@@ -38,7 +38,7 @@ async def delete_replies_to_ticket(ticket: Ticket):
 
 async def delete_and_clean_up_ticket(ticket: Ticket):
     """Removes a ticket from the DB and deletes all Slack messages associated with it"""
-    await delete_replies_to_ticket(ticket)
+    await delete_bot_replies(ticket)
     await add_message_to_delete_queue(env.slack_help_channel, ticket.ticketTs)
     # TODO deal with DMs to tag subscribers?
     await env.db.ticket.delete(where={"id": ticket.id})

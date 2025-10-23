@@ -1,7 +1,7 @@
 from nephthys.actions.resolve import resolve
 from nephthys.macros.types import Macro
 from nephthys.utils.env import env
-from nephthys.utils.ticket_methods import delete_replies_to_ticket
+from nephthys.utils.ticket_methods import delete_bot_replies
 
 
 class Thread(Macro):
@@ -17,7 +17,7 @@ class Thread(Macro):
             return
 
         # Deletes the first (FAQ) message sent by the bot
-        await delete_replies_to_ticket(ticket)
+        await delete_bot_replies(ticket)
 
         await resolve(
             ts=ticket.msgTs,
