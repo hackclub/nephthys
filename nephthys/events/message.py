@@ -228,7 +228,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
             "userFacingMsgs": {
                 "create": {
                     "channelId": event["channel"],
-                    "msgTs": user_facing_message_ts,
+                    "ts": user_facing_message_ts,
                 }
             },
         },

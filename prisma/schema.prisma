@@ -97,10 +97,10 @@ model UserTagSubscription {
 
 model BotMessage {
   id        Int      @id @unique @default(autoincrement())
-  msgTs     String
+  ts        String
   channelId String
   ticket    Ticket  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   ticketId  Int
 
-  @@unique([msgTs, channelId])
+  @@unique([ts, channelId])
 }

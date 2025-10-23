@@ -22,7 +22,7 @@ async def reply_to_ticket(ticket: Ticket, client: AsyncWebClient, text: str) -> 
         return
     await env.db.botmessage.create(
         data={
-            "msgTs": msg_ts,
+            "ts": msg_ts,
             "channelId": channel,
             "ticket": {"connect": {"id": ticket.id}},
         }
@@ -32,5 +32,5 @@ async def reply_to_ticket(ticket: Ticket, client: AsyncWebClient, text: str) -> 
 async def delete_replies_to_ticket(ticket: Ticket):
     """Deletes all bot replies sent in a ticket thread"""
     for bot_msg in ticket.userFacingMsgs or []:
-        await add_message_to_delete_queue(bot_msg.channelId, bot_msg.msgTs)
+        await add_message_to_delete_queue(bot_msg.channelId, bot_msg.ts)
         await env.db.botmessage.delete(where={"id": bot_msg.id})
