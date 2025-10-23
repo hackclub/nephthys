@@ -9,6 +9,7 @@ from slack_sdk.web.async_client import AsyncWebClient
 from nephthys.macros import run_macro
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
+from nephthys.utils.ticket_methods import delete_and_clean_up_ticket
 from prisma.enums import TicketStatus
 
 ALLOWED_SUBTYPES = ["file_share", "me_message", "thread_broadcast"]
@@ -218,7 +219,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         logging.error(f"User-facing message has no ts: {user_facing_message}")
         return
 
-    await env.db.ticket.create(
+    ticket = await env.db.ticket.create(
         {
             "title": title,
             "description": text,
@@ -242,15 +243,8 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         if e.response.get("error") != "message_not_found":
             raise e
         # This means the parent message has been deleted while we've been processing it
-        # therefore we should remove the bot message we just sent
-        await client.chat_delete(
-            channel=event["channel"],
-            ts=user_facing_message["ts"],
-        )
-        await client.chat_delete(
-            channel=env.slack_ticket_channel,
-            ts=ticket_message["ts"],
-        )
+        # therefore we should unsend the bot messages and remove the ticket from the DB
+        await delete_and_clean_up_ticket(ticket)
 
     if env.uptime_url and env.environment == "production":
         async with env.session.get(env.uptime_url) as res:

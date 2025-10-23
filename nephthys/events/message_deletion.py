@@ -6,7 +6,7 @@ import slack_sdk.errors
 from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.utils.env import env
-from nephthys.utils.logging import send_heartbeat
+from nephthys.utils.ticket_methods import delete_and_clean_up_ticket
 
 
 async def handle_question_deletion(
@@ -35,21 +35,13 @@ async def handle_question_deletion(
         if msg["user"] == bot_user_id:
             messages_to_delete.append(msg)
         elif msg["ts"] != deleted_msg["ts"]:
-            # Don't clear the thread if there are non-bot messages in there
+            # Preserve the thread and ticket if there are non-bot messages in there
             return
 
-    # Delete ticket from DB
-    await env.db.ticket.delete(where={"msgTs": deleted_msg["ts"]})
-
-    # Delete messages
-    await send_heartbeat(
-        f"Removing my {len(messages_to_delete)} message(s) in a thread because the question was deleted."
-    )
-    for msg in messages_to_delete:
-        await client.chat_delete(
-            channel=channel,
-            ts=msg["ts"],
-        )
+    # Delete ticket from DB and clean up bot messages
+    ticket = await env.db.ticket.find_first(where={"msgTs": deleted_msg["ts"]})
+    if ticket:
+        await delete_and_clean_up_ticket(ticket)
 
 
 async def on_message_deletion(event: Dict[str, Any], client: AsyncWebClient) -> None:
