@@ -29,16 +29,23 @@ async def reply_to_ticket(ticket: Ticket, client: AsyncWebClient, text: str) -> 
     )
 
 
-async def delete_bot_replies(ticket: Ticket):
+async def delete_bot_replies(ticket_ref: int):
     """Deletes all bot replies sent in a ticket thread"""
-    for bot_msg in ticket.userFacingMsgs or []:
+    ticket = await env.db.ticket.find_unique(
+        where={"id": ticket_ref}, include={"userFacingMsgs": True}
+    )
+    if not ticket:
+        raise ValueError(f"Ticket with ID {ticket_ref} does not exist")
+    if not ticket.userFacingMsgs:
+        raise ValueError(f"userFacingMsgs is not present on Ticket ID {ticket_ref}")
+    for bot_msg in ticket.userFacingMsgs:
         await add_message_to_delete_queue(bot_msg.channelId, bot_msg.ts)
         await env.db.botmessage.delete(where={"id": bot_msg.id})
 
 
 async def delete_and_clean_up_ticket(ticket: Ticket):
     """Removes a ticket from the DB and deletes all Slack messages associated with it"""
-    await delete_bot_replies(ticket)
+    await delete_bot_replies(ticket.id)
     await add_message_to_delete_queue(env.slack_help_channel, ticket.ticketTs)
     # TODO deal with DMs to tag subscribers?
     await env.db.ticket.delete(where={"id": ticket.id})

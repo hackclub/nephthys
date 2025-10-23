@@ -17,7 +17,7 @@ class Thread(Macro):
             return
 
         # Deletes the first (FAQ) message sent by the bot
-        await delete_bot_replies(ticket)
+        await delete_bot_replies(ticket.id)
 
         await resolve(
             ts=ticket.msgTs,
