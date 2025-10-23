@@ -28,7 +28,7 @@ async def handle_message(event: Dict[str, Any], client: AsyncWebClient):
     print(event)
     is_message_deletion = (
         event.get("subtype") == "message_changed"
-        and event["message"]["subtype"] == "tombstone"
+        and event["message"].get("subtype") == "tombstone"
     ) or event.get("subtype") == "message_deleted"
     if event["channel"] == env.slack_help_channel:
         if is_message_deletion:
