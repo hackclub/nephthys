@@ -6,6 +6,7 @@ from nephthys.utils.delete_thread import add_thread_to_delete_queue
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.permissions import can_resolve
+from nephthys.utils.ticket_methods import reply_to_ticket
 from prisma.enums import TicketStatus
 
 
@@ -63,21 +64,13 @@ async def resolve(
         return
 
     if send_resolved_message:
-        msg = await client.chat_postMessage(
-            channel=env.slack_help_channel,
+        await reply_to_ticket(
+            ticket=tkt,
+            client=client,
             text=env.transcript.ticket_resolve.format(user_id=resolver)
             if not stale
             else env.transcript.ticket_resolve_stale.format(user_id=resolver),
-            thread_ts=ts,
         )
-        await env.db.botmessage.create(
-            data={
-                "msgTs": msg["ts"],
-                "channelId": env.slack_help_channel,
-                "ticket": {"connect": {"id": tkt.id}},
-            }
-        )
-
     if add_reaction:
         await client.reactions_add(
             channel=env.slack_help_channel,
