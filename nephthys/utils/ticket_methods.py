@@ -15,7 +15,7 @@ async def delete_message(channel_id: str, message_ts: str):
         if e.response.get("error") != "message_not_found":
             raise e
         logging.warning(
-            f"Tried to delete message {message_ts} in channel {channel_id} but it is gone already."
+            f"Tried to delete message {message_ts} in channel {channel_id} but it doesn't exist (already deleted?)"
         )
 
 
@@ -58,6 +58,7 @@ async def delete_bot_replies(ticket_ref: int):
 async def delete_and_clean_up_ticket(ticket: Ticket):
     """Removes a ticket from the DB and deletes all Slack messages associated with it"""
     await delete_bot_replies(ticket.id)
-    await delete_message(env.slack_help_channel, ticket.ticketTs)
+    # Delete the backend message in the "tickets" channel
+    await delete_message(env.slack_ticket_channel, ticket.ticketTs)
     # TODO deal with DMs to tag subscribers?
     await env.db.ticket.delete(where={"id": ticket.id})
