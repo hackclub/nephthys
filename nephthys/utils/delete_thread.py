@@ -15,6 +15,7 @@ async def process_queue():
     """
     Continuously processes messages from the delete_queue.
     Retrieves a message (channel_id, message_ts) and attempts to delete it using Slack API.
+    Uses a user token to delete messages, thus requiring a user token with workspace admin.
     Handles rate limiting by retrying after the specified delay.
     Logs errors for other Slack API failures.
     """
