@@ -27,6 +27,9 @@ async def process_queue():
                 as_user=True,
                 token=env.slack_user_token,
             )
+            await send_heartbeat(
+                f"Successfully deleted message {message_ts} in channel {channel_id}."
+            )
         except SlackApiError as e:
             if e.response and e.response["error"] == "ratelimited":
                 retry_after = int(e.response.headers.get("Retry-After", 1))
