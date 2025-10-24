@@ -1,6 +1,7 @@
 from nephthys.actions.resolve import resolve
 from nephthys.macros.types import Macro
 from nephthys.utils.env import env
+from nephthys.utils.ticket_methods import reply_to_ticket
 
 
 class FAQ(Macro):
@@ -19,10 +20,10 @@ class FAQ(Macro):
             or user_info["user"]["profile"].get("real_name")
             or user_info["user"]["name"]
         )
-        await env.slack_client.chat_postMessage(
+        await reply_to_ticket(
             text=f"hey, {name}! this question is answered in the faq i sent earlier, please make sure to check it out! :rac_cute:\n\n<{env.transcript.faq_link}|here it is again>",
-            channel=env.slack_help_channel,
-            thread_ts=ticket.msgTs,
+            ticket=ticket,
+            client=env.slack_client,
         )
         await resolve(
             ts=ticket.msgTs,

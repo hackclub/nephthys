@@ -1,6 +1,7 @@
 from nephthys.actions.resolve import resolve
 from nephthys.macros.types import Macro
 from nephthys.utils.env import env
+from nephthys.utils.ticket_methods import reply_to_ticket
 
 
 class Identity(Macro):
@@ -19,10 +20,10 @@ class Identity(Macro):
             or user_info["user"]["profile"].get("real_name")
             or user_info["user"]["name"]
         )
-        await env.slack_client.chat_postMessage(
+        await reply_to_ticket(
             text=f"hey, {name}! please could you ask questions about identity verification in <#{env.transcript.identity_help_channel}>? :rac_cute:\n\nit helps the verification team keep track of questions easier!",
-            channel=env.slack_help_channel,
-            thread_ts=ticket.msgTs,
+            ticket=ticket,
+            client=env.slack_client,
         )
         await resolve(
             ts=ticket.msgTs,

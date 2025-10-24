@@ -1,6 +1,7 @@
 from nephthys.actions.resolve import resolve
 from nephthys.macros.types import Macro
 from nephthys.utils.env import env
+from nephthys.utils.ticket_methods import reply_to_ticket
 
 
 class Fraud(Macro):
@@ -19,10 +20,10 @@ class Fraud(Macro):
             or user_info["user"]["profile"].get("real_name")
             or user_info["user"]["name"]
         )
-        await env.slack_client.chat_postMessage(
+        await reply_to_ticket(
             text=f"Hiya {name}! Would you mind directing any fraud related queries to <@U091HC53CE8>? :rac_cute:\n\nIt'll keep your case confidential and make it easier for the fraud team to keep track of!",
-            channel=env.slack_help_channel,
-            thread_ts=ticket.msgTs,
+            ticket=ticket,
+            client=env.slack_client,
         )
         await resolve(
             ts=ticket.msgTs,
