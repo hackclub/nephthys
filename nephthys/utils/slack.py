@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 from typing import Dict
 
@@ -25,7 +26,7 @@ app = AsyncApp(token=env.slack_bot_token, signing_secret=env.slack_signing_secre
 
 @app.event("message")
 async def handle_message(event: Dict[str, Any], client: AsyncWebClient):
-    print(event)
+    logging.debug(f"Message event: {event}")
     is_message_deletion = (
         event.get("subtype") == "message_changed"
         and event["message"].get("subtype") == "tombstone"
