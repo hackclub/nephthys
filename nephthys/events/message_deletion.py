@@ -31,13 +31,24 @@ async def handle_question_deletion(
             raise e
     bot_info = await env.slack_client.auth_test()
     bot_user_id = bot_info.get("user_id")
-    messages_to_delete = []
+    bot_replies = []
+    non_bot_replies = []
     for msg in thread_history["messages"]:
+        if msg["ts"] == deleted_msg["ts"]:
+            continue  # Ignore top-level message
         if msg["user"] == bot_user_id:
-            messages_to_delete.append(msg)
-        elif msg["ts"] != deleted_msg["ts"]:
-            # Preserve the thread and ticket if there are non-bot messages in there
-            return
+            bot_replies.append(msg)
+        else:
+            non_bot_replies.append(msg)
+
+    should_keep_thread = (
+        # Preserve if there are any human replies
+        len(non_bot_replies) > 0
+        # More than 2 bot replies implies someone ran ?faq or something, so we'll preserve the ticket
+        or len(bot_replies) > 2
+    )
+    if should_keep_thread:
+        return
 
     # Delete ticket from DB and clean up bot messages
     ticket = await env.db.ticket.find_first(where={"msgTs": deleted_msg["ts"]})
