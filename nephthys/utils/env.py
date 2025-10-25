@@ -1,4 +1,5 @@
 import os
+from typing import Literal
 
 from aiohttp import ClientSession
 from dotenv import load_dotenv
@@ -62,6 +63,28 @@ class Environment:
         )
 
         self.slack_client = AsyncWebClient(token=self.slack_bot_token)
+
+        # Cache whether the user token has workspace admin privileges
+        self._workspace_admin_available: bool | Literal["unchecked"] = "unchecked"
+
+    async def workspace_admin_available(self) -> bool:
+        """Check if the provided user token has workspace admin privileges."""
+        if self._workspace_admin_available != "unchecked":
+            return self._workspace_admin_available
+        user_token_identity = await self.slack_client.auth_test(
+            token=self.slack_user_token
+        )
+        user_id = user_token_identity["user_id"]
+        if not user_id:
+            raise ValueError(
+                f"Unable to get my user ID from Slack API: {user_token_identity}"
+            )
+        user_info_response = await self.slack_client.users_info(user=user_id)
+        user_info = user_info_response["user"]
+        if not user_info:
+            raise ValueError("Failed to get user info from Slack API.")
+        self._workspace_admin_available = user_info["is_admin"]
+        return user_info["is_admin"]
 
 
 env = Environment()
