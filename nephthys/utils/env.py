@@ -79,7 +79,7 @@ class Environment:
             raise ValueError(
                 f"Unable to get my user ID from Slack API: {user_token_identity}"
             )
-        user_info_response = await env.slack_client.users_info(user=user_id)
+        user_info_response = await self.slack_client.users_info(user=user_id)
         user_info = user_info_response["user"]
         if not user_info:
             raise ValueError("Failed to get user info from Slack API.")
