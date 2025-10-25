@@ -7,6 +7,7 @@ from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
+from nephthys.utils.ticket_methods import delete_and_clean_up_ticket
 
 
 async def handle_question_deletion(
@@ -30,41 +31,51 @@ async def handle_question_deletion(
             raise e
     bot_info = await env.slack_client.auth_test()
     bot_user_id = bot_info.get("user_id")
-    messages_to_delete = []
+    bot_replies = []
+    non_bot_replies = []
     for msg in thread_history["messages"]:
+        if msg["ts"] == deleted_msg["ts"]:
+            continue  # Ignore top-level message
         if msg["user"] == bot_user_id:
-            messages_to_delete.append(msg)
-        elif msg["ts"] != deleted_msg["ts"]:
-            # Don't clear the thread if there are non-bot messages in there
-            return
+            bot_replies.append(msg)
+        else:
+            non_bot_replies.append(msg)
 
-    # Delete ticket from DB
-    await env.db.ticket.delete(where={"msgTs": deleted_msg["ts"]})
-
-    # Delete messages
-    await send_heartbeat(
-        f"Removing my {len(messages_to_delete)} message(s) in a thread because the question was deleted."
+    should_keep_thread = (
+        # Preserve if there are any human replies
+        len(non_bot_replies) > 0
+        # More than 2 bot replies implies someone ran ?faq or something, so we'll preserve the ticket
+        or len(bot_replies) > 2
     )
-    for msg in messages_to_delete:
-        await client.chat_delete(
-            channel=channel,
-            ts=msg["ts"],
-        )
+    if should_keep_thread:
+        return
+
+    # Delete ticket from DB and clean up bot messages
+    ticket = await env.db.ticket.find_first(where={"msgTs": deleted_msg["ts"]})
+    if not ticket:
+        message = f"Deleted question doesn't have an associated ticket in DB, ts={deleted_msg['ts']}"
+        logging.warning(message)
+        await send_heartbeat(message)
+        return
+    await delete_and_clean_up_ticket(ticket)
 
 
 async def on_message_deletion(event: Dict[str, Any], client: AsyncWebClient) -> None:
     """Handles the two types of message deletion events
     (i.e. a message being turned into a tombstone, and a message being fully deleted)."""
-    if event.get("subtype") == "message_deleted":
-        # This means the message has been completely deleted with out leaving a "tombstone", so no cleanup to do
-        return
     deleted_msg = event.get("previous_message")
     if not deleted_msg:
         logging.warning("No previous_message found in message deletion event")
         return
-    is_top_level_message = (
-        "thread_ts" not in deleted_msg or deleted_msg["ts"] == deleted_msg["thread_ts"]
+    is_in_thread = (
+        "thread_ts" in deleted_msg and deleted_msg["ts"] != deleted_msg["thread_ts"]
     )
-    if is_top_level_message:
-        # A question (i.e. top-level message in help channel) has been deleted
+    if is_in_thread:
+        return
+    if event.get("subtype") == "message_deleted":
+        # This means the message has been completely deleted with out leaving a "tombstone"
+        # No thread means no messages to delete, but we should delete any associated ticket from the DB
+        await env.db.ticket.delete(where={"msgTs": deleted_msg["ts"]})
+    else:
+        # A parent message (i.e. top-level message in help channel) has been deleted
         await handle_question_deletion(client, event["channel"], deleted_msg)

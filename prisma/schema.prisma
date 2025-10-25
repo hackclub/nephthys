@@ -37,8 +37,13 @@ model Ticket {
   description String
   status      TicketStatus @default(OPEN)
 
+  // TS for the original help message (top of the help thread)
   msgTs    String @unique
+  // TS for the ticket message in the "backend" tickets channel
   ticketTs String @unique
+
+  // Messages sent by the bot in the help thread
+  userFacingMsgs BotMessage[]
 
   openedBy   User   @relation("OpenedTickets", fields: [openedById], references: [id])
   openedById Int
@@ -88,4 +93,14 @@ model UserTagSubscription {
 
   @@id([userId, tagId])
   @@map("user_tag_subscriptions")
+}
+
+model BotMessage {
+  id        Int      @id @unique @default(autoincrement())
+  ts        String
+  channelId String
+  ticket    Ticket  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId  Int
+
+  @@unique([ts, channelId])
 }

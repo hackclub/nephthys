@@ -1,6 +1,7 @@
 from nephthys.actions.resolve import resolve
 from nephthys.macros.types import Macro
 from nephthys.utils.env import env
+from nephthys.utils.ticket_methods import delete_bot_replies
 
 
 class Thread(Macro):
@@ -15,19 +16,8 @@ class Thread(Macro):
         if not sender:
             return
 
-        # Delete the first (FAQ) message sent by the bot
-        bot_info = await env.slack_client.auth_test()
-        bot_user_id = bot_info.get("user_id")
-        bot_messages = await env.slack_client.conversations_replies(
-            channel=env.slack_help_channel,
-            ts=ticket.msgTs,
-        )
-        for msg in bot_messages["messages"]:
-            if msg["user"] == bot_user_id:
-                await env.slack_client.chat_delete(
-                    channel=env.slack_help_channel,
-                    ts=msg["ts"],
-                )
+        # Deletes the first (FAQ) message sent by the bot
+        await delete_bot_replies(ticket.id)
 
         await resolve(
             ts=ticket.msgTs,
