@@ -52,31 +52,43 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                 where={"msgTs": event["thread_ts"]},
                 include={"openedBy": True, "tagsOnTickets": True},
             )
-            if not ticket_message or ticket_message.status == TicketStatus.CLOSED:
+            if not ticket_message:
                 return
             first_word = text.split()[0].lower()
 
             if first_word[0] == "?" and ticket_message:
-                await run_macro(
-                    name=first_word.lstrip("?"),
-                    ticket=ticket_message,
-                    helper=db_user,
-                    text=text,
-                    macro_ts=event["ts"],
-                )
+                macro_name = first_word.lstrip("?")
+                if macro_name == "reopen" and ticket_message.status == TicketStatus.CLOSED: # Only reopen closed tickets
+                    await run_macro(
+                        name=macro_name,
+                        ticket=ticket_message,
+                        helper=db_user,
+                        text=text,
+                        macro_ts=event["ts"],
+                    )
+                elif ticket_message.status != TicketStatus.CLOSED: # Only run other macros on open tickets
+                    await run_macro(
+                        name=macro_name,
+                        ticket=ticket_message,
+                        helper=db_user,
+                        text=text,
+                        macro_ts=event["ts"],
+                    )
+                return
             else:
-                await env.db.ticket.update(
-                    where={"msgTs": event["thread_ts"]},
-                    data={
-                        "assignedTo": {"connect": {"id": db_user.id}},
-                        "status": TicketStatus.IN_PROGRESS,
-                        "assignedAt": (
-                            datetime.now()
-                            if not ticket_message.assignedAt
-                            else ticket_message.assignedAt
-                        ),
-                    },
-                )
+                if ticket_message.status != TicketStatus.CLOSED:
+                    await env.db.ticket.update(
+                        where={"msgTs": event["thread_ts"]},
+                        data={
+                            "assignedTo": {"connect": {"id": db_user.id}},
+                            "status": TicketStatus.IN_PROGRESS,
+                            "assignedAt": (
+                                datetime.now()
+                                if not ticket_message.assignedAt
+                                else ticket_message.assignedAt
+                            ),
+                        },
+                    )
         return
 
     thread_url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{event['ts'].replace('.', '')}"
