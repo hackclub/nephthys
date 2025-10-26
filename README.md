@@ -14,6 +14,7 @@ You can assign yourself to get notified for specific tags on the app home
 Sometimes it’s nice to be able to do things quickly... Here’s where macros come in! Send one of the following messages in an open thread and something will happen
 
 - `?resolve` - the ticket gets closed. Equivalent of hitting i get it now
+- `?reopen` - reopen a closed ticket
 - `?identity` - redirect to #identity-help
 - `?faq` - redirect to the FAQ
 - `?hii` - silly message :3
