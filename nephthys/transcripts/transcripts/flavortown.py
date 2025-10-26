@@ -26,7 +26,7 @@ class Flavortown(Transcript):
 """
     ticket_resolve: str = f"""
 Aha, this post has just been marked as resolved by <@{{user_id}}>! I'll head back to the kitchen now, \
-but if you need any more help, just send another message in {help_channel} and I'll be right back ^u^
+but if you need any more help, just send another message in <#{help_channel}> and I'll be right back o/
 """
 
     home_unknown_user_title: str = ":upside-down_orpheus: woah, wait one sec!"
