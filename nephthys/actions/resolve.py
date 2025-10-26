@@ -6,6 +6,7 @@ from nephthys.utils.delete_thread import add_thread_to_delete_queue
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.permissions import can_resolve
+from nephthys.utils.ticket_methods import delete_message
 from nephthys.utils.ticket_methods import reply_to_ticket
 from prisma.enums import TicketStatus
 
@@ -84,6 +85,11 @@ async def resolve(
         timestamp=ts,
     )
 
-    await add_thread_to_delete_queue(
-        channel_id=env.slack_ticket_channel, thread_ts=tkt.ticketTs
-    )
+    if await env.workspace_admin_available():
+        await add_thread_to_delete_queue(
+            channel_id=env.slack_ticket_channel, thread_ts=tkt.ticketTs
+        )
+    else:
+        await delete_message(
+            channel_id=env.slack_ticket_channel, message_ts=tkt.ticketTs
+        )
