@@ -52,7 +52,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                 where={"msgTs": event["thread_ts"]},
                 include={"openedBy": True, "tagsOnTickets": True},
             )
-            if not ticket_message or ticket_message.status == TicketStatus.CLOSED:
+            if not ticket_message:
                 return
             first_word = text.split()[0].lower()
 
@@ -64,19 +64,21 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                     text=text,
                     macro_ts=event["ts"],
                 )
+                return
             else:
-                await env.db.ticket.update(
-                    where={"msgTs": event["thread_ts"]},
-                    data={
-                        "assignedTo": {"connect": {"id": db_user.id}},
-                        "status": TicketStatus.IN_PROGRESS,
-                        "assignedAt": (
-                            datetime.now()
-                            if not ticket_message.assignedAt
-                            else ticket_message.assignedAt
-                        ),
-                    },
-                )
+                if ticket_message.status != TicketStatus.CLOSED:
+                    await env.db.ticket.update(
+                        where={"msgTs": event["thread_ts"]},
+                        data={
+                            "assignedTo": {"connect": {"id": db_user.id}},
+                            "status": TicketStatus.IN_PROGRESS,
+                            "assignedAt": (
+                                datetime.now()
+                                if not ticket_message.assignedAt
+                                else ticket_message.assignedAt
+                            ),
+                        },
+                    )
         return
 
     thread_url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{event['ts'].replace('.', '')}"

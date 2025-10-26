@@ -4,16 +4,18 @@ from nephthys.macros.faq import FAQ
 from nephthys.macros.fraud import Fraud
 from nephthys.macros.hello_world import HelloWorld
 from nephthys.macros.identity import Identity
+from nephthys.macros.reopen import Reopen
 from nephthys.macros.resolve import Resolve
 from nephthys.macros.shipcertqueue import ShipCertQueue
 from nephthys.macros.thread import Thread
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
+from prisma.enums import TicketStatus
 from prisma.models import Ticket
 from prisma.models import User
 
 
-macros = [Resolve, HelloWorld, FAQ, Identity, Fraud, ShipCertQueue, Thread]
+macros = [Resolve, HelloWorld, FAQ, Identity, Fraud, ShipCertQueue, Thread, Reopen]
 
 
 async def run_macro(
@@ -24,6 +26,8 @@ async def run_macro(
     """
     for macro in macros:
         if macro.name == name:
+            if not macro.can_run_on_closed and ticket.status == TicketStatus.CLOSED:
+                return False
             new_kwargs = kwargs.copy()
             new_kwargs["text"] = text
             await macro().run(ticket, helper, **new_kwargs)

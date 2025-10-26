@@ -30,6 +30,10 @@ class Transcript(BaseModel):
         default="",
         description="Slack channel ID for team discussions and stats",
     )
+    ticket_reopen: str = Field(
+        default="",
+        description="Message when ticket is reopened",
+    )
 
     @property
     def program_snake_case(self) -> str:
@@ -136,5 +140,8 @@ if your question has been answered, please hit the button below to mark it as re
 
         if not self.dm_magic_link_no_permission:
             self.dm_magic_link_no_permission = f":rac_nooo: you don't have permission to use this command, please bug <@{self.program_owner}> if you think this is a mistake"
+
+        if not self.ticket_reopen:
+            self.ticket_reopen = "hey hey! it looks like <@{helper_slack_id}> has reopened this post! someone'll be with you shortly, ty!"
 
         return self
