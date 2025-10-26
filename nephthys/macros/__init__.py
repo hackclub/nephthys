@@ -4,6 +4,7 @@ from nephthys.macros.faq import FAQ
 from nephthys.macros.fraud import Fraud
 from nephthys.macros.hello_world import HelloWorld
 from nephthys.macros.identity import Identity
+from nephthys.macros.reopen import Reopen
 from nephthys.macros.resolve import Resolve
 from nephthys.macros.shipcertqueue import ShipCertQueue
 from nephthys.macros.thread import Thread
@@ -13,7 +14,7 @@ from prisma.models import Ticket
 from prisma.models import User
 
 
-macros = [Resolve, HelloWorld, FAQ, Identity, Fraud, ShipCertQueue, Thread]
+macros = [Resolve, HelloWorld, FAQ, Identity, Fraud, ShipCertQueue, Thread, Reopen]
 
 
 async def run_macro(
