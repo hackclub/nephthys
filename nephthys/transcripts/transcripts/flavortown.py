@@ -16,13 +16,13 @@ class Flavortown(Transcript):
 
     first_ticket_create: str = f"""
 :rac_info: Hey there (user), and welcome to the support channel! While we wait for someone to help you out, I have a couple of requests for you:
-- Take a look through <{faq_link}|*the FAQ*> – you may find a solution waiting there
-- Once your question has been answered, hit the button below
+• Take a look through <{faq_link}|*the FAQ*> – you may find a solution waiting there
+• Once your question has been answered, hit that green button below!
 """
     ticket_create: str = f"""
-:rac_info: Ah, hello! While we wait for a human to come and help you out, I've been told to remind you:
-- Have a read of <{faq_link}|*the FAQ*> – it might have the answer you're looking for
-- Once your question is answered, hit that green button below
+:rac_info: Ah, hello! While we wait for a human to come and help you out, I've been told to remind you to:
+• Have a read of <{faq_link}|*the FAQ*> – it might have the answer you're looking for
+• Once your question is answered, hit the button below!
 """
     ticket_resolve: str = f"""
 Aha, this post has just been marked as resolved by <@{{user_id}}>! I'll head back to the kitchen now, \
