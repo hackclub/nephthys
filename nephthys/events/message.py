@@ -113,8 +113,6 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         profile_pic = user_info["profile"].get("image_512", "")
         display_name = user_info["profile"]["display_name"] or user_info["real_name"]
 
-    # If we don't have admin perms, don't take on the user's pfp and name, because that'd make it impossible to delete the message later
-    use_impersonation = await env.workspace_admin_available()
     ticket_message = await client.chat_postMessage(
         channel=env.slack_ticket_channel,
         text=f"New message from <@{user}>: {text}",
@@ -139,8 +137,8 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                 ],
             },
         ],
-        username=display_name if use_impersonation else None,
-        icon_url=profile_pic if use_impersonation else None,
+        username=display_name,
+        icon_url=profile_pic,
         unfurl_links=True,
         unfurl_media=True,
     )
