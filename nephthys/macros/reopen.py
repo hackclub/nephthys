@@ -25,7 +25,7 @@ class Reopen(Macro):
         )
 
         await reply_to_ticket(
-            text=f"The ticket was reopened by <@{helper.slackId}>. Someone will be with you shortly ty!",
+            text=env.transcript.ticket_reopen.format(helper_slack_id=helper.slackId),
             ticket=ticket,
             client=env.slack_client,
         )
