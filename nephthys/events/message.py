@@ -160,7 +160,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
     )
     ticket_message_time = perf_counter()
     logging.debug(
-        f"on_message: Sending ticket message took {ticket_message_time - slack_user_info_time:.2f}s"
+        f"on_message: Sending ticket message took {ticket_message_time - db_count_time:.2f}s"
     )
 
     ticket_message_ts = ticket_message["ts"]
@@ -242,7 +242,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
     )
     ticket_creation_time = perf_counter()
     logging.debug(
-        f"on_message: Ticket creation in DB took {ticket_creation_time - user_facing_message_time:.2f}s"
+        f"on_message: Ticket creation in DB took {ticket_creation_time - ai_response_time:.2f}s"
     )
 
     try:
