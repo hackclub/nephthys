@@ -91,12 +91,6 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
 
     thread_url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{event['ts'].replace('.', '')}"
 
-    db_user = await env.db.user.find_first(where={"slackId": user})
-    db_lookup_2_time = perf_counter()
-    logging.info(
-        f"on_message: 2nd DB lookup took {db_lookup_2_time - special_cases_time:.2f}s"
-    )
-
     if db_user:
         past_tickets = await env.db.ticket.count(where={"openedById": db_user.id})
     else:
@@ -121,7 +115,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         )
     db_count_time = perf_counter()
     logging.info(
-        f"on_message: Getting ticket count/updating user DB took {db_count_time - db_lookup_2_time:.2f}s"
+        f"on_message: Getting ticket count/updating user DB took {db_count_time - special_cases_time:.2f}s"
     )
 
     user_info_response = await client.users_info(user=user) or {}
