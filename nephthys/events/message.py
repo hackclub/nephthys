@@ -32,7 +32,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
 
     db_user = await env.db.user.find_first(where={"slackId": user})
     db_lookup_time = perf_counter()
-    logging.info(f"on_message: DB lookup took {db_lookup_time - start_time:.2f}s")
+    logging.debug(f"on_message: DB lookup took {db_lookup_time - start_time:.2f}s")
 
     # Messages sent in a thread with the "send to channel" checkbox checked
     if event.get("subtype") == "thread_broadcast" and not (db_user and db_user.helper):
@@ -85,14 +85,14 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                     )
         return
     special_cases_time = perf_counter()
-    logging.info(
+    logging.debug(
         f"on_message: Special cases took {special_cases_time - db_lookup_time:.2f}s"
     )
 
     thread_url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{event['ts'].replace('.', '')}"
     user_info_response = await client.users_info(user=user) or {}
     slack_user_info_time = perf_counter()
-    logging.info(
+    logging.debug(
         f"on_message: Slack user info fetch took {slack_user_info_time - special_cases_time:.2f}s"
     )
     user_info = user_info_response.get("user")
@@ -119,7 +119,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
             },
         )
     db_count_time = perf_counter()
-    logging.info(
+    logging.debug(
         f"on_message: Getting ticket count/updating user DB took {db_count_time - slack_user_info_time:.2f}s"
     )
 
@@ -159,7 +159,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         unfurl_media=True,
     )
     ticket_message_time = perf_counter()
-    logging.info(
+    logging.debug(
         f"on_message: Sending ticket message took {ticket_message_time - slack_user_info_time:.2f}s"
     )
 
@@ -210,13 +210,13 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         unfurl_media=True,
     )
     user_facing_message_time = perf_counter()
-    logging.info(
+    logging.debug(
         f"on_message: Sending FAQ message took {user_facing_message_time - ticket_message_time:.2f}s"
     )
 
     title = await generate_ticket_title(text)
     ai_response_time = perf_counter()
-    logging.info(
+    logging.debug(
         f"on_message: AI title generation took {ai_response_time - user_facing_message_time:.2f}s"
     )
 
@@ -241,7 +241,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         },
     )
     ticket_creation_time = perf_counter()
-    logging.info(
+    logging.debug(
         f"on_message: Ticket creation in DB took {ticket_creation_time - user_facing_message_time:.2f}s"
     )
 
