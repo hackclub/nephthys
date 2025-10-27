@@ -90,15 +90,20 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
     )
 
     thread_url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{event['ts'].replace('.', '')}"
+    user_info_response = await client.users_info(user=user) or {}
+    slack_user_info_time = perf_counter()
+    logging.info(
+        f"on_message: Slack user info fetch took {slack_user_info_time - special_cases_time:.2f}s"
+    )
+    user_info = user_info_response.get("user")
 
     if db_user:
         past_tickets = await env.db.ticket.count(where={"openedById": db_user.id})
     else:
         past_tickets = 0
-        user_info = await client.users_info(user=user) or {}
-        username = user_info.get("user", {})[
+        username = (user_info or {}).get(
             "name"
-        ]  # this should never actually be empty but if it is, that is a major issue
+        )  # this should never actually be empty but if it is, that is a major issue
 
         if not username:
             await send_heartbeat(
@@ -115,15 +120,9 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         )
     db_count_time = perf_counter()
     logging.info(
-        f"on_message: Getting ticket count/updating user DB took {db_count_time - special_cases_time:.2f}s"
+        f"on_message: Getting ticket count/updating user DB took {db_count_time - slack_user_info_time:.2f}s"
     )
 
-    user_info_response = await client.users_info(user=user) or {}
-    slack_user_info_time = perf_counter()
-    logging.info(
-        f"on_message: Slack user info fetch took {slack_user_info_time - db_count_time:.2f}s"
-    )
-    user_info = user_info_response.get("user")
     profile_pic = None
     display_name = "Explorer"
     if user_info:
