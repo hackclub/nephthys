@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from time import perf_counter
 from typing import Any
 from typing import Dict
 
@@ -25,10 +26,13 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         logging.info(f"Ignoring bot message from {event['bot_id']}")
         return
 
+    start_time = perf_counter()
     user = event.get("user", "unknown")
     text = event.get("text", "")
 
     db_user = await env.db.user.find_first(where={"slackId": user})
+    db_lookup_time = perf_counter()
+    logging.info(f"on_message: DB lookup took {db_lookup_time - start_time:.2f}s")
 
     # Messages sent in a thread with the "send to channel" checkbox checked
     if event.get("subtype") == "thread_broadcast" and not (db_user and db_user.helper):
@@ -80,10 +84,19 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                         },
                     )
         return
+    special_cases_time = perf_counter()
+    logging.info(
+        f"on_message: Special cases took {special_cases_time - db_lookup_time:.2f}s"
+    )
 
     thread_url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{event['ts'].replace('.', '')}"
 
     db_user = await env.db.user.find_first(where={"slackId": user})
+    db_lookup_2_time = perf_counter()
+    logging.info(
+        f"on_message: 2nd DB lookup took {db_lookup_2_time - special_cases_time:.2f}s"
+    )
+
     if db_user:
         past_tickets = await env.db.ticket.count(where={"openedById": db_user.id})
     else:
@@ -106,8 +119,16 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                 "update": {"slackId": user, "username": username},
             },
         )
+    db_count_time = perf_counter()
+    logging.info(
+        f"on_message: Getting ticket count/updating user DB took {db_count_time - db_lookup_2_time:.2f}s"
+    )
 
     user_info_response = await client.users_info(user=user) or {}
+    slack_user_info_time = perf_counter()
+    logging.info(
+        f"on_message: Slack user info fetch took {slack_user_info_time - db_count_time:.2f}s"
+    )
     user_info = user_info_response.get("user")
     profile_pic = None
     display_name = "Explorer"
@@ -144,6 +165,10 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         unfurl_links=True,
         unfurl_media=True,
     )
+    ticket_message_time = perf_counter()
+    logging.info(
+        f"on_message: Sending ticket message took {ticket_message_time - slack_user_info_time:.2f}s"
+    )
 
     ticket_message_ts = ticket_message["ts"]
     if not ticket_message_ts:
@@ -173,6 +198,10 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         else:
             data = await res.json()
             title = data["choices"][0]["message"]["content"].strip()
+    ai_response_time = perf_counter()
+    logging.info(
+        f"on_message: AI title generation took {ai_response_time - ticket_message_time:.2f}s"
+    )
 
     user_facing_message_text = (
         env.transcript.first_ticket_create.replace("(user)", display_name)
@@ -215,6 +244,10 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         unfurl_links=True,
         unfurl_media=True,
     )
+    user_facing_message_time = perf_counter()
+    logging.info(
+        f"on_message: Sending FAQ message took {user_facing_message_time - ai_response_time:.2f}s"
+    )
 
     user_facing_message_ts = user_facing_message["ts"]
     if not user_facing_message_ts:
@@ -235,6 +268,10 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                 }
             },
         },
+    )
+    ticket_creation_time = perf_counter()
+    logging.info(
+        f"on_message: Ticket creation in DB took {ticket_creation_time - user_facing_message_time:.2f}s"
     )
 
     try:
