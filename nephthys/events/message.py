@@ -168,34 +168,6 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         logging.error(f"Ticket message has no ts: {ticket_message}")
         return
 
-    async with env.session.post(
-        "https://ai.hackclub.com/chat/completions",
-        json={
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "You are a helpful assistant that helps organise tickets for Hack Club's support team. You're going to take in a message and give it a title. You will return no other content. Even if it's silly please summarise it. Use no more than 7 words, but as few as possible.",
-                },
-                {
-                    "role": "user",
-                    "content": f"Here is a message from a user: {text}\n\nPlease give this ticket a title.",
-                },
-            ]
-        },
-    ) as res:
-        if res.status != 200:
-            await send_heartbeat(
-                f"Failed to get AI response for ticket creation: {res.status} - {await res.text()}"
-            )
-            title = "No title provided by AI."
-        else:
-            data = await res.json()
-            title = data["choices"][0]["message"]["content"].strip()
-    ai_response_time = perf_counter()
-    logging.info(
-        f"on_message: AI title generation took {ai_response_time - ticket_message_time:.2f}s"
-    )
-
     user_facing_message_text = (
         env.transcript.first_ticket_create.replace("(user)", display_name)
         if past_tickets == 0
@@ -239,7 +211,13 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
     )
     user_facing_message_time = perf_counter()
     logging.info(
-        f"on_message: Sending FAQ message took {user_facing_message_time - ai_response_time:.2f}s"
+        f"on_message: Sending FAQ message took {user_facing_message_time - ticket_message_time:.2f}s"
+    )
+
+    title = await generate_ticket_title(text)
+    ai_response_time = perf_counter()
+    logging.info(
+        f"on_message: AI title generation took {ai_response_time - user_facing_message_time:.2f}s"
     )
 
     user_facing_message_ts = user_facing_message["ts"]
@@ -288,3 +266,30 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                 await send_heartbeat(
                     f"Successfully pinged uptime URL: {res.status} - {await res.text()}"
                 )
+
+
+async def generate_ticket_title(text):
+    async with env.session.post(
+        "https://ai.hackclub.com/chat/completions",
+        json={
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant that helps organise tickets for Hack Club's support team. You're going to take in a message and give it a title. You will return no other content. Even if it's silly please summarise it. Use no more than 7 words, but as few as possible.",
+                },
+                {
+                    "role": "user",
+                    "content": f"Here is a message from a user: {text}\n\nPlease give this ticket a title.",
+                },
+            ]
+        },
+    ) as res:
+        if res.status != 200:
+            await send_heartbeat(
+                f"Failed to get AI response for ticket creation: {res.status} - {await res.text()}"
+            )
+            title = "No title provided by AI."
+        else:
+            data = await res.json()
+            title = data["choices"][0]["message"]["content"].strip()
+    return title
