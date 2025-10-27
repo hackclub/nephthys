@@ -1,4 +1,5 @@
 import logging
+from time import perf_counter
 from typing import Any
 from typing import Dict
 
@@ -27,6 +28,7 @@ app = AsyncApp(token=env.slack_bot_token, signing_secret=env.slack_signing_secre
 @app.event("message")
 async def handle_message(event: Dict[str, Any], client: AsyncWebClient):
     logging.debug(f"Message event: {event}")
+    start_time = perf_counter()
     is_message_deletion = (
         event.get("subtype") == "message_changed"
         and event["message"].get("subtype") == "tombstone"
@@ -36,6 +38,9 @@ async def handle_message(event: Dict[str, Any], client: AsyncWebClient):
             await on_message_deletion(event, client)
         else:
             await on_message(event, client)
+    logging.info(
+        f"Processed message event in {perf_counter() - start_time:.2f} seconds total"
+    )
 
 
 @app.action("mark_resolved")

@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from time import perf_counter
 from typing import Any
 from typing import Dict
 
@@ -25,10 +26,13 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         logging.info(f"Ignoring bot message from {event['bot_id']}")
         return
 
+    start_time = perf_counter()
     user = event.get("user", "unknown")
     text = event.get("text", "")
 
     db_user = await env.db.user.find_first(where={"slackId": user})
+    db_lookup_time = perf_counter()
+    logging.debug(f"on_message: DB lookup took {db_lookup_time - start_time:.2f}s")
 
     # Messages sent in a thread with the "send to channel" checkbox checked
     if event.get("subtype") == "thread_broadcast" and not (db_user and db_user.helper):
@@ -80,18 +84,26 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                         },
                     )
         return
+    special_cases_time = perf_counter()
+    logging.debug(
+        f"on_message: Special cases took {special_cases_time - db_lookup_time:.2f}s"
+    )
 
     thread_url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{event['ts'].replace('.', '')}"
+    user_info_response = await client.users_info(user=user) or {}
+    slack_user_info_time = perf_counter()
+    logging.debug(
+        f"on_message: Slack user info fetch took {slack_user_info_time - special_cases_time:.2f}s"
+    )
+    user_info = user_info_response.get("user")
 
-    db_user = await env.db.user.find_first(where={"slackId": user})
     if db_user:
         past_tickets = await env.db.ticket.count(where={"openedById": db_user.id})
     else:
         past_tickets = 0
-        user_info = await client.users_info(user=user) or {}
-        username = user_info.get("user", {})[
+        username = (user_info or {}).get(
             "name"
-        ]  # this should never actually be empty but if it is, that is a major issue
+        )  # this should never actually be empty but if it is, that is a major issue
 
         if not username:
             await send_heartbeat(
@@ -106,9 +118,11 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                 "update": {"slackId": user, "username": username},
             },
         )
+    db_count_time = perf_counter()
+    logging.debug(
+        f"on_message: Getting ticket count/updating user DB took {db_count_time - slack_user_info_time:.2f}s"
+    )
 
-    user_info_response = await client.users_info(user=user) or {}
-    user_info = user_info_response.get("user")
     profile_pic = None
     display_name = "Explorer"
     if user_info:
@@ -144,35 +158,15 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         unfurl_links=True,
         unfurl_media=True,
     )
+    ticket_message_time = perf_counter()
+    logging.debug(
+        f"on_message: Sending ticket message took {ticket_message_time - db_count_time:.2f}s"
+    )
 
     ticket_message_ts = ticket_message["ts"]
     if not ticket_message_ts:
         logging.error(f"Ticket message has no ts: {ticket_message}")
         return
-
-    async with env.session.post(
-        "https://ai.hackclub.com/chat/completions",
-        json={
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "You are a helpful assistant that helps organise tickets for Hack Club's support team. You're going to take in a message and give it a title. You will return no other content. Even if it's silly please summarise it. Use no more than 7 words, but as few as possible.",
-                },
-                {
-                    "role": "user",
-                    "content": f"Here is a message from a user: {text}\n\nPlease give this ticket a title.",
-                },
-            ]
-        },
-    ) as res:
-        if res.status != 200:
-            await send_heartbeat(
-                f"Failed to get AI response for ticket creation: {res.status} - {await res.text()}"
-            )
-            title = "No title provided by AI."
-        else:
-            data = await res.json()
-            title = data["choices"][0]["message"]["content"].strip()
 
     user_facing_message_text = (
         env.transcript.first_ticket_create.replace("(user)", display_name)
@@ -215,6 +209,16 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         unfurl_links=True,
         unfurl_media=True,
     )
+    user_facing_message_time = perf_counter()
+    logging.debug(
+        f"on_message: Sending FAQ message took {user_facing_message_time - ticket_message_time:.2f}s"
+    )
+
+    title = await generate_ticket_title(text)
+    ai_response_time = perf_counter()
+    logging.debug(
+        f"on_message: AI title generation took {ai_response_time - user_facing_message_time:.2f}s"
+    )
 
     user_facing_message_ts = user_facing_message["ts"]
     if not user_facing_message_ts:
@@ -235,6 +239,10 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                 }
             },
         },
+    )
+    ticket_creation_time = perf_counter()
+    logging.debug(
+        f"on_message: Ticket creation in DB took {ticket_creation_time - ai_response_time:.2f}s"
     )
 
     try:
@@ -258,3 +266,30 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                 await send_heartbeat(
                     f"Successfully pinged uptime URL: {res.status} - {await res.text()}"
                 )
+
+
+async def generate_ticket_title(text: str):
+    async with env.session.post(
+        "https://ai.hackclub.com/chat/completions",
+        json={
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant that helps organise tickets for Hack Club's support team. You're going to take in a message and give it a title. You will return no other content. Even if it's silly please summarise it. Use no more than 7 words, but as few as possible.",
+                },
+                {
+                    "role": "user",
+                    "content": f"Here is a message from a user: {text}\n\nPlease give this ticket a title.",
+                },
+            ]
+        },
+    ) as res:
+        if res.status != 200:
+            await send_heartbeat(
+                f"Failed to get AI response for ticket creation: {res.status} - {await res.text()}"
+            )
+            title = "No title provided by AI."
+        else:
+            data = await res.json()
+            title = data["choices"][0]["message"]["content"].strip()
+    return title
