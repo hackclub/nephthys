@@ -268,7 +268,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                 )
 
 
-async def generate_ticket_title(text):
+async def generate_ticket_title(text: str):
     async with env.session.post(
         "https://ai.hackclub.com/chat/completions",
         json={
