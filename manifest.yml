@@ -46,7 +46,8 @@
                 "usergroups:read",
                 "usergroups:write",
                 "users:read",
-                "users:read.email"
+                "users:read.email",
+                "files:write"
             ]
         }
     },
