@@ -59,3 +59,15 @@ async def update_helpers():
 
     if new_member_data_to_create:
         await env.db.user.create_many(data=new_member_data_to_create)
+
+    # ensure the bot maintainer is an admin
+    maintainer = await env.db.user.update(
+        where={"slackId": env.slack_maintainer_id},
+        data={"admin": True},
+    )
+    if not maintainer:
+        logging.warning(
+            f"Bot maintainer {env.slack_maintainer_id} is not a helper or in the database"
+        )
+    elif not maintainer.helper:
+        logging.warning(f"Bot maintainer {env.slack_maintainer_id} is not a helper")
