@@ -5,6 +5,7 @@ import pytz
 
 from nephthys.utils.env import env
 from nephthys.views.home.components.buttons import get_buttons
+from nephthys.views.home.components.header import get_header
 from nephthys.views.home.components.leaderboards import get_leaderboard_view
 from nephthys.views.home.components.ticket_status_pie import get_ticket_status_pie_chart
 from nephthys.views.home.error import get_error_view
@@ -34,6 +35,7 @@ async def get_helper_view(user: User):
         f"Generated leaderboard in {time_leaderboard - time_pie_chart:.4f} seconds"
     )
 
+    header = get_header()
     btns = get_buttons(user, "dashboard")
     logging.debug(
         f"Generated Dashboard view in {perf_counter() - time_start:.4f} seconds total"
@@ -42,14 +44,7 @@ async def get_helper_view(user: User):
     return {
         "type": "home",
         "blocks": [
-            {
-                "type": "header",
-                "text": {
-                    "type": "plain_text",
-                    "text": ":rac_cute: helper heidi",
-                    "emoji": True,
-                },
-            },
+            header,
             btns,
             {"type": "divider"},
             {
