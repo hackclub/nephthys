@@ -1,9 +1,13 @@
+from prometheus_client import CONTENT_TYPE_LATEST
+from prometheus_client import generate_latest
 from slack_bolt.adapter.starlette.async_handler import AsyncSlackRequestHandler
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.responses import RedirectResponse
+from starlette.responses import Response
 from starlette.routing import Route
+from starlette_exporter import PrometheusMiddleware
 
 from nephthys.__main__ import main
 from nephthys.api.stats import stats
@@ -36,6 +40,14 @@ async def health(req: Request):
     )
 
 
+async def metrics(req: Request):
+    """Prometheus metrics endpoint"""
+    main_metrics: bytes = generate_latest()
+    prisma_metrics = await env.db.get_metrics(format="prometheus")
+    all_metrics = main_metrics + prisma_metrics.encode("utf-8")
+    return Response(all_metrics, media_type=CONTENT_TYPE_LATEST)
+
+
 async def root(req: Request):
     return RedirectResponse(url="https://github.com/hackclub/nephthys")
 
@@ -48,6 +60,25 @@ app = Starlette(
         Route(path="/api/stats", endpoint=stats, methods=["GET"]),
         Route(path="/api/user", endpoint=user_stats, methods=["GET"]),
         Route(path="/health", endpoint=health, methods=["GET"]),
+        Route(path="/metrics", endpoint=metrics, methods=["GET"]),
     ],
     lifespan=main,
+)
+
+app.add_middleware(
+    PrometheusMiddleware,
+    app_name="nephthys",
+    buckets=[
+        0.001,
+        0.01,
+        0.025,
+        0.05,
+        0.1,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.5,
+        2.5,
+    ],
 )
