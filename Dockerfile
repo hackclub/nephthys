@@ -18,3 +18,5 @@ ENV PATH="/app/.venv/bin:$PATH"
 RUN prisma db push
 
 CMD ["nephthys"]
+
+HEALTHCHECK CMD curl --fail http://localhost:3000/health | grep -E '"healthy":\w*true' || exit 1
