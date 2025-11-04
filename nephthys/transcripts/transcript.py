@@ -59,6 +59,11 @@ class Transcript(BaseModel):
 
     ticket_create: str = Field(default="", description="Message for ticket creation")
 
+    resolve_ticket_button: str = Field(
+        default="Mark as resolved",
+        description="Text for the green resolve-ticket button",
+    )
+
     ticket_resolve: str = Field(
         default="", description="Message when ticket is resolved"
     )

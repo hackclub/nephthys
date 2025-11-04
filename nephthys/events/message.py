@@ -188,7 +188,10 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                 "elements": [
                     {
                         "type": "button",
-                        "text": {"type": "plain_text", "text": "i get it now"},
+                        "text": {
+                            "type": "plain_text",
+                            "text": env.transcript.resolve_ticket_button,
+                        },
                         "style": "primary",
                         "action_id": "mark_resolved",
                         "value": f"{event['ts']}",

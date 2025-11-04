@@ -20,6 +20,7 @@ oh, hey (user) it looks like this is your first time here, welcome! someone shou
 if your question has been answered, please hit the button below to mark it as resolved
 """
     ticket_create: str = f"someone should be along to help you soon but in the mean time i suggest you read the faq <{faq_link}|here> to make sure your question hasn't already been answered. if it has been, please hit the button below to mark it as resolved :D"
+    resolve_ticket_button: str = "i get it now"
     ticket_resolve: str = f"oh, oh! it looks like this post has been marked as resolved by <@{{user_id}}>! if you have any more questions, please make a new post in <#{help_channel}> and someone'll be happy to help you out! not me though, i'm just a silly racoon ^-^"
 
     home_unknown_user_title: str = (
