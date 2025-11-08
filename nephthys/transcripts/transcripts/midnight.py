@@ -11,7 +11,7 @@ class Midnight(Transcript):
     ticket_channel: str = "C09Q0EA66H5"  # #midnight-tickets
     team_channel: str = "C09KN7YLPA5"  # #hq-midnight
 
-    faq_link: str = "https://midnight.hackclub.com/faq"
+    faq_link: str = "https://hackclub.slack.com/docs/T0266FRGM/F09Q464T9LK"
     identity_help_channel: str = "C092833JXKK"  # #identity-help
 
     first_ticket_create: str = f"""
