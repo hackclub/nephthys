@@ -1,7 +1,7 @@
 [project]
 name = "nephthys"
 version = "0.1.0"
-description = "Add your description here"
+description = "Slack support bot for Hack Club's Summer of Making help channels"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
