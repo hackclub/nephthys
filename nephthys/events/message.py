@@ -12,124 +12,81 @@ from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.ticket_methods import delete_and_clean_up_ticket
 from prisma.enums import TicketStatus
+from prisma.models import User
 
-ALLOWED_SUBTYPES = ["file_share", "me_message", "thread_broadcast"]
+
+async def handle_message_sent_to_channel(event: Dict[str, Any], client: AsyncWebClient):
+    """Tell a non-helper off because they sent a thread message with the 'send to channel' box checked."""
+    await client.chat_delete(
+        channel=event["channel"],
+        ts=event["ts"],
+        as_user=True,
+        token=env.slack_user_token,
+        broadcast_delete=True,
+    )
+    await client.chat_postEphemeral(
+        channel=event["channel"],
+        user=event["user"],
+        text=env.transcript.thread_broadcast_delete,
+        thread_ts=event["thread_ts"] if "thread_ts" in event else event["ts"],
+    )
 
 
-async def on_message(event: Dict[str, Any], client: AsyncWebClient):
+async def handle_message_in_thread(event: Dict[str, Any], db_user: Any):
+    """Handle a message sent in a help thread.
+
+    - Ignores non-helper messages.
+    - If the message starts with "?", run the corresponding macro.
+    - Otherwise, update the assigned helper and ticket status.
     """
-    Handle incoming messages in Slack.
-    """
-    if "subtype" in event and event["subtype"] not in ALLOWED_SUBTYPES:
+    if not (db_user and db_user.helper):
         return
-    if "bot_id" in event:
-        logging.info(f"Ignoring bot message from {event['bot_id']}")
+    ticket_message = await env.db.ticket.find_first(
+        where={"msgTs": event["thread_ts"]},
+        include={"openedBy": True, "tagsOnTickets": True},
+    )
+    if not ticket_message:
         return
+    text = event.get("text", "")
+    first_word = text.split()[0].lower()
 
-    start_time = perf_counter()
+    if first_word[0] == "?" and ticket_message:
+        await run_macro(
+            name=first_word.lstrip("?"),
+            ticket=ticket_message,
+            helper=db_user,
+            text=text,
+            macro_ts=event["ts"],
+        )
+        return
+    else:
+        if ticket_message.status != TicketStatus.CLOSED:
+            await env.db.ticket.update(
+                where={"msgTs": event["thread_ts"]},
+                data={
+                    "assignedTo": {"connect": {"id": db_user.id}},
+                    "status": TicketStatus.IN_PROGRESS,
+                    "assignedAt": (
+                        datetime.now()
+                        if not ticket_message.assignedAt
+                        else ticket_message.assignedAt
+                    ),
+                },
+            )
+
+
+async def send_ticket_message(
+    event: Dict[str, Any],
+    client: AsyncWebClient,
+    past_tickets: int,
+    display_name: str,
+    profile_pic: str,
+):
     user = event.get("user", "unknown")
     text = event.get("text", "")
-
-    db_user = await env.db.user.find_first(where={"slackId": user})
-    db_lookup_time = perf_counter()
-    logging.debug(f"on_message: DB lookup took {db_lookup_time - start_time:.2f}s")
-
-    # Messages sent in a thread with the "send to channel" checkbox checked
-    if event.get("subtype") == "thread_broadcast" and not (db_user and db_user.helper):
-        await client.chat_delete(
-            channel=event["channel"],
-            ts=event["ts"],
-            as_user=True,
-            token=env.slack_user_token,
-            broadcast_delete=True,
-        )
-        await client.chat_postEphemeral(
-            channel=event["channel"],
-            user=event["user"],
-            text=env.transcript.thread_broadcast_delete,
-            thread_ts=event["thread_ts"] if "thread_ts" in event else event["ts"],
-        )
-
-    if event.get("thread_ts"):
-        if db_user and db_user.helper:
-            ticket_message = await env.db.ticket.find_first(
-                where={"msgTs": event["thread_ts"]},
-                include={"openedBy": True, "tagsOnTickets": True},
-            )
-            if not ticket_message:
-                return
-            first_word = text.split()[0].lower()
-
-            if first_word[0] == "?" and ticket_message:
-                await run_macro(
-                    name=first_word.lstrip("?"),
-                    ticket=ticket_message,
-                    helper=db_user,
-                    text=text,
-                    macro_ts=event["ts"],
-                )
-                return
-            else:
-                if ticket_message.status != TicketStatus.CLOSED:
-                    await env.db.ticket.update(
-                        where={"msgTs": event["thread_ts"]},
-                        data={
-                            "assignedTo": {"connect": {"id": db_user.id}},
-                            "status": TicketStatus.IN_PROGRESS,
-                            "assignedAt": (
-                                datetime.now()
-                                if not ticket_message.assignedAt
-                                else ticket_message.assignedAt
-                            ),
-                        },
-                    )
-        return
-    special_cases_time = perf_counter()
-    logging.debug(
-        f"on_message: Special cases took {special_cases_time - db_lookup_time:.2f}s"
-    )
-
     thread_url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{event['ts'].replace('.', '')}"
-    user_info_response = await client.users_info(user=user) or {}
-    slack_user_info_time = perf_counter()
-    logging.debug(
-        f"on_message: Slack user info fetch took {slack_user_info_time - special_cases_time:.2f}s"
-    )
-    user_info = user_info_response.get("user")
 
-    if db_user:
-        past_tickets = await env.db.ticket.count(where={"openedById": db_user.id})
-    else:
-        past_tickets = 0
-        username = (user_info or {}).get(
-            "name"
-        )  # this should never actually be empty but if it is, that is a major issue
-
-        if not username:
-            await send_heartbeat(
-                f"SOMETHING HAS GONE TERRIBLY WRONG <@{user}> has no username found - <@{env.slack_maintainer_id}>"
-            )
-        db_user = await env.db.user.upsert(
-            where={
-                "slackId": user,
-            },
-            data={
-                "create": {"slackId": user, "username": username},
-                "update": {"slackId": user, "username": username},
-            },
-        )
-    db_count_time = perf_counter()
-    logging.debug(
-        f"on_message: Getting ticket count/updating user DB took {db_count_time - slack_user_info_time:.2f}s"
-    )
-
-    profile_pic = None
-    display_name = "Explorer"
-    if user_info:
-        profile_pic = user_info["profile"].get("image_512", "")
-        display_name = user_info["profile"]["display_name"] or user_info["real_name"]
-
-    ticket_message = await client.chat_postMessage(
+    return await client.chat_postMessage(
         channel=env.slack_ticket_channel,
         text=f"New message from <@{user}>: {text}",
         blocks=[
@@ -157,6 +114,62 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         icon_url=profile_pic,
         unfurl_links=True,
         unfurl_media=True,
+    )
+
+
+async def handle_new_question(
+    event: Dict[str, Any], client: AsyncWebClient, db_user: User | None
+):
+    start_time = perf_counter()
+    user = event.get("user", "unknown")
+    text = event.get("text", "")
+    user_info_response = await client.users_info(user=user) or {}
+    slack_user_info_time = perf_counter()
+    logging.debug(
+        f"on_message: Slack user info fetch took {slack_user_info_time - start_time:.2f}s"
+    )
+    user_info = user_info_response.get("user")
+    if user_info:
+        profile_pic: str = user_info["profile"].get("image_512", "")
+        display_name: str = (
+            user_info["profile"]["display_name"] or user_info["real_name"]
+        )
+    else:
+        profile_pic = ""
+        display_name = "Explorer"
+
+    if db_user:
+        past_tickets = await env.db.ticket.count(where={"openedById": db_user.id})
+    else:
+        past_tickets = 0
+        username = (user_info or {}).get(
+            "name"
+        )  # this should never actually be empty but if it is, that is a major issue
+
+        if not username:
+            await send_heartbeat(
+                f"SOMETHING HAS GONE TERRIBLY WRONG <@{user}> has no username found - <@{env.slack_maintainer_id}>"
+            )
+        db_user = await env.db.user.upsert(
+            where={
+                "slackId": user,
+            },
+            data={
+                "create": {"slackId": user, "username": username},
+                "update": {"slackId": user, "username": username},
+            },
+        )
+    db_count_time = perf_counter()
+    logging.debug(
+        f"on_message: Getting ticket count/updating user DB took {db_count_time - slack_user_info_time:.2f}s"
+    )
+
+    ticket_message = await send_ticket_message(
+        event,
+        client,
+        past_tickets=past_tickets,
+        display_name=display_name,
+        profile_pic=profile_pic,
     )
     ticket_message_time = perf_counter()
     logging.debug(
@@ -258,6 +271,41 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         # This means the parent message has been deleted while we've been processing it
         # therefore we should unsend the bot messages and remove the ticket from the DB
         await delete_and_clean_up_ticket(ticket)
+
+
+async def on_message(event: Dict[str, Any], client: AsyncWebClient):
+    """
+    Handle incoming messages in Slack.
+    """
+    ALLOWED_SUBTYPES = ["file_share", "me_message", "thread_broadcast"]
+    if "subtype" in event and event["subtype"] not in ALLOWED_SUBTYPES:
+        return
+    if "bot_id" in event:
+        logging.info(f"Ignoring bot message from {event['bot_id']}")
+        return
+
+    start_time = perf_counter()
+
+    db_user = await env.db.user.find_first(
+        where={"slackId": event.get("user", "unknown")}
+    )
+    db_lookup_time = perf_counter()
+    logging.debug(f"on_message: DB lookup took {db_lookup_time - start_time:.2f}s")
+
+    # Messages sent in a thread with the "send to channel" checkbox checked
+    if event.get("subtype") == "thread_broadcast" and not (db_user and db_user.helper):
+        await handle_message_sent_to_channel(event, client)
+
+    if event.get("thread_ts"):
+        await handle_message_in_thread(event, db_user)
+        return
+
+    special_cases_time = perf_counter()
+    logging.debug(
+        f"on_message: Special cases took {special_cases_time - db_lookup_time:.2f}s"
+    )
+
+    await handle_new_question(event, client, db_user)
 
     if env.uptime_url and env.environment == "production":
         async with env.session.get(env.uptime_url) as res:
