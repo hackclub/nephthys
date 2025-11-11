@@ -19,4 +19,4 @@ RUN prisma db push
 
 CMD ["nephthys"]
 
-HEALTHCHECK CMD curl --fail http://localhost:3000/health | grep -E '"healthy":\s*true' || exit 1
+HEALTHCHECK --start-period=5s CMD curl --fail http://localhost:3000/health | grep -E '"healthy":\s*true' || exit 1
