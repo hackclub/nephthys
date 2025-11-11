@@ -188,42 +188,8 @@ async def handle_new_question(
     )
     ticket_url = f"https://hackclub.slack.com/archives/{env.slack_ticket_channel}/p{ticket_message_ts.replace('.', '')}"
 
-    user_facing_message = await client.chat_postMessage(
-        channel=event["channel"],
-        text=user_facing_message_text,
-        blocks=[
-            {
-                "type": "section",
-                "text": {"type": "mrkdwn", "text": user_facing_message_text},
-            },
-            {
-                "type": "actions",
-                "elements": [
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": env.transcript.resolve_ticket_button,
-                        },
-                        "style": "primary",
-                        "action_id": "mark_resolved",
-                        "value": f"{event['ts']}",
-                    }
-                ],
-            },
-            {
-                "type": "context",
-                "elements": [
-                    {
-                        "type": "mrkdwn",
-                        "text": f"<{ticket_url}|backend> (for support team).",
-                    }
-                ],
-            },
-        ],
-        thread_ts=event.get("ts"),
-        unfurl_links=True,
-        unfurl_media=True,
+    user_facing_message = await send_user_facing_message(
+        event, client, text=user_facing_message_text, ticket_url=ticket_url
     )
     user_facing_message_time = perf_counter()
     logging.debug(
@@ -271,6 +237,46 @@ async def handle_new_question(
         # This means the parent message has been deleted while we've been processing it
         # therefore we should unsend the bot messages and remove the ticket from the DB
         await delete_and_clean_up_ticket(ticket)
+
+
+async def send_user_facing_message(event, client, text, ticket_url):
+    return await client.chat_postMessage(
+        channel=event["channel"],
+        text=text,
+        blocks=[
+            {
+                "type": "section",
+                "text": {"type": "mrkdwn", "text": text},
+            },
+            {
+                "type": "actions",
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": env.transcript.resolve_ticket_button,
+                        },
+                        "style": "primary",
+                        "action_id": "mark_resolved",
+                        "value": f"{event['ts']}",
+                    }
+                ],
+            },
+            {
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": f"<{ticket_url}|backend> (for support team).",
+                    }
+                ],
+            },
+        ],
+        thread_ts=event.get("ts"),
+        unfurl_links=True,
+        unfurl_media=True,
+    )
 
 
 async def on_message(event: Dict[str, Any], client: AsyncWebClient):
