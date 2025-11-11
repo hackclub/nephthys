@@ -124,6 +124,16 @@ async def send_ticket_message(
 async def handle_new_question(
     event: Dict[str, Any], client: AsyncWebClient, db_user: User | None
 ):
+    """Handle a new support question posted in the help channel.
+
+    Creates a ticket in the database, sends messages to both the ticket channel
+    and the user, and generates an AI-powered ticket title.
+
+    Args:
+        event (Dict[str, Any]): The Slack event containing the new question.
+        client (AsyncWebClient): Slack API client.
+        db_user (User | None): The database user object, or None if user doesn't exist yet.
+    """
     start_time = perf_counter()
     user = event.get("user", "unknown")
     text = event.get("text", "")
@@ -246,6 +256,17 @@ async def handle_new_question(
 async def send_user_facing_message(
     event: Dict[str, Any], client: AsyncWebClient, text: str, ticket_url: str
 ):
+    """Send a user-facing message with ticket information and resolve button.
+
+    Args:
+        event: The Slack event containing the original message.
+        client: Slack API client.
+        text: The message text to display to the user.
+        ticket_url: URL to the backend ticket.
+
+    Returns:
+        The Slack API response containing the posted message.
+    """
     return await client.chat_postMessage(
         channel=event["channel"],
         text=text,
