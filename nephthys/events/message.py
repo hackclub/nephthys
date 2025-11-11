@@ -59,20 +59,21 @@ async def handle_message_in_thread(event: Dict[str, Any], db_user: User | None):
             macro_ts=event["ts"],
         )
         return
-    else:
-        if ticket_message.status != TicketStatus.CLOSED:
-            await env.db.ticket.update(
-                where={"msgTs": event["thread_ts"]},
-                data={
-                    "assignedTo": {"connect": {"id": db_user.id}},
-                    "status": TicketStatus.IN_PROGRESS,
-                    "assignedAt": (
-                        datetime.now()
-                        if not ticket_message.assignedAt
-                        else ticket_message.assignedAt
-                    ),
-                },
-            )
+
+    # A helper has sent a normal reply
+    if ticket_message.status != TicketStatus.CLOSED:
+        await env.db.ticket.update(
+            where={"msgTs": event["thread_ts"]},
+            data={
+                "assignedTo": {"connect": {"id": db_user.id}},
+                "status": TicketStatus.IN_PROGRESS,
+                "assignedAt": (
+                    datetime.now()
+                    if not ticket_message.assignedAt
+                    else ticket_message.assignedAt
+                ),
+            },
+        )
 
 
 async def send_ticket_message(
