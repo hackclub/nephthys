@@ -32,7 +32,7 @@ async def handle_message_sent_to_channel(event: Dict[str, Any], client: AsyncWeb
     )
 
 
-async def handle_message_in_thread(event: Dict[str, Any], db_user: Any):
+async def handle_message_in_thread(event: Dict[str, Any], db_user: User | None):
     """Handle a message sent in a help thread.
 
     - Ignores non-helper messages.
@@ -239,7 +239,9 @@ async def handle_new_question(
         await delete_and_clean_up_ticket(ticket)
 
 
-async def send_user_facing_message(event, client, text, ticket_url):
+async def send_user_facing_message(
+    event: Dict[str, Any], client: AsyncWebClient, text: str, ticket_url: str
+):
     return await client.chat_postMessage(
         channel=event["channel"],
         text=text,
