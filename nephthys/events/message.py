@@ -150,7 +150,7 @@ async def handle_new_question(
             user_info["profile"]["display_name"] or user_info["real_name"]
         )
     else:
-        profile_pic = ""
+        profile_pic = None
         display_name = "Explorer"
 
     if db_user:
