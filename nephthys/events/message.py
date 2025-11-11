@@ -86,6 +86,7 @@ async def send_ticket_message(
     display_name: str,
     profile_pic: str,
 ):
+    """Send a "backend" message to the tickets channel with ticket details."""
     user = event.get("user", "unknown")
     text = event.get("text", "")
     thread_url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{event['ts'].replace('.', '')}"
