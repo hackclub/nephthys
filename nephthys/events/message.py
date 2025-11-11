@@ -14,6 +14,9 @@ from nephthys.utils.ticket_methods import delete_and_clean_up_ticket
 from prisma.enums import TicketStatus
 from prisma.models import User
 
+# Message subtypes that should be handled by on_message (messages with no subtype are always handled)
+ALLOWED_SUBTYPES = ["file_share", "me_message", "thread_broadcast"]
+
 
 async def handle_message_sent_to_channel(event: Dict[str, Any], client: AsyncWebClient):
     """Tell a non-helper off because they sent a thread message with the 'send to channel' box checked."""
@@ -286,7 +289,6 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
     """
     Handle incoming messages in Slack.
     """
-    ALLOWED_SUBTYPES = ["file_share", "me_message", "thread_broadcast"]
     if "subtype" in event and event["subtype"] not in ALLOWED_SUBTYPES:
         return
     if "bot_id" in event:
