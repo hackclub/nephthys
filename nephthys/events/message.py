@@ -50,7 +50,7 @@ async def handle_message_in_thread(event: Dict[str, Any], db_user: User | None):
     text = event.get("text", "")
     first_word = text.split()[0].lower()
 
-    if first_word[0] == "?" and ticket_message:
+    if first_word[0] == "?":
         await run_macro(
             name=first_word.lstrip("?"),
             ticket=ticket_message,
