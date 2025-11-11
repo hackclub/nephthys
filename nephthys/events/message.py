@@ -126,8 +126,8 @@ async def handle_new_question(
 ):
     """Handle a new support question posted in the help channel.
 
-    Creates a ticket in the database, sends messages to both the ticket channel
-    and the user, and generates an AI-powered ticket title.
+    Creates a ticket in the database, sends a message in the support thread
+    and in the tickets channel, and generates an AI-powered ticket title.
 
     Args:
         event (Dict[str, Any]): The Slack event containing the new question.
@@ -256,7 +256,8 @@ async def handle_new_question(
 async def send_user_facing_message(
     event: Dict[str, Any], client: AsyncWebClient, text: str, ticket_url: str
 ):
-    """Send a user-facing message with ticket information and resolve button.
+    """Send a user-facing message in the question thread with the provided text
+    and a resolve button.
 
     Args:
         event: The Slack event containing the original message.
