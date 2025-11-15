@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import Literal
 
@@ -24,6 +25,11 @@ class Environment:
         self.site_api_key = os.environ.get("SITE_API_KEY", "unset")
 
         self.environment = os.environ.get("ENVIRONMENT", "development")
+        self.log_level = os.environ.get(
+            "LOG_LEVEL",
+            logging.INFO if self.environment == "production" else logging.WARNING,
+        )
+
         self.slack_help_channel = os.environ.get("SLACK_HELP_CHANNEL", "unset")
         self.slack_ticket_channel = os.environ.get("SLACK_TICKET_CHANNEL", "unset")
         self.slack_bts_channel = os.environ.get("SLACK_BTS_CHANNEL", "unset")
