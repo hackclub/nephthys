@@ -1,5 +1,4 @@
 import logging
-from time import perf_counter
 from typing import Any
 from typing import Dict
 
@@ -21,6 +20,7 @@ from nephthys.events.message import on_message
 from nephthys.events.message_deletion import on_message_deletion
 from nephthys.options.tags import get_tags
 from nephthys.utils.env import env
+from nephthys.utils.performance import perf_timer
 
 app = AsyncApp(token=env.slack_bot_token, signing_secret=env.slack_signing_secret)
 
@@ -28,19 +28,17 @@ app = AsyncApp(token=env.slack_bot_token, signing_secret=env.slack_signing_secre
 @app.event("message")
 async def handle_message(event: Dict[str, Any], client: AsyncWebClient):
     logging.debug(f"Message event: {event}")
-    start_time = perf_counter()
     is_message_deletion = (
         event.get("subtype") == "message_changed"
         and event["message"].get("subtype") == "tombstone"
     ) or event.get("subtype") == "message_deleted"
-    if event["channel"] == env.slack_help_channel:
-        if is_message_deletion:
-            await on_message_deletion(event, client)
-        else:
-            await on_message(event, client)
-    logging.info(
-        f"Processed message event in {perf_counter() - start_time:.2f} seconds total"
-    )
+
+    async with perf_timer("Processing message event (total time)"):
+        if event["channel"] == env.slack_help_channel:
+            if is_message_deletion:
+                await on_message_deletion(event, client)
+            else:
+                await on_message(event, client)
 
 
 @app.action("mark_resolved")

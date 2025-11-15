@@ -6,6 +6,7 @@ from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
+from nephthys.utils.performance import perf_timer
 from nephthys.views.home.assigned import get_assigned_tickets_view
 from nephthys.views.home.error import get_error_view
 from nephthys.views.home.helper import get_helper_view
@@ -36,22 +37,23 @@ async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
             view = get_unknown_user_view(name)
         else:
             logging.info(f"Opening {home_type} for {user_id}")
-            match home_type:
-                case "default" | "dashboard":
-                    view = await get_helper_view(user)
-                case "assigned-tickets":
-                    view = await get_assigned_tickets_view(user)
-                case "tags":
-                    view = await get_manage_tags_view(user)
-                case "my-stats":
-                    view = await get_stats_view(user)
-                case _:
-                    await send_heartbeat(
-                        f"Attempted to load unknown app home type {home_type} for <@{user_id}>"
-                    )
-                    view = get_error_view(
-                        f"This shouldn't happen, please tell <@{env.slack_maintainer_id}> that app home case `_` was hit with home type `{home_type}`"
-                    )
+            async with perf_timer(f"Rendering app home (type={home_type})"):
+                match home_type:
+                    case "default" | "dashboard":
+                        view = await get_helper_view(user)
+                    case "assigned-tickets":
+                        view = await get_assigned_tickets_view(user)
+                    case "tags":
+                        view = await get_manage_tags_view(user)
+                    case "my-stats":
+                        view = await get_stats_view(user)
+                    case _:
+                        await send_heartbeat(
+                            f"Attempted to load unknown app home type {home_type} for <@{user_id}>"
+                        )
+                        view = get_error_view(
+                            f"This shouldn't happen, please tell <@{env.slack_maintainer_id}> that app home case `_` was hit with home type `{home_type}`"
+                        )
     except Exception as e:
         logging.error(f"Error opening app home: {e}")
         tb = traceback.format_exception(e)
