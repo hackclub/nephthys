@@ -76,8 +76,6 @@ async def get_ticket_status_pie_chart(
             format="png",
         )
 
-    plt.show()
-
     if raw:
         return b.getvalue()
 
