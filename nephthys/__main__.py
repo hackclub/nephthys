@@ -25,7 +25,7 @@ try:
 except ImportError:
     pass
 
-logging.basicConfig(level="INFO" if env.environment != "production" else "WARNING")
+logging.basicConfig(level=env.log_level)
 
 
 @contextlib.asynccontextmanager
