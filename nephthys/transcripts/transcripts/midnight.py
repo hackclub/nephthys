@@ -5,7 +5,7 @@ class Midnight(Transcript):
     """Transcript for Hack Club Midnight."""
 
     program_name: str = "Midnight"
-    program_owner: str = "U07BLJ1MBEE"  # @Mish
+    program_owner: str = "U07BLJ1MBEE"  # @Leo
 
     help_channel: str = "C09Q8DY9738"  # #midnight-help
     ticket_channel: str = "C09Q0EA66H5"  # #midnight-tickets
