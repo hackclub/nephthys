@@ -27,7 +27,7 @@ class Environment:
         self.environment = os.environ.get("ENVIRONMENT", "development")
         self.log_level = os.environ.get(
             "LOG_LEVEL",
-            logging.INFO if self.environment == "production" else logging.WARNING,
+            logging.WARNING if self.environment == "production" else logging.INFO,
         )
 
         self.slack_help_channel = os.environ.get("SLACK_HELP_CHANNEL", "unset")
