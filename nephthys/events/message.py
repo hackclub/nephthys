@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime
-from time import perf_counter
 from typing import Any
 from typing import Dict
 
@@ -10,6 +9,7 @@ from slack_sdk.web.async_client import AsyncWebClient
 from nephthys.macros import run_macro
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
+from nephthys.utils.performance import perf_timer
 from nephthys.utils.ticket_methods import delete_and_clean_up_ticket
 from prisma.enums import TicketStatus
 from prisma.models import User
@@ -83,8 +83,8 @@ async def send_ticket_message(
     event: Dict[str, Any],
     client: AsyncWebClient,
     past_tickets: int,
-    display_name: str,
-    profile_pic: str,
+    display_name: str | None,
+    profile_pic: str | None,
 ):
     """Send a "backend" message to the tickets channel with ticket details."""
     user = event.get("user", "unknown")
@@ -135,17 +135,14 @@ async def handle_new_question(
         client (AsyncWebClient): Slack API client.
         db_user (User | None): The database user object, or None if user doesn't exist yet.
     """
-    start_time = perf_counter()
-    user = event.get("user", "unknown")
-    text = event.get("text", "")
-    user_info_response = await client.users_info(user=user) or {}
-    slack_user_info_time = perf_counter()
-    logging.debug(
-        f"on_message: Slack user info fetch took {slack_user_info_time - start_time:.2f}s"
-    )
+    async with perf_timer("Slack user info fetch"):
+        user = event.get("user", "unknown")
+        text = event.get("text", "")
+        user_info_response = await client.users_info(user=user) or {}
+
     user_info = user_info_response.get("user")
     if user_info:
-        profile_pic: str = user_info["profile"].get("image_512", "")
+        profile_pic: str | None = user_info["profile"].get("image_512", "")
         display_name: str = (
             user_info["profile"]["display_name"] or user_info["real_name"]
         )
@@ -154,42 +151,37 @@ async def handle_new_question(
         display_name = "Explorer"
 
     if db_user:
-        past_tickets = await env.db.ticket.count(where={"openedById": db_user.id})
+        async with perf_timer("Getting ticket count from DB"):
+            past_tickets = await env.db.ticket.count(where={"openedById": db_user.id})
     else:
         past_tickets = 0
         username = (user_info or {}).get(
             "name"
         )  # this should never actually be empty but if it is, that is a major issue
 
-        if not username:
-            await send_heartbeat(
-                f"SOMETHING HAS GONE TERRIBLY WRONG <@{user}> has no username found - <@{env.slack_maintainer_id}>"
+        async with perf_timer("Creating user in DB"):
+            if not username:
+                await send_heartbeat(
+                    f"SOMETHING HAS GONE TERRIBLY WRONG <@{user}> has no username found - <@{env.slack_maintainer_id}>"
+                )
+            db_user = await env.db.user.upsert(
+                where={
+                    "slackId": user,
+                },
+                data={
+                    "create": {"slackId": user, "username": username},
+                    "update": {"slackId": user, "username": username},
+                },
             )
-        db_user = await env.db.user.upsert(
-            where={
-                "slackId": user,
-            },
-            data={
-                "create": {"slackId": user, "username": username},
-                "update": {"slackId": user, "username": username},
-            },
-        )
-    db_count_time = perf_counter()
-    logging.debug(
-        f"on_message: Getting ticket count/updating user DB took {db_count_time - slack_user_info_time:.2f}s"
-    )
 
-    ticket_message = await send_ticket_message(
-        event,
-        client,
-        past_tickets=past_tickets,
-        display_name=display_name,
-        profile_pic=profile_pic,
-    )
-    ticket_message_time = perf_counter()
-    logging.debug(
-        f"on_message: Sending ticket message took {ticket_message_time - db_count_time:.2f}s"
-    )
+    async with perf_timer("Sending backend ticket message"):
+        ticket_message = await send_ticket_message(
+            event,
+            client,
+            past_tickets=past_tickets,
+            display_name=display_name,
+            profile_pic=profile_pic,
+        )
 
     ticket_message_ts = ticket_message["ts"]
     if not ticket_message_ts:
@@ -203,44 +195,35 @@ async def handle_new_question(
     )
     ticket_url = f"https://hackclub.slack.com/archives/{env.slack_ticket_channel}/p{ticket_message_ts.replace('.', '')}"
 
-    user_facing_message = await send_user_facing_message(
-        event, client, text=user_facing_message_text, ticket_url=ticket_url
-    )
-    user_facing_message_time = perf_counter()
-    logging.debug(
-        f"on_message: Sending FAQ message took {user_facing_message_time - ticket_message_time:.2f}s"
-    )
+    async with perf_timer("Sending user-facing FAQ message"):
+        user_facing_message = await send_user_facing_message(
+            event, client, text=user_facing_message_text, ticket_url=ticket_url
+        )
 
-    title = await generate_ticket_title(text)
-    ai_response_time = perf_counter()
-    logging.debug(
-        f"on_message: AI title generation took {ai_response_time - user_facing_message_time:.2f}s"
-    )
+    async with perf_timer("AI ticket title generation"):
+        title = await generate_ticket_title(text)
 
     user_facing_message_ts = user_facing_message["ts"]
     if not user_facing_message_ts:
         logging.error(f"User-facing message has no ts: {user_facing_message}")
         return
 
-    ticket = await env.db.ticket.create(
-        {
-            "title": title,
-            "description": text,
-            "msgTs": event["ts"],
-            "ticketTs": ticket_message_ts,
-            "openedBy": {"connect": {"id": db_user.id}},
-            "userFacingMsgs": {
-                "create": {
-                    "channelId": event["channel"],
-                    "ts": user_facing_message_ts,
-                }
+    async with perf_timer("Creating ticket in DB"):
+        ticket = await env.db.ticket.create(
+            {
+                "title": title,
+                "description": text,
+                "msgTs": event["ts"],
+                "ticketTs": ticket_message_ts,
+                "openedBy": {"connect": {"id": db_user.id}},
+                "userFacingMsgs": {
+                    "create": {
+                        "channelId": event["channel"],
+                        "ts": user_facing_message_ts,
+                    }
+                },
             },
-        },
-    )
-    ticket_creation_time = perf_counter()
-    logging.debug(
-        f"on_message: Ticket creation in DB took {ticket_creation_time - ai_response_time:.2f}s"
-    )
+        )
 
     try:
         await client.reactions_add(
@@ -318,26 +301,19 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         logging.info(f"Ignoring bot message from {event['bot_id']}")
         return
 
-    start_time = perf_counter()
-
-    db_user = await env.db.user.find_first(
-        where={"slackId": event.get("user", "unknown")}
-    )
-    db_lookup_time = perf_counter()
-    logging.debug(f"on_message: DB lookup took {db_lookup_time - start_time:.2f}s")
+    async with perf_timer("DB user lookup"):
+        db_user = await env.db.user.find_first(
+            where={"slackId": event.get("user", "unknown")}
+        )
 
     # Messages sent in a thread with the "send to channel" checkbox checked
     if event.get("subtype") == "thread_broadcast" and not (db_user and db_user.helper):
-        await handle_message_sent_to_channel(event, client)
+        async with perf_timer("Handling message sent to channel"):
+            await handle_message_sent_to_channel(event, client)
 
     if event.get("thread_ts"):
         await handle_message_in_thread(event, db_user)
         return
-
-    special_cases_time = perf_counter()
-    logging.debug(
-        f"on_message: Special cases took {special_cases_time - db_lookup_time:.2f}s"
-    )
 
     await handle_new_question(event, client, db_user)
 
