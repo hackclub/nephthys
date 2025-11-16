@@ -12,12 +12,22 @@ class ShipCertQueue(Macro):
         """
         A simple macro telling people about the ship certification backlog
         """
+        macro_text = env.transcript.ship_cert_queue_macro
+        if not macro_text:
+            # Not all events have this macro
+            await env.slack_client.chat_postEphemeral(
+                channel=env.slack_help_channel,
+                thread_ts=ticket.msgTs,
+                user=helper.slackId,
+                text=f"Invalid macro: The `{self.name}` macro is not configured for this channel.",
+            )
+            return
         sender = await env.db.user.find_first(where={"id": ticket.openedById})
         if not sender:
             return
         user = await get_user_profile(sender.slackId)
         await reply_to_ticket(
-            text=f"Hi {user.display_name()}! Unfortunately, there is a backlog of projects awaiting ship certification; please be patient. \n\n *pssst... voting more will move your project further towards the front of the queue.*",
+            text=macro_text.replace("(user)", user.display_name()),
             ticket=ticket,
             client=env.slack_client,
         )
@@ -25,4 +35,5 @@ class ShipCertQueue(Macro):
             ts=ticket.msgTs,
             resolver=helper.slackId,
             client=env.slack_client,
+            send_resolved_message=False,
         )

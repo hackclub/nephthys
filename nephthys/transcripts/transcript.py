@@ -90,6 +90,11 @@ class Transcript(BaseModel):
         default="", description="Message to be sent when the identity macro is used"
     )
 
+    ship_cert_queue_macro: str | None = Field(
+        default=None,
+        description="Message to be sent when the ship cert queue macro is used (only applies to SoM)",
+    )
+
     home_unknown_user_title: str = Field(
         default=":upside-down_orpheus: woah, stop right there {name}!",
         description="Title for unknown user on home page",

@@ -23,6 +23,10 @@ if your question has been answered, please hit the button below to mark it as re
     resolve_ticket_button: str = "i get it now"
     ticket_resolve: str = f"oh, oh! it looks like this post has been marked as resolved by <@{{user_id}}>! if you have any more questions, please make a new post in <#{help_channel}> and someone'll be happy to help you out! not me though, i'm just a silly racoon ^-^"
 
+    ship_cert_queue_macro: str | None = (
+        "hi (user)! unfortunately, there is a backlog of projects awaiting ship certification; please be patient. \n\n *pssst... voting more will move your project further towards the front of the queue.*"
+    )
+
     home_unknown_user_title: str = (
         ":upside-down_orpheus: woah, stop right there {name}!"
     )
