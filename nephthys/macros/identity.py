@@ -25,4 +25,5 @@ class Identity(Macro):
             ts=ticket.msgTs,
             resolver=helper.slackId,
             client=env.slack_client,
+            send_resolved_message=False,
         )
