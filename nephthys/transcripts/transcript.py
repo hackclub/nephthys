@@ -77,6 +77,19 @@ class Transcript(BaseModel):
         default="hey! please keep your messages *all in one thread* to make it easier to read! i've gone ahead and removed that message from the channel for ya :D",
     )
 
+    faq_macro: str = Field(
+        default="", description="Message to be sent when the FAQ macro is used"
+    )
+
+    fraud_macro: str = Field(
+        default="Hiya (user)! Would you mind directing any fraud related queries to <@U091HC53CE8>? :rac_cute:\n\nIt'll keep your case confidential and make it easier for the fraud team to keep track of!",
+        description="Message to be sent when the fraud macro is used",
+    )
+
+    identity_macro: str = Field(
+        default="", description="Message to be sent when the identity macro is used"
+    )
+
     home_unknown_user_title: str = Field(
         default=":upside-down_orpheus: woah, stop right there {name}!",
         description="Title for unknown user on home page",
@@ -133,6 +146,12 @@ if your question has been answered, please hit the button below to mark it as re
         if not self.ticket_resolve_stale:
             self.ticket_resolve_stale = f""":rac_nooo: it looks like this post is a bit old! if you still need help, please make a new post in <#{self.help_channel}> and someone'll be happy to help you out! ^~^
         """
+
+        if not self.faq_macro:
+            self.faq_macro = f"hey, (user)! this question is answered in the faq i sent earlier, please make sure to check it out! :rac_cute:\n\n<{self.faq_link}|here it is again>"
+
+        if not self.identity_macro:
+            self.identity_macro = f"hey, (user)! please could you ask questions about identity verification in <#{self.identity_help_channel}>? :rac_cute:\n\nit helps the verification team keep track of questions easier!"
 
         if not self.home_unknown_user_text:
             self.home_unknown_user_text = f"heyyyy, heidi here! it looks like i'm not allowed to show ya this. sorry! if you think this is a mistake, please reach out to <@{self.program_owner}> and she'll lmk what to do!"

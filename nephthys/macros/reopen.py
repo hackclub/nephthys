@@ -1,6 +1,9 @@
+import logging
+
 from nephthys.macros.types import Macro
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
+from nephthys.utils.slack_user import get_user_profile
 from nephthys.utils.ticket_methods import reply_to_ticket
 from prisma.enums import TicketStatus
 
@@ -31,20 +34,18 @@ class Reopen(Macro):
             client=env.slack_client,
         )
 
-        user_info = await env.slack_client.users_info(user=ticket.openedBy.slackId)
-        name = (
-            user_info["user"]["profile"]["display_name"]
-            or user_info["user"]["real_name"]
-            or "Explorer"
-        )
-        profile_pic = user_info["user"]["profile"].get("image_512", "")
+        if not ticket.openedBy:
+            await send_heartbeat(
+                f"Attempted to reopen ticket (TS {ticket.msgTs}) but ticket author has not been recorded"
+            )
+            return
+        author_id = ticket.openedBy.slackId
+        author = await get_user_profile(author_id)
         thread_url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{ticket.msgTs.replace('.', '')}"
-
-        use_impersonation = await env.workspace_admin_available()
 
         backend_message = await env.slack_client.chat_postMessage(
             channel=env.slack_ticket_channel,
-            text=f"Reopened ticket from <@{ticket.openedBy.slackId}>: {ticket.description}",
+            text=f"Reopened ticket from <@{author_id}>: {ticket.description}",
             blocks=[
                 {
                     "type": "input",
@@ -65,18 +66,21 @@ class Reopen(Macro):
                     "elements": [
                         {
                             "type": "mrkdwn",
-                            "text": f"Reopened by <@{helper.slackId}>. Originally submitted by <@{ticket.openedBy.slackId}>. <{thread_url}|View thread>.",
+                            "text": f"Reopened by <@{helper.slackId}>. Originally submitted by <@{author_id}>. <{thread_url}|View thread>.",
                         }
                     ],
                 },
             ],
-            username=name if use_impersonation else None,
-            icon_url=profile_pic if use_impersonation else None,
+            username=author.display_name(),
+            icon_url=author.profile_pic_512x() or "",
             unfurl_links=True,
             unfurl_media=True,
         )
 
         new_ticket_ts = backend_message["ts"]
+        if not new_ticket_ts:
+            logging.error(f"Invalid Slack message creation response: {backend_message}")
+            raise ValueError("Invalid Slack message creation response: no ts")
         await env.db.ticket.update(
             where={"id": ticket.id},
             data={"ticketTs": new_ticket_ts},

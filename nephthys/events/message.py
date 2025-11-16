@@ -11,6 +11,7 @@ from nephthys.macros import run_macro
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.performance import perf_timer
+from nephthys.utils.slack_user import get_user_profile
 from nephthys.utils.ticket_methods import delete_and_clean_up_ticket
 from prisma.enums import TicketStatus
 from prisma.models import User
@@ -136,42 +137,25 @@ async def handle_new_question(
         client (AsyncWebClient): Slack API client.
         db_user (User | None): The database user object, or None if user doesn't exist yet.
     """
+    author_id = event.get("user", "unknown")
+    text = event.get("text", "")
     async with perf_timer("Slack user info fetch"):
-        user = event.get("user", "unknown")
-        text = event.get("text", "")
-        user_info_response = await client.users_info(user=user) or {}
-
-    user_info = user_info_response.get("user")
-    if user_info:
-        profile_pic: str | None = user_info["profile"].get("image_512", "")
-        display_name: str = (
-            user_info["profile"]["display_name"] or user_info["real_name"]
-        )
-    else:
-        profile_pic = None
-        display_name = "Explorer"
+        author = await get_user_profile(author_id)
 
     if db_user:
         async with perf_timer("Getting ticket count from DB"):
             past_tickets = await env.db.ticket.count(where={"openedById": db_user.id})
     else:
         past_tickets = 0
-        username = (user_info or {}).get(
-            "name"
-        )  # this should never actually be empty but if it is, that is a major issue
-
+        username = author.display_name()
         async with perf_timer("Creating user in DB"):
-            if not username:
-                await send_heartbeat(
-                    f"SOMETHING HAS GONE TERRIBLY WRONG <@{user}> has no username found - <@{env.slack_maintainer_id}>"
-                )
             db_user = await env.db.user.upsert(
                 where={
-                    "slackId": user,
+                    "slackId": author_id,
                 },
                 data={
-                    "create": {"slackId": user, "username": username},
-                    "update": {"slackId": user, "username": username},
+                    "create": {"slackId": author_id, "username": username},
+                    "update": {"slackId": author_id, "username": username},
                 },
             )
 
@@ -180,8 +164,8 @@ async def handle_new_question(
             event,
             client,
             past_tickets=past_tickets,
-            display_name=display_name,
-            profile_pic=profile_pic,
+            display_name=author.display_name(),
+            profile_pic=author.profile_pic_512x() or "",
         )
 
     ticket_message_ts = ticket_message["ts"]
@@ -190,9 +174,9 @@ async def handle_new_question(
         return
 
     user_facing_message_text = (
-        env.transcript.first_ticket_create.replace("(user)", display_name)
+        env.transcript.first_ticket_create.replace("(user)", author.display_name())
         if past_tickets == 0
-        else env.transcript.ticket_create.replace("(user)", display_name)
+        else env.transcript.ticket_create.replace("(user)", author.display_name())
     )
     ticket_url = f"https://hackclub.slack.com/archives/{env.slack_ticket_channel}/p{ticket_message_ts.replace('.', '')}"
 
