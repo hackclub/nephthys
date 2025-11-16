@@ -4,6 +4,7 @@ from typing import Literal
 
 from aiohttp import ClientSession
 from dotenv import load_dotenv
+from openai import OpenAI
 from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.transcripts import transcripts
@@ -23,6 +24,7 @@ class Environment:
         self.uptime_url = os.environ.get("UPTIME_URL")
         self.site_url = os.environ.get("SITE_URL", "https://summer.hackclub.com")
         self.site_api_key = os.environ.get("SITE_API_KEY", "unset")
+        self.hack_club_ai_api_key = os.environ.get("HACK_CLUB_AI_API_KEY")
 
         self.environment = os.environ.get("ENVIRONMENT", "development")
         self.log_level = os.environ.get(
@@ -70,6 +72,14 @@ class Environment:
         )
 
         self.slack_client = AsyncWebClient(token=self.slack_bot_token)
+        self.ai_client = (
+            OpenAI(
+                base_url="https://ai.hackclub.com/proxy/v1",
+                api_key=self.hack_club_ai_api_key,
+            )
+            if self.hack_club_ai_api_key
+            else None
+        )
 
         # Cache whether the user token has workspace admin privileges
         self._workspace_admin_available: bool | Literal["unchecked"] = "unchecked"
