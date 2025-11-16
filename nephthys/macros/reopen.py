@@ -1,3 +1,5 @@
+import logging
+
 from nephthys.macros.types import Macro
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
@@ -76,6 +78,9 @@ class Reopen(Macro):
         )
 
         new_ticket_ts = backend_message["ts"]
+        if not new_ticket_ts:
+            logging.error(f"Invalid Slack message creation response: {backend_message}")
+            raise ValueError("Invalid Slack message creation response: no ts")
         await env.db.ticket.update(
             where={"id": ticket.id},
             data={"ticketTs": new_ticket_ts},
