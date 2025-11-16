@@ -149,10 +149,6 @@ async def handle_new_question(
         past_tickets = 0
         username = author.display_name()
         async with perf_timer("Creating user in DB"):
-            # if not username:
-            #     await send_heartbeat(
-            #         f"SOMETHING HAS GONE TERRIBLY WRONG <@{user}> has no username found - <@{env.slack_maintainer_id}>"
-            #     )
             db_user = await env.db.user.upsert(
                 where={
                     "slackId": author_id,
