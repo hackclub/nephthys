@@ -1,14 +1,27 @@
+from slack_sdk.web.async_slack_response import AsyncSlackResponse
+
 from nephthys.utils.env import env
 
 
-async def get_user_name(slack_id: str) -> str:
+class UserProfileWrapper:
+    def __init__(self, users_info_response: AsyncSlackResponse):
+        user_data = users_info_response.get("user")
+        if not user_data:
+            raise ValueError(f"Slack user not found: {users_info_response}")
+        self.raw_data = user_data
+
+    def display_name(self) -> str:
+        return (
+            self.raw_data["profile"].get("display_name")
+            or self.raw_data["profile"].get("real_name")
+            or self.raw_data["name"]
+        )
+
+    def profile_pic_512x(self) -> str | None:
+        return self.raw_data["profile"].get("image_512")
+
+
+async def get_user_profile(slack_id: str) -> UserProfileWrapper:
     """Retrieve the user's display name from Slack given their Slack ID."""
     response = await env.slack_client.users_info(user=slack_id)
-    user = response.get("user")
-    if not user:
-        raise ValueError(f"User with Slack ID {slack_id} not found.")
-    return (
-        user["profile"].get("display_name")
-        or user["profile"].get("real_name")
-        or user["name"]
-    )
+    return UserProfileWrapper(response)
