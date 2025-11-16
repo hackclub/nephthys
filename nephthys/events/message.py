@@ -361,5 +361,5 @@ async def generate_ticket_title(text: str):
         return "No title provided by AI."
     title = response.choices[0].message.content.strip()
     # Capitalise first letter
-    title = title[0].upper() + title[1:]
+    title = title[0].upper() + title[1:] if len(title) > 1 else title.upper()
     return title
