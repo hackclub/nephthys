@@ -10,7 +10,7 @@ class Fraud(Macro):
 
     async def run(self, ticket, helper, **kwargs):
         """
-        A simple macro telling people to use Fraudpheus
+        A simple macro telling people to DM the Fraud Squad
         """
         sender = await env.db.user.find_first(where={"id": ticket.openedById})
         if not sender:
