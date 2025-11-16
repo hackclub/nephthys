@@ -336,7 +336,7 @@ async def generate_ticket_title(text: str):
 
     model = "qwen/qwen3-32b"
     try:
-        response = env.ai_client.chat.completions.create(
+        response = await env.ai_client.chat.completions.create(
             model=model,
             messages=[
                 {

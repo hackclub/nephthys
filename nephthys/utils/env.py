@@ -4,7 +4,7 @@ from typing import Literal
 
 from aiohttp import ClientSession
 from dotenv import load_dotenv
-from openai import OpenAI
+from openai import AsyncOpenAI
 from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.transcripts import transcripts
@@ -73,7 +73,7 @@ class Environment:
 
         self.slack_client = AsyncWebClient(token=self.slack_bot_token)
         self.ai_client = (
-            OpenAI(
+            AsyncOpenAI(
                 base_url="https://ai.hackclub.com/proxy/v1",
                 api_key=self.hack_club_ai_api_key,
             )
