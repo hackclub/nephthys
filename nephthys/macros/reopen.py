@@ -1,6 +1,7 @@
 from nephthys.macros.types import Macro
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
+from nephthys.utils.slack_user import get_user_profile
 from nephthys.utils.ticket_methods import reply_to_ticket
 from prisma.enums import TicketStatus
 
@@ -31,13 +32,7 @@ class Reopen(Macro):
             client=env.slack_client,
         )
 
-        user_info = await env.slack_client.users_info(user=ticket.openedBy.slackId)
-        name = (
-            user_info["user"]["profile"]["display_name"]
-            or user_info["user"]["real_name"]
-            or "Explorer"
-        )
-        profile_pic = user_info["user"]["profile"].get("image_512", "")
+        author = await get_user_profile(ticket.openedBy.slackId)
         thread_url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{ticket.msgTs.replace('.', '')}"
 
         backend_message = await env.slack_client.chat_postMessage(
@@ -68,8 +63,8 @@ class Reopen(Macro):
                     ],
                 },
             ],
-            username=name,
-            icon_url=profile_pic,
+            username=author.display_name(),
+            icon_url=author.profile_pic_512x(),
             unfurl_links=True,
             unfurl_media=True,
         )
