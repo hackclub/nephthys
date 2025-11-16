@@ -32,12 +32,18 @@ class Reopen(Macro):
             client=env.slack_client,
         )
 
-        author = await get_user_profile(ticket.openedBy.slackId)
+        if not ticket.openedBy:
+            await send_heartbeat(
+                f"Attempted to reopen ticket (TS {ticket.msgTs}) but ticket author has not been recorded"
+            )
+            return
+        author_id = ticket.openedBy.slackId
+        author = await get_user_profile(author_id)
         thread_url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{ticket.msgTs.replace('.', '')}"
 
         backend_message = await env.slack_client.chat_postMessage(
             channel=env.slack_ticket_channel,
-            text=f"Reopened ticket from <@{ticket.openedBy.slackId}>: {ticket.description}",
+            text=f"Reopened ticket from <@{author_id}>: {ticket.description}",
             blocks=[
                 {
                     "type": "input",
@@ -58,7 +64,7 @@ class Reopen(Macro):
                     "elements": [
                         {
                             "type": "mrkdwn",
-                            "text": f"Reopened by <@{helper.slackId}>. Originally submitted by <@{ticket.openedBy.slackId}>. <{thread_url}|View thread>.",
+                            "text": f"Reopened by <@{helper.slackId}>. Originally submitted by <@{author_id}>. <{thread_url}|View thread>.",
                         }
                     ],
                 },
