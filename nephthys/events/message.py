@@ -341,8 +341,10 @@ async def generate_ticket_title(text: str):
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a helpful assistant that helps organise tickets for Hack Club's support team. You're going to take in a message and give it a title. \
-                    You will return no other content. Do *NOT* use title case. Avoid quote marks. Even if it's silly please summarise it. Use no more than 7 words, but as few as possible.",
+                    "content": (
+                        "You are a helpful assistant that helps organise tickets for Hack Club's support team. You're going to take in a message and give it a title."
+                        "You will return no other content. Do *NOT* use title case. Avoid quote marks. Even if it's silly please summarise it. Use no more than 7 words, but as few as possible."
+                    ),
                 },
                 {
                     "role": "user",
