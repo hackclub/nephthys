@@ -15,13 +15,13 @@ class Identity(Macro):
         if not sender:
             return
         user_info = await env.slack_client.users_info(user=sender.slackId)
-        name = (
+        user_name = (
             user_info["user"]["profile"].get("display_name")
             or user_info["user"]["profile"].get("real_name")
             or user_info["user"]["name"]
         )
         await reply_to_ticket(
-            text=f"hey, {name}! please could you ask questions about identity verification in <#{env.transcript.identity_help_channel}>? :rac_cute:\n\nit helps the verification team keep track of questions easier!",
+            text=env.transcript.identity_macro.replace("(user)", user_name),
             ticket=ticket,
             client=env.slack_client,
         )
