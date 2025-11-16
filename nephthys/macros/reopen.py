@@ -72,7 +72,7 @@ class Reopen(Macro):
                 },
             ],
             username=author.display_name(),
-            icon_url=author.profile_pic_512x(),
+            icon_url=author.profile_pic_512x() or "",
             unfurl_links=True,
             unfurl_media=True,
         )
