@@ -40,8 +40,6 @@ class Reopen(Macro):
         profile_pic = user_info["user"]["profile"].get("image_512", "")
         thread_url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{ticket.msgTs.replace('.', '')}"
 
-        use_impersonation = await env.workspace_admin_available()
-
         backend_message = await env.slack_client.chat_postMessage(
             channel=env.slack_ticket_channel,
             text=f"Reopened ticket from <@{ticket.openedBy.slackId}>: {ticket.description}",
@@ -70,8 +68,8 @@ class Reopen(Macro):
                     ],
                 },
             ],
-            username=name if use_impersonation else None,
-            icon_url=profile_pic if use_impersonation else None,
+            username=name,
+            icon_url=profile_pic,
             unfurl_links=True,
             unfurl_media=True,
         )
