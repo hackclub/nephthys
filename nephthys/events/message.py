@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any
 from typing import Dict
 
+from openai import OpenAIError
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
@@ -330,27 +331,35 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
 
 
 async def generate_ticket_title(text: str):
-    async with env.session.post(
-        "https://ai.hackclub.com/chat/completions",
-        json={
-            "messages": [
+    if not env.ai_client:
+        return "No title available from AI."
+
+    model = "qwen/qwen3-32b"
+    try:
+        response = await env.ai_client.chat.completions.create(
+            model=model,
+            messages=[
                 {
                     "role": "system",
-                    "content": "You are a helpful assistant that helps organise tickets for Hack Club's support team. You're going to take in a message and give it a title. You will return no other content. Even if it's silly please summarise it. Use no more than 7 words, but as few as possible.",
+                    "content": (
+                        "You are a helpful assistant that helps organise tickets for Hack Club's support team. You're going to take in a message and give it a title. "
+                        "You will return no other content. Do *NOT* use title case. Avoid quote marks. Even if it's silly please summarise it. Use no more than 7 words, but as few as possible."
+                    ),
                 },
                 {
                     "role": "user",
                     "content": f"Here is a message from a user: {text}\n\nPlease give this ticket a title.",
                 },
-            ]
-        },
-    ) as res:
-        if res.status != 200:
-            await send_heartbeat(
-                f"Failed to get AI response for ticket creation: {res.status} - {await res.text()}"
-            )
-            title = "No title provided by AI."
-        else:
-            data = await res.json()
-            title = data["choices"][0]["message"]["content"].strip()
+            ],
+        )
+    except OpenAIError as e:
+        await send_heartbeat(f"Failed to get AI response for ticket creation: {e}")
+        return "No title provided by AI."
+
+    if not (len(response.choices) and response.choices[0].message.content):
+        await send_heartbeat(f"AI title generation is missing content: {response}")
+        return "No title provided by AI."
+    title = response.choices[0].message.content.strip()
+    # Capitalise first letter
+    title = title[0].upper() + title[1:] if len(title) > 1 else title.upper()
     return title
