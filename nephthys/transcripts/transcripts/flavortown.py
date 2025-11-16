@@ -29,6 +29,26 @@ Aha, this post has just been marked as resolved by <@{{user_id}}>! I'll head bac
 but if you need any more help, just send another message in <#{help_channel}> and I'll be right back o/
 """
 
+    faq_macro: str = f"""
+Hi (user), this question is already answered in our FAQ! Here's the link again: <{faq_link}|*Flavortown FAQ*>.
+
+_I've marked this question as resolved, so please start a new thread if you need more help_
+"""
+    identity_macro: str = f"""
+Hi (user), please could you ask questions about identity verification in <#{identity_help_channel}>? :rac_cute:
+
+It helps the verification team keep track of questions easier!
+
+_I've marked this thread as resolved_
+"""
+    fraud_macro: str = """
+Hi (user), would you mind directing any fraud related queries to <@U091HC53CE8>? :rac_cute:
+
+It'll keep your case confidential and make it easier for the fraud team to keep track of!
+
+_I've marked this thread as resolved_
+"""
+
     home_unknown_user_title: str = ":upside-down_orpheus: woah, wait one sec!"
     home_unknown_user_text: str = """
 _checks records_
