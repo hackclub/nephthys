@@ -185,7 +185,9 @@ async def handle_new_question(
             event, client, text=user_facing_message_text, ticket_url=ticket_url
         )
 
-    async with perf_timer("AI ticket title generation"):
+    async with perf_timer(
+        "AI ticket title generation", metric_label="ticket_title_generation"
+    ):
         title = await generate_ticket_title(text)
 
     user_facing_message_ts = user_facing_message["ts"]
