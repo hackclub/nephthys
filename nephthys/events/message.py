@@ -4,7 +4,7 @@ from typing import Any
 from typing import Dict
 
 from openai import OpenAIError
-from prometheus_client.metrics import Histogram
+from prometheus_client import Histogram
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
