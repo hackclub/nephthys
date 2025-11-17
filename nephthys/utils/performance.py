@@ -17,4 +17,7 @@ async def perf_timer(
     function_name = inspect.stack()[2].function
     logging.debug(f"{function_name}: {name} took {duration:.3f}s")
     if histogram_metric:
-        histogram_metric.labels(**metric_labels).observe(duration)
+        if metric_labels:
+            histogram_metric.labels(**metric_labels).observe(duration)
+        else:
+            histogram_metric.observe(duration)
