@@ -2,6 +2,7 @@ import logging
 import traceback
 from typing import Any
 
+from prometheus_client import Histogram
 from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.utils.env import env
@@ -21,6 +22,13 @@ async def on_app_home_opened(event: dict[str, Any], client: AsyncWebClient):
     await open_app_home("default", client, user_id)
 
 
+APP_HOME_RENDER_DURATION = Histogram(
+    "nephthys_app_home_render_duration_seconds",
+    "How long it takes to load the app home screen",
+    ["home_type"],
+)
+
+
 async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
     try:
         await client.views_publish(view=get_loading_view(), user_id=user_id)
@@ -37,7 +45,11 @@ async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
             view = get_unknown_user_view(name)
         else:
             logging.info(f"Opening {home_type} for {user_id}")
-            async with perf_timer(f"Rendering app home (type={home_type})"):
+            async with perf_timer(
+                f"Rendering app home (type={home_type})",
+                APP_HOME_RENDER_DURATION,
+                home_type=home_type,
+            ):
                 match home_type:
                     case "default" | "dashboard":
                         view = await get_helper_view(user)

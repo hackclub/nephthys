@@ -4,6 +4,7 @@ from typing import Any
 from typing import Dict
 
 from openai import OpenAIError
+from prometheus_client import Histogram
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
@@ -18,6 +19,11 @@ from prisma.models import User
 
 # Message subtypes that should be handled by on_message (messages with no subtype are always handled)
 ALLOWED_SUBTYPES = ["file_share", "me_message", "thread_broadcast"]
+
+TICKET_TITLE_GENERATION_DURATION = Histogram(
+    "nephthys_ticket_title_generation_duration_seconds",
+    "How long it takes to generate a ticket title using AI",
+)
 
 
 async def handle_message_sent_to_channel(event: Dict[str, Any], client: AsyncWebClient):
@@ -185,7 +191,9 @@ async def handle_new_question(
             event, client, text=user_facing_message_text, ticket_url=ticket_url
         )
 
-    async with perf_timer("AI ticket title generation"):
+    async with perf_timer(
+        "AI ticket title generation", TICKET_TITLE_GENERATION_DURATION
+    ):
         title = await generate_ticket_title(text)
 
     user_facing_message_ts = user_facing_message["ts"]
