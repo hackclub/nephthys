@@ -34,9 +34,7 @@ async def handle_message(event: Dict[str, Any], client: AsyncWebClient):
     ) or event.get("subtype") == "message_deleted"
 
     if event["channel"] == env.slack_help_channel:
-        async with perf_timer(
-            "Processing message event (total time)", "slack_message_event_handler"
-        ):
+        async with perf_timer("Processing message event (total time)"):
             if is_message_deletion:
                 await on_message_deletion(event, client)
             else:
