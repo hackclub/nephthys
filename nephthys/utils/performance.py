@@ -17,7 +17,7 @@ BUCKETS = (
     0.5,
     0.75,
     1.0,
-    2.0,
+    2.5,
     5.0,
     10.0,
     float("inf"),
@@ -26,7 +26,7 @@ BUCKETS = (
 CODE_BLOCK_DURATION = Histogram(
     "nephthys_code_block_duration_seconds",
     "How long a labelled block of code takes to execute",
-    ["code_block_name"],
+    ["code_block"],
     buckets=BUCKETS,
 )
 
