@@ -37,7 +37,11 @@ async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
             view = get_unknown_user_view(name)
         else:
             logging.info(f"Opening {home_type} for {user_id}")
-            async with perf_timer(f"Rendering app home (type={home_type})"):
+            async with perf_timer(
+                f"Rendering app home (type={home_type})",
+                "app_home_renderer",
+                home_type=home_type,
+            ):
                 match home_type:
                     case "default" | "dashboard":
                         view = await get_helper_view(user)
