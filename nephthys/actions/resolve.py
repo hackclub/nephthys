@@ -1,5 +1,7 @@
+import logging
 from datetime import datetime
 
+from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.utils.delete_thread import add_thread_to_delete_queue
@@ -79,11 +81,16 @@ async def resolve(
             timestamp=ts,
         )
 
-    await client.reactions_remove(
-        channel=env.slack_help_channel,
-        name="thinking_face",
-        timestamp=ts,
-    )
+    try:
+        await client.reactions_remove(
+            channel=env.slack_help_channel,
+            name="thinking_face",
+            timestamp=ts,
+        )
+    except SlackApiError as e:
+        logging.error(
+            f"Failed to remove thinking reaction from ticket with ts {ts}: {e.response['error']}"
+        )
 
     if await env.workspace_admin_available():
         await add_thread_to_delete_queue(
