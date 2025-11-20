@@ -1,5 +1,7 @@
 import logging
 
+from slack_sdk.errors import SlackApiError
+
 from nephthys.macros.types import Macro
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
@@ -86,11 +88,16 @@ class Reopen(Macro):
             data={"ticketTs": new_ticket_ts},
         )
 
-        await env.slack_client.reactions_remove(
-            channel=env.slack_help_channel,
-            name="white_check_mark",
-            timestamp=ticket.msgTs,
-        )
+        try:
+            await env.slack_client.reactions_remove(
+                channel=env.slack_help_channel,
+                name="white_check_mark",
+                timestamp=ticket.msgTs,
+            )
+        except SlackApiError as e:
+            logging.error(
+                f"Failed to remove check reaction from ticket with ts {ticket.msgTs}: {e.response['error']}"
+            )
         await env.slack_client.reactions_add(
             channel=env.slack_help_channel,
             name="thinking_face",
