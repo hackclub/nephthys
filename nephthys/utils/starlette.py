@@ -11,6 +11,7 @@ from starlette_exporter import PrometheusMiddleware
 
 from nephthys.__main__ import main
 from nephthys.api.stats import stats
+from nephthys.api.ticket import ticket_info
 from nephthys.api.user import user_stats
 from nephthys.utils.env import env
 from nephthys.utils.slack import app as slack_app
@@ -59,6 +60,7 @@ app = Starlette(
         Route(path="/slack/events", endpoint=endpoint, methods=["POST"]),
         Route(path="/api/stats", endpoint=stats, methods=["GET"]),
         Route(path="/api/user", endpoint=user_stats, methods=["GET"]),
+        Route(path="/api/ticket", endpoint=ticket_info, methods=["GET"]),
         Route(path="/health", endpoint=health, methods=["GET"]),
         Route(path="/metrics", endpoint=metrics, methods=["GET"]),
     ],
