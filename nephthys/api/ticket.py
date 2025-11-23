@@ -5,7 +5,12 @@ from nephthys.utils.env import env
 
 
 async def ticket_info(req: Request):
-    ticket_id = int(req.query_params["id"])
+    try:
+        ticket_id = int(req.query_params["id"])
+    except KeyError:
+        return JSONResponse({"error": "missing_ticket_id"}, status_code=400)
+    except ValueError:
+        return JSONResponse({"error": "invalid_ticket_id"}, status_code=400)
     ticket = await env.db.ticket.find_unique(
         where={"id": ticket_id},
         include={"openedBy": True, "closedBy": True, "assignedTo": True},
