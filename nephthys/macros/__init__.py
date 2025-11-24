@@ -15,7 +15,9 @@ from prisma.models import Ticket
 from prisma.models import User
 
 
-macros = [Resolve, HelloWorld, FAQ, Identity, Fraud, ShipCertQueue, Thread, Reopen]
+macro_list = [Resolve, HelloWorld, FAQ, Identity, Fraud, ShipCertQueue, Thread, Reopen]
+
+macros = [macro() for macro in macro_list]
 
 
 async def run_macro(
@@ -25,13 +27,12 @@ async def run_macro(
     Run the macro with the given name and arguments.
     """
     for macro in macros:
-        print(macro.all_aliases())
         if name in macro.all_aliases():
             if not macro.can_run_on_closed and ticket.status == TicketStatus.CLOSED:
                 return False
             new_kwargs = kwargs.copy()
             new_kwargs["text"] = text
-            await macro().run(ticket, helper, **new_kwargs)
+            await macro.run(ticket, helper, **new_kwargs)
             await env.slack_client.chat_delete(
                 channel=env.slack_help_channel, ts=macro_ts, token=env.slack_user_token
             )
