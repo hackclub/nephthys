@@ -26,9 +26,19 @@ async def run_macro(
     """
     Run the macro with the given name and arguments.
     """
+
+    async def error_msg(msg: str):
+        return await env.slack_client.chat_postEphemeral(
+            channel=env.slack_help_channel,
+            thread_ts=ticket.msgTs,
+            user=helper.slackId,
+            text=msg,
+        )
+
     for macro in macros:
         if name in macro.all_aliases():
             if not macro.can_run_on_closed and ticket.status == TicketStatus.CLOSED:
+                await error_msg(f"`?{name}` cannot be run on a closed ticket.")
                 return False
             new_kwargs = kwargs.copy()
             new_kwargs["text"] = text
@@ -38,12 +48,7 @@ async def run_macro(
             )
             return True
 
-    await env.slack_client.chat_postEphemeral(
-        channel=env.slack_help_channel,
-        thread_ts=ticket.msgTs,
-        user=helper.slackId,
-        text=f"`?{name}` is not a valid macro.",
-    )
+    await error_msg(f"`?{name}` is not a valid macro.")
     await send_heartbeat(
         f"Macro {name} not found from <@{helper.slackId}>.",
         messages=[f"Ticket ID: {ticket.id}", f"Helper ID: {helper.id}"],
