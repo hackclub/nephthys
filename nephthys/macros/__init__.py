@@ -8,6 +8,7 @@ from nephthys.macros.reopen import Reopen
 from nephthys.macros.resolve import Resolve
 from nephthys.macros.shipcertqueue import ShipCertQueue
 from nephthys.macros.thread import Thread
+from nephthys.macros.types import Macro
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from prisma.enums import TicketStatus
@@ -15,7 +16,16 @@ from prisma.models import Ticket
 from prisma.models import User
 
 
-macro_list = [Resolve, HelloWorld, FAQ, Identity, Fraud, ShipCertQueue, Thread, Reopen]
+macro_list: list[type[Macro]] = [
+    Resolve,
+    HelloWorld,
+    FAQ,
+    Identity,
+    Fraud,
+    ShipCertQueue,
+    Thread,
+    Reopen,
+]
 
 macros = [macro() for macro in macro_list]
 
