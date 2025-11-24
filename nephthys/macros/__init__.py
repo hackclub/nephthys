@@ -25,7 +25,8 @@ async def run_macro(
     Run the macro with the given name and arguments.
     """
     for macro in macros:
-        if macro.name == name:
+        print(macro.all_aliases())
+        if name in macro.all_aliases():
             if not macro.can_run_on_closed and ticket.status == TicketStatus.CLOSED:
                 return False
             new_kwargs = kwargs.copy()
