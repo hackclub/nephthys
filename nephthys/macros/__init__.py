@@ -38,6 +38,12 @@ async def run_macro(
             )
             return True
 
+    await env.slack_client.chat_postEphemeral(
+        channel=env.slack_help_channel,
+        thread_ts=ticket.msgTs,
+        user=helper.slackId,
+        text=f"`?{name}` is not a valid macro.",
+    )
     await send_heartbeat(
         f"Macro {name} not found from <@{helper.slackId}>.",
         messages=[f"Ticket ID: {ticket.id}", f"Helper ID: {helper.id}"],
