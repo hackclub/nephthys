@@ -31,7 +31,8 @@ async def send_daily_stats():
     try:
         tickets = await env.db.ticket.find_many() or []
         users_with_closed_tickets = await env.db.user.find_many(
-            include={"closedTickets": True}, where={"helper": True}
+            include={"closedTickets": True},
+            where={"helper": True, "closedTickets": {"some": {}}},
         )
 
         total_open = len([t for t in tickets if t.status == TicketStatus.OPEN])
