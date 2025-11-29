@@ -12,6 +12,7 @@ from prisma.enums import TicketStatus
 
 class Reopen(Macro):
     name = "reopen"
+    aliases = ["unresolve", "open"]
     can_run_on_closed = True
 
     async def run(self, ticket, helper, **kwargs):

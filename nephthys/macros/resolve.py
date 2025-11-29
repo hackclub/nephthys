@@ -9,6 +9,7 @@ from prisma.models import User
 
 class Resolve(Macro):
     name = "resolve"
+    aliases = ["close"]
 
     async def run(self, ticket: Ticket, helper: User, **kwargs) -> None:
         """
