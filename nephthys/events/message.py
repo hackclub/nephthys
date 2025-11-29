@@ -15,6 +15,7 @@ from nephthys.utils.performance import perf_timer
 from nephthys.utils.slack_user import get_user_profile
 from nephthys.utils.ticket_methods import delete_and_clean_up_ticket
 from prisma.enums import TicketStatus
+from prisma.enums import UserType
 from prisma.models import User
 
 # Message subtypes that should be handled by on_message (messages with no subtype are always handled)
@@ -46,22 +47,19 @@ async def handle_message_sent_to_channel(event: Dict[str, Any], client: AsyncWeb
 async def handle_message_in_thread(event: Dict[str, Any], db_user: User | None):
     """Handle a message sent in a help thread.
 
-    - Ignores non-helper messages.
-    - If the message starts with "?", run the corresponding macro.
-    - Otherwise, update the assigned helper and ticket status.
+    - If the message starts with "?" (and is from a helper), run the corresponding macro.
+    - Otherwise, update the assigned helper, ticket status, and lastMsg fields.
     """
-    if not (db_user and db_user.helper):
-        return
     ticket_message = await env.db.ticket.find_first(
         where={"msgTs": event["thread_ts"]},
         include={"openedBy": True, "tagsOnTickets": True},
     )
     if not ticket_message:
         return
-    text = event.get("text", "")
-    first_word = text.split()[0].lower()
+    text: str = event.get("text", "")
+    first_word = text.split()[0].lower() if text.strip() else ""
 
-    if first_word[0] == "?":
+    if db_user and db_user.helper and first_word.startswith("?"):
         await run_macro(
             name=first_word.lstrip("?"),
             ticket=ticket_message,
@@ -71,8 +69,25 @@ async def handle_message_in_thread(event: Dict[str, Any], db_user: User | None):
         )
         return
 
-    # A helper has sent a normal reply
-    if ticket_message.status != TicketStatus.CLOSED:
+    # Update lastMsg fields in DB
+    is_author = bool(
+        ticket_message.openedBy and event["user"] == ticket_message.openedBy.slackId
+    )
+    is_helper = bool(db_user and db_user.helper)
+    await env.db.ticket.update(
+        where={"msgTs": event["thread_ts"]},
+        data={
+            "lastMsgAt": datetime.now(),
+            "lastMsgBy": UserType.AUTHOR
+            if is_author
+            else UserType.HELPER
+            if is_helper
+            else UserType.OTHER,
+        },
+    )
+
+    # Ensure the ticket is assigned to the helper who last sent a message
+    if db_user and db_user.helper and ticket_message.status != TicketStatus.CLOSED:
         await env.db.ticket.update(
             where={"msgTs": event["thread_ts"]},
             data={

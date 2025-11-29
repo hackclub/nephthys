@@ -15,6 +15,12 @@ enum TicketStatus {
   CLOSED
 }
 
+enum UserType {
+  AUTHOR
+  HELPER
+  OTHER
+}
+
 model User {
   id       Int     @id @unique @default(autoincrement())
   slackId  String  @unique
@@ -45,14 +51,17 @@ model Ticket {
   // Messages sent by the bot in the help thread
   userFacingMsgs BotMessage[]
 
-  openedBy   User   @relation("OpenedTickets", fields: [openedById], references: [id])
+  lastMsgAt DateTime? @default(now())
+  lastMsgBy UserType? @default(AUTHOR)
+
+  openedBy   User @relation("OpenedTickets", fields: [openedById], references: [id])
   openedById Int
 
   closedBy   User?     @relation("ClosedTickets", fields: [closedById], references: [id])
   closedById Int?
   closedAt   DateTime?
 
-  assignedTo   User?   @relation("AssignedTickets", fields: [assignedToId], references: [id])
+  assignedTo   User?     @relation("AssignedTickets", fields: [assignedToId], references: [id])
   assignedToId Int?
   assignedAt   DateTime?
 
@@ -68,7 +77,7 @@ model Tag {
   ticketsOnTags TagsOnTickets[]
 
   userSubscriptions UserTagSubscription[]
-  createdAt DateTime @default(now())
+  createdAt         DateTime              @default(now())
 }
 
 model TagsOnTickets {
@@ -84,9 +93,9 @@ model TagsOnTickets {
 }
 
 model UserTagSubscription {
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
-  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
   tagId  Int
 
   subscribedAt DateTime @default(now())
@@ -96,10 +105,10 @@ model UserTagSubscription {
 }
 
 model BotMessage {
-  id        Int      @id @unique @default(autoincrement())
+  id        Int    @id @unique @default(autoincrement())
   ts        String
   channelId String
-  ticket    Ticket  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticket    Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
   ticketId  Int
 
   @@unique([ts, channelId])
