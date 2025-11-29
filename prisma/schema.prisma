@@ -51,8 +51,8 @@ model Ticket {
   // Messages sent by the bot in the help thread
   userFacingMsgs BotMessage[]
 
-  lastMsgAt DateTime @default(now())
-  lastMsgBy UserType @default(AUTHOR)
+  lastMsgAt DateTime? @default(now())
+  lastMsgBy UserType? @default(AUTHOR)
 
   openedBy   User @relation("OpenedTickets", fields: [openedById], references: [id])
   openedById Int
