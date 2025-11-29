@@ -47,8 +47,7 @@ async def handle_message_sent_to_channel(event: Dict[str, Any], client: AsyncWeb
 async def handle_message_in_thread(event: Dict[str, Any], db_user: User | None):
     """Handle a message sent in a help thread.
 
-    - Ignores non-helper messages.
-    - If the message starts with "?", run the corresponding macro.
+    - If the message starts with "?" (and is from a helper), run the corresponding macro.
     - Otherwise, update the assigned helper, ticket status, and lastMsg fields.
     """
     ticket_message = await env.db.ticket.find_first(
