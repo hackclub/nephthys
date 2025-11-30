@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from datetime import timedelta
+from datetime import timezone
 from zoneinfo import ZoneInfo
 
 from nephthys.utils.env import env
@@ -34,27 +35,6 @@ async def send_daily_stats():
             include={"closedTickets": True},
             where={"helper": True, "closedTickets": {"some": {}}},
         )
-
-        total_open = len([t for t in tickets if t.status == TicketStatus.OPEN])
-        total_in_progress = len(
-            [t for t in tickets if t.status == TicketStatus.IN_PROGRESS]
-        )
-        total_closed = len([t for t in tickets if t.status == TicketStatus.CLOSED])
-        total = len(tickets)
-
-        sorted_users_overall = sorted(
-            users_with_closed_tickets,
-            key=lambda user: len(user.closedTickets or []),
-            reverse=True,
-        )
-        overall_leaderboard_lines = [
-            f"{i + 1}. <@{user.slackId}> - {len(user.closedTickets or [])} closed tickets"
-            for i, user in enumerate(sorted_users_overall[:3])
-        ]
-        if not overall_leaderboard_lines:
-            overall_leaderboard_str = "_No one's on the board yet!_"
-        else:
-            overall_leaderboard_str = "\n".join(overall_leaderboard_lines)
 
         prev_day_total = len(
             [t for t in tickets if start_of_yesterday <= t.createdAt < end_of_yesterday]
@@ -124,21 +104,12 @@ async def send_daily_stats():
         else:
             daily_leaderboard_str = "\n".join(daily_leaderboard_lines)
 
-        pie_chart = await get_ticket_status_pie_chart(raw=True)
+        pie_chart = await get_ticket_status_pie_chart(
+            raw=True, tz=timezone(now_london.utcoffset() or timedelta(0))
+        )
 
         msg = f"""
 um, um, hi there! hope i'm not disturbing you, but i just wanted to let you know that i've got some stats for you! :rac_cute:
-
-well, uh, let's see here...
-
-*:rac_graph: total stats*
-tickets opened: *{total}*
-tickets open: *{total_open}*
-tickets in progress: *{total_in_progress}*
-tickets closed: *{total_closed}*
-
-*:rac_lfg: overall leaderboard*
-{overall_leaderboard_str}
 
 *:mc-clock: in the last 24 hours...* _(that's a day, right? right? that's a day, yeah ok)_
 :rac_woah: *{prev_day_total}* total tickets were opened and you managed to close *{prev_day_only_closed}* of them! congrats!! :D
