@@ -26,6 +26,11 @@ class Environment:
         self.site_api_key = os.environ.get("SITE_API_KEY", "unset")
         self.hack_club_ai_api_key = os.environ.get("HACK_CLUB_AI_API_KEY")
 
+        self.otel_logs_url = os.environ.get("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT")
+        self.otel_service_name = os.environ.get("OTEL_SERVICE_NAME", "nephthys")
+        # Allows easily providing HTTP Basic Auth credentials formatted as user:pass
+        self.otel_logs_basic_auth = os.environ.get("OTEL_EXPORTER_OTLP_LOGS_BASIC_AUTH")
+
         self.environment = os.environ.get("ENVIRONMENT", "development")
         default_log_level = (
             logging.WARNING if self.environment == "production" else logging.INFO
@@ -35,6 +40,7 @@ class Environment:
             or os.environ.get("LOG_LEVEL")
             or default_log_level
         )
+        self.log_level_otel = os.environ.get("LOG_LEVEL_OTEL", logging.INFO)
 
         self.slack_help_channel = os.environ.get("SLACK_HELP_CHANNEL", "unset")
         self.slack_ticket_channel = os.environ.get("SLACK_TICKET_CHANNEL", "unset")
