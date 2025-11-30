@@ -27,9 +27,13 @@ class Environment:
         self.hack_club_ai_api_key = os.environ.get("HACK_CLUB_AI_API_KEY")
 
         self.environment = os.environ.get("ENVIRONMENT", "development")
-        self.log_level = os.environ.get(
-            "LOG_LEVEL",
-            logging.WARNING if self.environment == "production" else logging.INFO,
+        default_log_level = (
+            logging.WARNING if self.environment == "production" else logging.INFO
+        )
+        self.log_level_stderr = (
+            os.environ.get("LOG_LEVEL_STDERR")
+            or os.environ.get("LOG_LEVEL")
+            or default_log_level
         )
 
         self.slack_help_channel = os.environ.get("SLACK_HELP_CHANNEL", "unset")

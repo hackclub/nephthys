@@ -25,7 +25,11 @@ try:
 except ImportError:
     pass
 
-logging.basicConfig(level=env.log_level)
+logging.basicConfig(level=0)
+stderr_logger = logging.StreamHandler()
+stderr_logger.setLevel(env.log_level_stderr)
+stderr_logger.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
+logging.getLogger().handlers = [stderr_logger]
 
 
 @contextlib.asynccontextmanager
