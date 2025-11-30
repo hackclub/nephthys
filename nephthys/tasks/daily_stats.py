@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from datetime import timedelta
+from datetime import timezone
 from zoneinfo import ZoneInfo
 
 from nephthys.utils.env import env
@@ -103,7 +104,9 @@ async def send_daily_stats():
         else:
             daily_leaderboard_str = "\n".join(daily_leaderboard_lines)
 
-        pie_chart = await get_ticket_status_pie_chart(raw=True)
+        pie_chart = await get_ticket_status_pie_chart(
+            raw=True, tz=timezone(now_london.utcoffset() or timedelta(0))
+        )
 
         msg = f"""
 um, um, hi there! hope i'm not disturbing you, but i just wanted to let you know that i've got some stats for you! :rac_cute:
