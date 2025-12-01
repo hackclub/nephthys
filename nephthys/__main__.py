@@ -14,6 +14,7 @@ from nephthys.tasks.daily_stats import send_daily_stats
 from nephthys.tasks.update_helpers import update_helpers
 from nephthys.utils.delete_thread import process_queue
 from nephthys.utils.env import env
+from nephthys.utils.logging import parse_level_name
 from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.logging import setup_otel_logging
 
@@ -28,7 +29,7 @@ except ImportError:
 
 logging.basicConfig(level=logging.NOTSET)
 stderr_logger = logging.StreamHandler()
-stderr_logger.setLevel(env.log_level_stderr)
+stderr_logger.setLevel(parse_level_name(env.log_level_stderr))
 stderr_logger.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
 logging.getLogger().handlers = [stderr_logger]
 if env.otel_logs_url:
