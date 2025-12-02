@@ -136,6 +136,15 @@ Usage: `uv run nephthys/scripts/add_dummy_data.py <num_records>`
 - It takes a while to run (adding 20k records takes ~50 seconds on my machine)
 - Don't run this in production, obviously
 
+## Acknowledgements
+
+<!-- hi! if you reckon you should be acknowledged, feel free to add youself -->
+
+- [Amber](https://github.com/transcental) for designing and building the bot, as well as running it for Summer of Making 2025
+- [MMK21](https://github.com/MMK21Hub) for working on the bot and running it for Flavortown
+- [Everyone who has contributed to the codebase!](https://github.com/hackclub/nephthys/graphs/contributors) (Will you be next?)
+- Navdeep for coming up with the bot name for Flavortown
+
 ## License
 
 This project is licensed under the MIT License.
