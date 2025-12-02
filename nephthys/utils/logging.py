@@ -1,5 +1,6 @@
 import logging
 from base64 import b64encode
+from os import environ
 from os import uname
 from uuid import uuid4
 
@@ -42,16 +43,25 @@ def parse_level_name(level_name: str | int) -> int:
 
 def setup_otel_logging():
     """Set up OpenTelemetry logging, using env vars for configuration."""
-    provider = LoggerProvider(
-        resource=Resource.create(
-            {
-                "service.name": env.otel_service_name,
-                "service.instance.id": uuid4().hex,
-                "deployment.environment": env.environment,
-                "host.name": uname().nodename,
-            }
-        ),
-    )
+    resource_attributes = {
+        "service.name": env.otel_service_name,
+        "service.instance.id": uuid4().hex,
+        "deployment.environment": env.environment,
+        "host.name": uname().nodename,
+    }
+    commit_hash = environ.get("SOURCE_COMMIT")
+    container_name = environ.get("COOLIFY_CONTAINER_NAME")
+    deployment_url = environ.get("COOLIFY_URL")
+    deployment_fqdn = environ.get("COOLIFY_FQDN")
+    if commit_hash:
+        resource_attributes["service.version"] = commit_hash
+    if container_name:
+        resource_attributes["container.name"] = container_name
+    if deployment_url:
+        resource_attributes["deployment.url"] = deployment_url
+    if deployment_fqdn:
+        resource_attributes["deployment.fqdn"] = deployment_fqdn
+    provider = LoggerProvider(resource=Resource.create(resource_attributes))
     set_logger_provider(provider)
 
     auth_header = (
