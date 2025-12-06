@@ -3,6 +3,7 @@ import traceback
 from typing import Any
 
 from prometheus_client import Histogram
+from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.utils.env import env
@@ -82,4 +83,13 @@ async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
             messages=[f"```{tb_str}```", f"cc <@{env.slack_maintainer_id}>"],
         )
 
-    await client.views_publish(user_id=user_id, view=view)
+    try:
+        await client.views_publish(user_id=user_id, view=view)
+    except SlackApiError as e:
+        logging.error(f"Error publishing app home view: {e}")
+        await client.views_publish(
+            user_id=user_id,
+            view=get_error_view(
+                f"A Slack API error occurred while opening the app home:\n{e}",
+            ),
+        )
