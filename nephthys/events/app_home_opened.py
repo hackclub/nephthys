@@ -81,10 +81,13 @@ async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
             messages=[f"```{tb_str}```", f"cc <@{env.slack_maintainer_id}>"],
         )
 
-    if last_requested_views.get(user_id) != home_type:
-        logging.debug(f"Ignoring stale view request ({user_id}, {home_type})")
-        return
-    del last_requested_views[user_id]
+    user_last_requested_view = last_requested_views.get(user_id)
+    if user_last_requested_view:
+        if user_last_requested_view != home_type:
+            logging.info(f"Ignoring stale view request ({user_id}, {home_type})")
+            return
+        del last_requested_views[user_id]
+
     try:
         await client.views_publish(user_id=user_id, view=view)
     except SlackApiError as e:
