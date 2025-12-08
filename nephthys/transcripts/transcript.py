@@ -95,15 +95,6 @@ class Transcript(BaseModel):
         description="Message to be sent when the ship cert queue macro is used (only applies to SoM)",
     )
 
-    home_unknown_user_title: str = Field(
-        default=":upside-down_orpheus: woah, stop right there {name}!",
-        description="Title for unknown user on home page",
-    )
-
-    home_unknown_user_text: str = Field(
-        default="", description="Text for unknown user on home page"
-    )
-
     not_allowed_channel: str = Field(
         default="", description="Message for unauthorized channel access"
     )
@@ -157,9 +148,6 @@ if your question has been answered, please hit the button below to mark it as re
 
         if not self.identity_macro:
             self.identity_macro = f"hey, (user)! please could you ask questions about identity verification in <#{self.identity_help_channel}>? :rac_cute:\n\nit helps the verification team keep track of questions easier!"
-
-        if not self.home_unknown_user_text:
-            self.home_unknown_user_text = f"heyyyy, heidi here! it looks like i'm not allowed to show ya this. sorry! if you think this is a mistake, please reach out to <@{self.program_owner}> and she'll lmk what to do!"
 
         if not self.not_allowed_channel:
             self.not_allowed_channel = f"heya, it looks like you're not supposed to be in that channel, pls talk to <@{self.program_owner}> if that's wrong"

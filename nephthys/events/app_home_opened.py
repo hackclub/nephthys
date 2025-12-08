@@ -3,6 +3,7 @@ import traceback
 from typing import Any
 
 from prometheus_client import Histogram
+from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.utils.env import env
@@ -14,12 +15,13 @@ from nephthys.views.home.helper import get_helper_view
 from nephthys.views.home.loading import get_loading_view
 from nephthys.views.home.stats import get_stats_view
 from nephthys.views.home.tags import get_manage_tags_view
-from nephthys.views.home.unknown_user import get_unknown_user_view
+
+DEFAULT_VIEW = "dashboard"
 
 
 async def on_app_home_opened(event: dict[str, Any], client: AsyncWebClient):
     user_id = event["user"]
-    await open_app_home("default", client, user_id)
+    await open_app_home(DEFAULT_VIEW, client, user_id)
 
 
 APP_HOME_RENDER_DURATION = Histogram(
@@ -29,43 +31,40 @@ APP_HOME_RENDER_DURATION = Histogram(
 )
 
 
+# Map of the last-requested view for each Slack user
+# This prevents a view that took a while to render overwriting the view you want
+# Entries are deleted once the view is published
+last_requested_views: dict[str, str] = {}
+
+
 async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
+    last_requested_views[user_id] = home_type
     try:
-        await client.views_publish(view=get_loading_view(), user_id=user_id)
+        await client.views_publish(view=get_loading_view(home_type), user_id=user_id)
 
         user = await env.db.user.find_unique(where={"slackId": user_id})
-
-        if not user or not user.helper:
-            user_info = await client.users_info(user=user_id) or {}
-            name = (
-                user_info.get("user", {}).get("profile", {}).get("display_name")
-                or user_info.get("user", {}).get("profile", {}).get("real_name")
-                or "person"
-            )
-            view = get_unknown_user_view(name)
-        else:
-            logging.info(f"Opening {home_type} for {user_id}")
-            async with perf_timer(
-                f"Rendering app home (type={home_type})",
-                APP_HOME_RENDER_DURATION,
-                home_type=home_type,
-            ):
-                match home_type:
-                    case "default" | "dashboard":
-                        view = await get_helper_view(user)
-                    case "assigned-tickets":
-                        view = await get_assigned_tickets_view(user)
-                    case "tags":
-                        view = await get_manage_tags_view(user)
-                    case "my-stats":
-                        view = await get_stats_view(user)
-                    case _:
-                        await send_heartbeat(
-                            f"Attempted to load unknown app home type {home_type} for <@{user_id}>"
-                        )
-                        view = get_error_view(
-                            f"This shouldn't happen, please tell <@{env.slack_maintainer_id}> that app home case `_` was hit with home type `{home_type}`"
-                        )
+        logging.info(f"Opening {home_type} for {user_id}")
+        async with perf_timer(
+            f"Rendering app home (type={home_type})",
+            APP_HOME_RENDER_DURATION,
+            home_type=home_type,
+        ):
+            match home_type:
+                case "dashboard":
+                    view = await get_helper_view(slack_user=user_id, db_user=user)
+                case "assigned-tickets":
+                    view = await get_assigned_tickets_view(user)
+                case "tags":
+                    view = await get_manage_tags_view(user)
+                case "my-stats":
+                    view = await get_stats_view(user)
+                case _:
+                    await send_heartbeat(
+                        f"Attempted to load unknown app home type {home_type} for <@{user_id}>"
+                    )
+                    view = get_error_view(
+                        f"This shouldn't happen, please tell <@{env.slack_maintainer_id}> that app home case `_` was hit with home type `{home_type}`"
+                    )
     except Exception as e:
         logging.error(f"Error opening app home: {e}")
         tb = traceback.format_exception(e)
@@ -82,4 +81,20 @@ async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
             messages=[f"```{tb_str}```", f"cc <@{env.slack_maintainer_id}>"],
         )
 
-    await client.views_publish(user_id=user_id, view=view)
+    user_last_requested_view = last_requested_views.get(user_id)
+    if user_last_requested_view:
+        if user_last_requested_view != home_type:
+            logging.info(f"Ignoring stale view request ({user_id}, {home_type})")
+            return
+        del last_requested_views[user_id]
+
+    try:
+        await client.views_publish(user_id=user_id, view=view)
+    except SlackApiError as e:
+        logging.error(f"Error publishing app home view: {e}")
+        await client.views_publish(
+            user_id=user_id,
+            view=get_error_view(
+                f"A Slack API error occurred while opening the app home:\n{e}",
+            ),
+        )
