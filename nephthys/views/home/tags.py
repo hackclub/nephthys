@@ -1,22 +1,27 @@
 import logging
 
 from nephthys.utils.env import env
-from nephthys.views.home.components.error_screen import error_screen
 from nephthys.views.home.components.header import get_header
 from prisma.models import User
 
 
 async def get_manage_tags_view(user: User | None) -> dict:
     header = get_header(user, "tags")
-    if not user or not user.helper:
-        return error_screen(
-            header,
-            ":rac_info: you're not a helper!",
-            "Only helpers can subscribe to tags.",
-        )
-
+    is_admin = bool(user and user.admin)
+    is_helper = bool(user and user.helper)
     tags = await env.db.tag.find_many(include={"userSubscriptions": True})
     blocks = []
+
+    # if not user or not user.helper:
+    #     blocks.append(
+    #         {
+    #             "type": "section",
+    #             "text": {
+    #                 "type": "mrkdwn",
+    #                 "text": ":rac_info: you're not a helper! Note that only helpers can subscribe to tags.",
+    #             },
+    #         }
+    #     )
 
     if not tags:
         blocks.append(
@@ -24,7 +29,7 @@ async def get_manage_tags_view(user: User | None) -> dict:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f":rac_nooo: i couldn't scrounge up any tags{', you can make a new one below though' if user.admin else ''}",
+                    "text": f":rac_nooo: i couldn't scrounge up any tags{', you can make a new one below though' if is_admin else ''}",
                 },
             }
         )
@@ -60,7 +65,9 @@ async def get_manage_tags_view(user: User | None) -> dict:
                     "action_id": "tag-subscribe",
                     "value": f"{tag.id};{tag.name}",
                     "style": "primary" if user.id not in subs else "danger",
-                },
+                }
+                if user and is_helper
+                else {},
             }
         )
 
@@ -81,8 +88,10 @@ async def get_manage_tags_view(user: User | None) -> dict:
                 "text": {
                     "type": "mrkdwn",
                     "text": ":rac_thumbs: here you can manage tags and your subscriptions"
-                    if user.admin
-                    else ":rac_thumbs: here you can manage your tag subscriptions",
+                    if is_admin
+                    else ":rac_thumbs: here you can manage your tag subscriptions"
+                    if is_helper
+                    else ":rac_thumbs: note: you're not a helper, so you can only view tags",
                 },
             },
             {"type": "section", "text": {"type": "plain_text", "text": " "}},
@@ -91,7 +100,7 @@ async def get_manage_tags_view(user: User | None) -> dict:
         ],
     }
 
-    if user.admin:
+    if is_admin:
         view["blocks"].append(
             {
                 "type": "actions",
