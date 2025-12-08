@@ -17,10 +17,12 @@ from nephthys.views.home.stats import get_stats_view
 from nephthys.views.home.tags import get_manage_tags_view
 from nephthys.views.home.unknown_user import get_unknown_user_view
 
+DEFAULT_VIEW = "dashboard"
+
 
 async def on_app_home_opened(event: dict[str, Any], client: AsyncWebClient):
     user_id = event["user"]
-    await open_app_home("default", client, user_id)
+    await open_app_home(DEFAULT_VIEW, client, user_id)
 
 
 APP_HOME_RENDER_DURATION = Histogram(
@@ -59,7 +61,7 @@ async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
                 home_type=home_type,
             ):
                 match home_type:
-                    case "default" | "dashboard":
+                    case "dashboard":
                         view = await get_helper_view(user)
                     case "assigned-tickets":
                         view = await get_assigned_tickets_view(user)
