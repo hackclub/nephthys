@@ -30,7 +30,14 @@ APP_HOME_RENDER_DURATION = Histogram(
 )
 
 
+# Map of the last-requested view for each Slack user
+# This prevents a view that took a while to render overwriting the view you want
+# Entries are deleted once the view is published
+last_requested_views: dict[str, str] = {}
+
+
 async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
+    last_requested_views[user_id] = home_type
     try:
         await client.views_publish(view=get_loading_view(home_type), user_id=user_id)
 
@@ -83,6 +90,10 @@ async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
             messages=[f"```{tb_str}```", f"cc <@{env.slack_maintainer_id}>"],
         )
 
+    if last_requested_views.get(user_id) != home_type:
+        logging.debug(f"Ignoring stale view request ({user_id}, {home_type})")
+        return
+    del last_requested_views[user_id]
     try:
         await client.views_publish(user_id=user_id, view=view)
     except SlackApiError as e:
