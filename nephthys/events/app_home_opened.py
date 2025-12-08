@@ -32,7 +32,7 @@ APP_HOME_RENDER_DURATION = Histogram(
 
 async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
     try:
-        await client.views_publish(view=get_loading_view(), user_id=user_id)
+        await client.views_publish(view=get_loading_view(home_type), user_id=user_id)
 
         user = await env.db.user.find_unique(where={"slackId": user_id})
 

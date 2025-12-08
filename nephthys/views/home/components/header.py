@@ -56,7 +56,7 @@ def title_line():
     }
 
 
-def get_header(user: User, current: str = "dashboard"):
+def get_header(user: User | None, current: str = "dashboard"):
     return [
         title_line(),
         header_buttons(current),
