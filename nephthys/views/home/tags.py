@@ -1,13 +1,21 @@
 import logging
 
 from nephthys.utils.env import env
+from nephthys.views.home.components.error_screen import error_screen
 from nephthys.views.home.components.header import get_header
 from prisma.models import User
 
 
-async def get_manage_tags_view(user: User) -> dict:
-    tags = await env.db.tag.find_many(include={"userSubscriptions": True})
+async def get_manage_tags_view(user: User | None) -> dict:
+    header = get_header(user, "tags")
+    if not user or not user.helper:
+        return error_screen(
+            header,
+            ":rac_info: you're not a helper!",
+            "Only helpers can subscribe to tags.",
+        )
 
+    tags = await env.db.tag.find_many(include={"userSubscriptions": True})
     blocks = []
 
     if not tags:
@@ -59,7 +67,7 @@ async def get_manage_tags_view(user: User) -> dict:
     view = {
         "type": "home",
         "blocks": [
-            *get_header(user, "tags"),
+            *header,
             {
                 "type": "header",
                 "text": {
