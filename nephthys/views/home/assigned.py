@@ -1,34 +1,10 @@
 import pytz
 
 from nephthys.utils.env import env
+from nephthys.views.home.components.error_screen import error_screen
 from nephthys.views.home.components.header import get_header
 from prisma.enums import TicketStatus
 from prisma.models import User
-
-
-def error_screen(header: list[dict], title: str, message: str) -> dict:
-    return {
-        "type": "home",
-        "blocks": [
-            *header,
-            {
-                "type": "header",
-                "text": {
-                    "type": "plain_text",
-                    "text": title,
-                    "emoji": True,
-                },
-            },
-            {
-                "type": "section",
-                "text": {
-                    "type": "plain_text",
-                    "text": message,
-                    "emoji": True,
-                },
-            },
-        ],
-    }
 
 
 async def get_assigned_tickets_view(user: User | None):
