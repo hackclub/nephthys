@@ -6,8 +6,40 @@ from prisma.enums import TicketStatus
 from prisma.models import User
 
 
-async def get_assigned_tickets_view(user: User):
+def error_screen(header: list[dict], title: str, message: str) -> dict:
+    return {
+        "type": "home",
+        "blocks": [
+            *header,
+            {
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": title,
+                    "emoji": True,
+                },
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "plain_text",
+                    "text": message,
+                    "emoji": True,
+                },
+            },
+        ],
+    }
+
+
+async def get_assigned_tickets_view(user: User | None):
     header = get_header(user, "assigned-tickets")
+
+    if not user or not user.helper:
+        return error_screen(
+            header,
+            ":rac_info: you're not a helper!",
+            ":rac_believes_in_theory_about_green_lizards_and_space_lasers: only helpers can be assigned to tickets, so you have none!",
+        )
 
     tickets = (
         await env.db.ticket.find_many(
@@ -18,29 +50,11 @@ async def get_assigned_tickets_view(user: User):
     )
 
     if not tickets:
-        return {
-            "type": "home",
-            "blocks": [
-                header,
-                {
-                    "type": "header",
-                    "text": {
-                        "type": "plain_text",
-                        "text": ":rac_cute: no assigned tickets",
-                        "emoji": True,
-                    },
-                },
-                {"type": "divider"},
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "plain_text",
-                        "text": ":rac_believes_in_theory_about_green_lizards_and_space_lasers: you don't have any assigned tickets right now!",
-                        "emoji": True,
-                    },
-                },
-            ],
-        }
+        return error_screen(
+            header,
+            ":rac_cute: no assigned tickets",
+            ":rac_believes_in_theory_about_green_lizards_and_space_lasers: you don't have any assigned tickets right now!",
+        )
 
     ticket_blocks = []
     for ticket in tickets:

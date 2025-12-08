@@ -9,14 +9,14 @@ from nephthys.views.home.error import get_error_view
 from prisma.models import User
 
 
-async def get_helper_view(user: User):
+async def get_helper_view(slack_user: str, db_user: User | None):
     async with perf_timer("Fetching user info"):
-        user_info = await env.slack_client.users_info(user=user.slackId)
-    if not user_info or not (slack_user := user_info.get("user")):
+        user_info = await env.slack_client.users_info(user=slack_user)
+    if not user_info:
         return get_error_view(
             ":rac_freaking: oops, i couldn't find your info! try again in a bit?"
         )
-    tz_string = slack_user.get("tz", "Europe/London")
+    tz_string = user_info.get("tz", "Europe/London")
     tz = pytz.timezone(tz_string)
 
     async with perf_timer("Rendering pie chart (total time)"):
@@ -25,7 +25,7 @@ async def get_helper_view(user: User):
     async with perf_timer("Generating leaderboard"):
         leaderboard = await get_leaderboard_view()
 
-    header = get_header(user, "dashboard")
+    header = get_header(db_user, "dashboard")
 
     return {
         "type": "home",
