@@ -2,7 +2,6 @@ import pytz
 
 from nephthys.utils.env import env
 from nephthys.utils.performance import perf_timer
-from nephthys.views.home.components.buttons import get_buttons
 from nephthys.views.home.components.header import get_header
 from nephthys.views.home.components.leaderboards import get_leaderboard_view
 from nephthys.views.home.components.ticket_status_pie import get_ticket_status_pie_chart
@@ -26,15 +25,12 @@ async def get_helper_view(user: User):
     async with perf_timer("Generating leaderboard"):
         leaderboard = await get_leaderboard_view()
 
-    header = get_header()
-    btns = get_buttons(user, "dashboard")
+    header = get_header(user, "dashboard")
 
     return {
         "type": "home",
         "blocks": [
-            header,
-            btns,
-            {"type": "divider"},
+            *header,
             {
                 "type": "header",
                 "text": {

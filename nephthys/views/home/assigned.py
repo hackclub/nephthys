@@ -1,15 +1,13 @@
 import pytz
 
 from nephthys.utils.env import env
-from nephthys.views.home.components.buttons import get_buttons
 from nephthys.views.home.components.header import get_header
 from prisma.enums import TicketStatus
 from prisma.models import User
 
 
 async def get_assigned_tickets_view(user: User):
-    header = get_header()
-    btns = get_buttons(user, "assigned-tickets")
+    header = get_header(user, "assigned-tickets")
 
     tickets = (
         await env.db.ticket.find_many(
@@ -23,6 +21,7 @@ async def get_assigned_tickets_view(user: User):
         return {
             "type": "home",
             "blocks": [
+                header,
                 {
                     "type": "header",
                     "text": {
@@ -31,7 +30,6 @@ async def get_assigned_tickets_view(user: User):
                         "emoji": True,
                     },
                 },
-                btns,
                 {"type": "divider"},
                 {
                     "type": "section",
@@ -73,9 +71,7 @@ async def get_assigned_tickets_view(user: User):
     return {
         "type": "home",
         "blocks": [
-            header,
-            btns,
-            {"type": "divider"},
+            *header,
             {
                 "type": "header",
                 "text": {
