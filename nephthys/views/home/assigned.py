@@ -41,12 +41,9 @@ async def get_assigned_tickets_view(user: User | None):
             ":rac_believes_in_theory_about_green_lizards_and_space_lasers: only helpers can be assigned to tickets, so you have none!",
         )
 
-    tickets = (
-        await env.db.ticket.find_many(
-            where={"assignedToId": user.id, "NOT": [{"status": TicketStatus.CLOSED}]},
-            include={"openedBy": True},
-        )
-        or []
+    tickets = await env.db.ticket.find_many(
+        where={"assignedToId": user.id, "NOT": [{"status": TicketStatus.CLOSED}]},
+        include={"openedBy": True},
     )
 
     if not tickets:
