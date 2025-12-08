@@ -49,8 +49,9 @@ def title_line():
     return {
         "type": "header",
         "text": {
-            "type": "mrkdwn",
-            "text": f":rac_cute: *{env.app_title}*",
+            "type": "plain_text",
+            "text": f":rac_cute: {env.app_title}",
+            "emoji": True,
         },
     }
 
