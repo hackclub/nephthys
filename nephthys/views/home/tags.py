@@ -84,7 +84,6 @@ async def get_manage_tags_view(user: User | None) -> dict:
                 },
             },
             {"type": "section", "text": {"type": "plain_text", "text": " "}},
-            # {"type": "divider"},
             *blocks,
         ],
     }
