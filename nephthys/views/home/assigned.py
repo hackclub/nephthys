@@ -33,12 +33,15 @@ async def get_assigned_tickets_view(user: User | None):
     for ticket in tickets:
         unix_ts = int(ticket.createdAt.timestamp())
         time_ago_str = f"<!date^{unix_ts}^opened {{ago}}|at {ticket.createdAt.astimezone(pytz.timezone('Europe/London')).strftime('%H:%M %Z')}>"
+        opened_by_str = (
+            f"<@{ticket.openedBy.slackId}>" if ticket.openedBy else "unknown user"
+        )
         ticket_blocks.append(
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"*{ticket.title}*\n _from <@{ticket.openedBy.slackId}>. {time_ago_str}_",
+                    "text": f"*{ticket.title}*\n _from {opened_by_str}. {time_ago_str}_",
                 },
                 "accessory": {
                     "type": "button",
