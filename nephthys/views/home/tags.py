@@ -12,17 +12,6 @@ async def get_manage_tags_view(user: User | None) -> dict:
     tags = await env.db.tag.find_many(include={"userSubscriptions": True})
     blocks = []
 
-    # if not user or not user.helper:
-    #     blocks.append(
-    #         {
-    #             "type": "section",
-    #             "text": {
-    #                 "type": "mrkdwn",
-    #                 "text": ":rac_info: you're not a helper! Note that only helpers can subscribe to tags.",
-    #             },
-    #         }
-    #     )
-
     if not tags:
         blocks.append(
             {
