@@ -1,13 +1,12 @@
-from nephthys.views.home.components.buttons import get_buttons
+from nephthys.views.home.components.header import get_header
 from prisma.models import User
 
 
 async def get_stats_view(user: User):
-    btns = get_buttons(user, "my-stats")
-
     return {
         "type": "home",
         "blocks": [
+            *get_header(user, "my-stats"),
             {
                 "type": "header",
                 "text": {
@@ -16,8 +15,6 @@ async def get_stats_view(user: User):
                     "emoji": True,
                 },
             },
-            btns,
-            {"type": "divider"},
             {
                 "type": "section",
                 "text": {

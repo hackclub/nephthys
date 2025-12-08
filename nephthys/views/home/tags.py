@@ -1,13 +1,11 @@
 import logging
 
 from nephthys.utils.env import env
-from nephthys.views.home.components.buttons import get_buttons
+from nephthys.views.home.components.header import get_header
 from prisma.models import User
 
 
 async def get_manage_tags_view(user: User) -> dict:
-    btns = get_buttons(user, "tags")
-
     tags = await env.db.tag.find_many(include={"userSubscriptions": True})
 
     blocks = []
@@ -61,6 +59,7 @@ async def get_manage_tags_view(user: User) -> dict:
     view = {
         "type": "home",
         "blocks": [
+            *get_header(user, "tags"),
             {
                 "type": "header",
                 "text": {
@@ -69,8 +68,6 @@ async def get_manage_tags_view(user: User) -> dict:
                     "emoji": True,
                 },
             },
-            btns,
-            {"type": "divider"},
             {
                 "type": "section",
                 "text": {
@@ -80,7 +77,8 @@ async def get_manage_tags_view(user: User) -> dict:
                     else ":rac_thumbs: here you can manage your tag subscriptions",
                 },
             },
-            {"type": "divider"},
+            {"type": "section", "text": {"type": "plain_text", "text": " "}},
+            # {"type": "divider"},
             *blocks,
         ],
     }
