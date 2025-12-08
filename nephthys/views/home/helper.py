@@ -1,3 +1,5 @@
+import logging
+
 import pytz
 
 from nephthys.utils.env import env
@@ -11,12 +13,17 @@ from prisma.models import User
 
 async def get_helper_view(slack_user: str, db_user: User | None):
     async with perf_timer("Fetching user info"):
-        user_info = await env.slack_client.users_info(user=slack_user)
+        user_info_response = await env.slack_client.users_info(user=slack_user)
+    user_info = user_info_response.get("user")
     if not user_info:
+        logging.error(f"Failed to fetch user={slack_user}: {user_info_response}")
         return get_error_view(
             ":rac_freaking: oops, i couldn't find your info! try again in a bit?"
         )
-    tz_string = user_info.get("tz", "Europe/London")
+    tz_string = user_info.get("tz")
+    if not tz_string:
+        logging.warning(f"No timezone found user={slack_user}")
+        tz_string = "Europe/London"
     tz = pytz.timezone(tz_string)
 
     async with perf_timer("Rendering pie chart (total time)"):
