@@ -37,7 +37,8 @@ async def resolve(
         )
         return
     ticket = await env.db.ticket.find_first(
-        where={"msgTs": ts, "NOT": [{"status": TicketStatus.CLOSED}]}
+        where={"msgTs": ts, "NOT": [{"status": TicketStatus.CLOSED}]},
+        include={"assignedTo": True},
     )
     if not ticket:
         logging.warning(
