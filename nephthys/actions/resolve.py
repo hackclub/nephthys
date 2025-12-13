@@ -40,6 +40,9 @@ async def resolve(
         where={"msgTs": ts, "NOT": [{"status": TicketStatus.CLOSED}]}
     )
     if not ticket:
+        logging.warning(
+            f"Failed to resolve ticket ts={ts} because it's already closed or doesn't exist."
+        )
         return
 
     if not resolving_user.helper and ticket.assignedTo:
