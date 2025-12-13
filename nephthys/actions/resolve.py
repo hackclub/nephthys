@@ -104,3 +104,5 @@ async def resolve(
         await delete_message(
             channel_id=env.slack_ticket_channel, message_ts=tkt.ticketTs
         )
+
+    logging.info(f"Resolved ticket ts={ts} resolving_user={resolving_user.slackId}")
