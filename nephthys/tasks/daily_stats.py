@@ -6,8 +6,8 @@ from zoneinfo import ZoneInfo
 
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
+from nephthys.utils.stats import calculate_daily_stats
 from nephthys.views.home.components.ticket_status_pie import get_ticket_status_pie_chart
-from prisma.enums import TicketStatus
 
 
 async def send_daily_stats():
@@ -30,74 +30,11 @@ async def send_daily_stats():
     )
 
     try:
-        tickets = await env.db.ticket.find_many() or []
-        users_with_closed_tickets = await env.db.user.find_many(
-            include={"closedTickets": True},
-            where={"helper": True, "closedTickets": {"some": {}}},
-        )
-
-        prev_day_total = len(
-            [t for t in tickets if start_of_yesterday <= t.createdAt < end_of_yesterday]
-        )
-        prev_day_only_closed = len(
-            [
-                t
-                for t in tickets
-                if t.status == TicketStatus.CLOSED
-                and t.closedAt
-                and start_of_yesterday <= t.closedAt < end_of_yesterday
-                and start_of_yesterday <= t.createdAt < end_of_yesterday
-            ]
-        )
-        prev_day_open = len(
-            [
-                t
-                for t in tickets
-                if start_of_yesterday <= t.createdAt < end_of_yesterday
-                and t.status == TicketStatus.OPEN
-            ]
-        )
-        prev_day_in_progress = len(
-            [
-                t
-                for t in tickets
-                if t.assignedAt
-                and start_of_yesterday <= t.assignedAt < end_of_yesterday
-                and t.status == TicketStatus.IN_PROGRESS
-            ]
-        )
-        prev_day_closed = len(
-            [
-                t
-                for t in tickets
-                if t.status == TicketStatus.CLOSED
-                and t.closedAt
-                and start_of_yesterday <= t.closedAt < end_of_yesterday
-            ]
-        )
-
-        daily_leaderboard_data = []
-        for user in users_with_closed_tickets:
-            daily_closed_count = sum(
-                1
-                for ticket in (user.closedTickets or [])
-                if ticket.closedAt
-                and start_of_yesterday <= ticket.closedAt < end_of_yesterday
-            )
-            if daily_closed_count > 0:
-                daily_leaderboard_data.append(
-                    {"user": user, "count": daily_closed_count}
-                )
-
-        sorted_daily_users = sorted(
-            daily_leaderboard_data,
-            key=lambda data: data["count"],
-            reverse=True,
-        )
+        stats = await calculate_daily_stats(start_of_yesterday, end_of_yesterday)
 
         daily_leaderboard_lines = [
-            f"{i + 1}. <@{data['user'].slackId}> - {data['count']} closed tickets"
-            for i, data in enumerate(sorted_daily_users[:3])
+            f"{i + 1}. <@{entry['user'].slackId}> - {entry['count']} closed tickets"
+            for i, entry in enumerate(stats.helpers_leaderboard[:3])
         ]
         if not daily_leaderboard_lines:
             daily_leaderboard_str = "_No tickets were closed yesterday!_"
@@ -112,9 +49,9 @@ async def send_daily_stats():
 um, um, hi there! hope i'm not disturbing you, but i just wanted to let you know that i've got some stats for you! :rac_cute:
 
 *:mc-clock: in the last 24 hours...* _(that's a day, right? right? that's a day, yeah ok)_
-:rac_woah: *{prev_day_total}* total tickets were opened and you managed to close *{prev_day_only_closed}* of them! congrats!! :D
-:rac_info: *{prev_day_in_progress}* tickets have been assigned to users, and *{prev_day_open}* are still open
-you managed to close a whopping *{prev_day_closed}* tickets in the last 24 hours, well done!
+:rac_woah: *{stats.new_tickets_total}* total tickets were opened and you managed to close *{stats.closed_today_from_today}* of them! congrats!! :D
+:rac_info: *{stats.assigned_today_in_progress}* tickets have been assigned to users, and *{stats.new_tickets_still_open}* are still open
+you managed to close a whopping *{stats.new_tickets_now_closed}* tickets in the last 24 hours, well done!
 
 *:rac_shy: today's leaderboard*
 {daily_leaderboard_str}
