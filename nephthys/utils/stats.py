@@ -154,11 +154,7 @@ async def calculate_daily_stats(
     )
 
     hang_time = calculate_avg_hang_time(
-        [
-            t
-            for t in tickets
-            if start_time <= t.createdAt.replace(tzinfo=None) < end_time
-        ]
+        [t for t in tickets if start_time <= t.createdAt < end_time]
     )
 
     return DailyStatsResult(

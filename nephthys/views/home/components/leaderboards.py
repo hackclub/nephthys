@@ -16,7 +16,7 @@ async def get_leaderboard_view():
     else:
         overall_leaderboard_str = "\n".join(overall_leaderboard_lines)
 
-    now = datetime.now()
+    now = datetime.now().astimezone()
     prev_day_start = now - timedelta(days=1)
     prev_day = await calculate_daily_stats(prev_day_start, now)
 
