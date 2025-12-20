@@ -22,7 +22,7 @@ async def create_tag_view_callback(ack: AsyncAck, body: dict, client: AsyncWebCl
     name = body["view"]["state"]["values"]["tag_name"]["tag_name"]["value"]
     await env.db.tag.create(data={"name": name})
 
-    await open_app_home("tags", client, user_id)
+    await open_app_home("team-tags", client, user_id)
 
 
 async def create_tag_btn_callback(ack: AsyncAck, body: dict, client: AsyncWebClient):

@@ -4,9 +4,11 @@ Nephthys is the bot powering #summer-of-making-help and #identity-help in the Ha
 
 ## Features
 
-### Tags
+### Team tags
 
-You can tag tickets in the private tickets channel or with the macro `?tag <tag_name>`. This will DM the people who are specialised in responding to those issues and have it show up in their assigned tickets.
+Team tags let you tag tickets that are the respopnsibility of a specific group of people (or perhaps just one person). E.g. you could have tags for Fufillment, Hack Club Auth, Onboarding flow, etc.
+
+You can add team tags to tickets in the private tickets channel or with the macro `?tag <tag_name>`. This will DM the people who are specialised in responding to those issues and have it show up in their assigned tickets.
 You can assign yourself to get notified for specific tags on the app home
 
 ### Macros

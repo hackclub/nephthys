@@ -18,7 +18,7 @@ from nephthys.events.channel_join import channel_join
 from nephthys.events.channel_left import channel_left
 from nephthys.events.message import on_message
 from nephthys.events.message_deletion import on_message_deletion
-from nephthys.options.tags import get_tags
+from nephthys.options.tags import get_team_tags
 from nephthys.utils.env import env
 from nephthys.utils.performance import perf_timer
 
@@ -53,7 +53,7 @@ async def handle_mark_resolved_button(
 
 @app.options("tag-list")
 async def handle_tag_list_options(ack: AsyncAck, payload: dict):
-    tags = await get_tags(payload)
+    tags = await get_team_tags(payload)
     await ack(options=tags)
 
 
@@ -64,7 +64,7 @@ async def app_home_opened_handler(event: dict[str, Any], client: AsyncWebClient)
 
 @app.action("dashboard")
 @app.action("assigned-tickets")
-@app.action("tags")
+@app.action("team-tags")
 @app.action("my-stats")
 async def manage_home_switcher(ack: AsyncAck, body, client: AsyncWebClient):
     await ack()
