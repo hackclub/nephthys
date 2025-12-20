@@ -50,7 +50,7 @@ async def tickets_awaiting_response_message(tickets: list[Ticket]) -> str:
             else ""
         )
         msg_lines.append(
-            f"{i + 1}. <{get_question_message_link(ticket)}|{label}>{tags_string} (created {created_date}, last reply {last_reply}*)"
+            f"{i + 1}. <{get_question_message_link(ticket)}|{label}>{tags_string} (created {created_date}, last reply *{last_reply}*)"
         )
     if count > MAX_TICKETS:
         msg_lines.append(f"_(plus {count - MAX_TICKETS} more)_")
