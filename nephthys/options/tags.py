@@ -4,11 +4,10 @@ from thefuzz import fuzz
 from thefuzz import process
 
 from nephthys.utils.env import env
-from prisma.enums import TagType
 
 
 async def get_team_tags(payload: dict) -> list[dict[str, dict[str, str] | str]]:
-    tags = await env.db.tag.find_many(where={"type": TagType.TEAM})
+    tags = await env.db.tag.find_many()
     if not tags:
         return []
 

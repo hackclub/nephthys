@@ -2,7 +2,6 @@ import logging
 
 from nephthys.utils.env import env
 from nephthys.views.home.components.header import get_header
-from prisma.enums import TagType
 from prisma.models import User
 
 
@@ -10,9 +9,7 @@ async def get_team_tags_view(user: User | None) -> dict:
     header = get_header(user, "team-tags")
     is_admin = bool(user and user.admin)
     is_helper = bool(user and user.helper)
-    tags = await env.db.tag.find_many(
-        where={"type": TagType.TEAM}, include={"userSubscriptions": True}
-    )
+    tags = await env.db.tag.find_many(include={"userSubscriptions": True})
     blocks = []
 
     if not tags:

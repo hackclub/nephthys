@@ -21,11 +21,6 @@ enum UserType {
   OTHER
 }
 
-enum TagType {
-  TEAM
-  QUESTION
-}
-
 model User {
   id       Int     @id @unique @default(autoincrement())
   slackId  String  @unique
@@ -78,9 +73,8 @@ model Ticket {
 }
 
 model Tag {
-  id   Int     @id @unique @default(autoincrement())
-  name String  @unique
-  type TagType @default(TEAM)
+  id   Int    @id @unique @default(autoincrement())
+  name String @unique
 
   ticketsOnTags TagsOnTickets[]
 
