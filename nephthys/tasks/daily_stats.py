@@ -103,7 +103,7 @@ um, um, hi there! hope i'm not disturbing you, but i just wanted to let you know
 *:mc-clock: in the last 24 hours...* _(that's a day, right? right? that's a day, yeah ok)_
 :rac_woah: *{stats.new_tickets_total}* total tickets were opened and you managed to close *{stats.closed_today_from_today}* of them! congrats!! :D
 :rac_info: *{stats.assigned_today_in_progress}* tickets have been assigned to users, and *{stats.new_tickets_still_open}* are still open
-you managed to close a whopping *{stats.new_tickets_now_closed}* tickets in the last 24 hours, well done!
+you managed to close a whopping *{stats.closed_today}* tickets in the last 24 hours, well done!
 
 *:rac_info: today's leaderboard*
 {daily_leaderboard_str}
