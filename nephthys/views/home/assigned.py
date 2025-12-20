@@ -1,6 +1,7 @@
 import pytz
 
 from nephthys.utils.env import env
+from nephthys.utils.ticket_methods import get_question_message_link
 from nephthys.views.home.components.buttons import get_buttons
 from nephthys.views.home.components.header import get_header
 from prisma.enums import TicketStatus
@@ -63,7 +64,7 @@ async def get_assigned_tickets_view(user: User):
                         "emoji": True,
                     },
                     "action_id": f"view-ticket-{ticket.msgTs}",
-                    "url": f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{ticket.msgTs.replace('.', '')}",
+                    "url": get_question_message_link(ticket),
                     "value": ticket.msgTs,
                 },
             }

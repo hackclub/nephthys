@@ -7,6 +7,8 @@ from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
+from nephthys.utils.ticket_methods import get_backend_message_link
+from nephthys.utils.ticket_methods import get_question_message_link
 
 
 async def assign_tag_callback(
@@ -85,8 +87,8 @@ async def assign_tag_callback(
             }
         )
 
-    url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{ticket.msgTs.replace('.', '')}"
-    ticket_url = f"https://hackclub.slack.com/archives/{env.slack_ticket_channel}/p{ticket.ticketTs.replace('.', '')}"
+    url = get_question_message_link(ticket)
+    ticket_url = get_backend_message_link(ticket)
 
     for user in users:
         formatted_tags = ", ".join(
