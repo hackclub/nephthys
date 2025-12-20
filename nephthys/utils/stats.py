@@ -112,8 +112,7 @@ async def calculate_daily_stats(
         [
             t
             for t in tickets
-            if t.assignedAt
-            and start_time <= t.assignedAt < end_time
+            if start_time <= t.createdAt < end_time
             and t.status == TicketStatus.IN_PROGRESS
         ]
     )
