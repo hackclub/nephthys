@@ -2,7 +2,6 @@ import pytz
 
 from nephthys.utils.env import env
 from nephthys.utils.ticket_methods import get_question_message_link
-from nephthys.views.home.components.buttons import get_buttons
 from nephthys.views.home.components.error_screen import error_screen
 from nephthys.views.home.components.header import get_header
 from prisma.enums import TicketStatus
