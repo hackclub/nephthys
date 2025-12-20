@@ -1,12 +1,61 @@
 import logging
 from datetime import datetime
 from datetime import timedelta
+from datetime import timezone
 from zoneinfo import ZoneInfo
 
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
+from nephthys.utils.old_tickets import get_unanswered_tickets
+from nephthys.utils.stats import calculate_daily_stats
+from nephthys.utils.ticket_methods import get_question_message_link
 from nephthys.views.home.components.ticket_status_pie import get_ticket_status_pie_chart
-from prisma.enums import TicketStatus
+from prisma.models import Ticket
+
+
+def slack_timestamp(dt: datetime, format: str = "date_short") -> str:
+    fallback = dt.isoformat().replace("T", " ")
+    return f"<!date^{int(dt.timestamp())}^{{{format}}}|{fallback}>"
+
+
+async def tickets_awaiting_response_message(tickets: list[Ticket]) -> str:
+    if not tickets:
+        return ":rac_woah: _btw, i looked for old unanswered tickets, but found none. well done team!_"
+
+    count = len(tickets)
+    MAX_TICKETS = 5
+
+    msg_lines = [
+        ":rac_shy: *tickets you could take a look at*",
+        "i found some older tickets that might be waiting for a response from someone...",
+    ]
+    for i, ticket in enumerate(tickets[:MAX_TICKETS]):
+        label = (
+            ticket.title
+            or ticket.description[:100]
+            or f"Ticket #{ticket.id} (no description)"
+        )
+        last_reply = (
+            slack_timestamp(ticket.lastMsgAt, format="date_short")
+            if ticket.lastMsgAt
+            else "unknown"
+        )
+        created_date = slack_timestamp(ticket.createdAt, format="date_short")
+        tags = await env.db.tagsontickets.find_many(
+            where={"ticketId": ticket.id}, include={"tag": True}
+        )
+        tags_string = (
+            " (" + ", ".join(f"*{t.tag.name}*" for t in tags if t.tag) + ")"
+            if tags
+            else ""
+        )
+        msg_lines.append(
+            f"{i + 1}. <{get_question_message_link(ticket)}|{label}>{tags_string} (created {created_date}, last reply *{last_reply}*)"
+        )
+    if count > MAX_TICKETS:
+        msg_lines.append(f"_(plus {count - MAX_TICKETS} more)_")
+
+    return "\n".join(msg_lines)
 
 
 async def send_daily_stats():
@@ -29,124 +78,37 @@ async def send_daily_stats():
     )
 
     try:
-        tickets = await env.db.ticket.find_many() or []
-        users_with_closed_tickets = await env.db.user.find_many(
-            include={"closedTickets": True},
-            where={"helper": True, "closedTickets": {"some": {}}},
-        )
-
-        total_open = len([t for t in tickets if t.status == TicketStatus.OPEN])
-        total_in_progress = len(
-            [t for t in tickets if t.status == TicketStatus.IN_PROGRESS]
-        )
-        total_closed = len([t for t in tickets if t.status == TicketStatus.CLOSED])
-        total = len(tickets)
-
-        sorted_users_overall = sorted(
-            users_with_closed_tickets,
-            key=lambda user: len(user.closedTickets or []),
-            reverse=True,
-        )
-        overall_leaderboard_lines = [
-            f"{i + 1}. <@{user.slackId}> - {len(user.closedTickets or [])} closed tickets"
-            for i, user in enumerate(sorted_users_overall[:3])
-        ]
-        if not overall_leaderboard_lines:
-            overall_leaderboard_str = "_No one's on the board yet!_"
-        else:
-            overall_leaderboard_str = "\n".join(overall_leaderboard_lines)
-
-        prev_day_total = len(
-            [t for t in tickets if start_of_yesterday <= t.createdAt < end_of_yesterday]
-        )
-        prev_day_only_closed = len(
-            [
-                t
-                for t in tickets
-                if t.status == TicketStatus.CLOSED
-                and t.closedAt
-                and start_of_yesterday <= t.closedAt < end_of_yesterday
-                and start_of_yesterday <= t.createdAt < end_of_yesterday
-            ]
-        )
-        prev_day_open = len(
-            [
-                t
-                for t in tickets
-                if start_of_yesterday <= t.createdAt < end_of_yesterday
-                and t.status == TicketStatus.OPEN
-            ]
-        )
-        prev_day_in_progress = len(
-            [
-                t
-                for t in tickets
-                if t.assignedAt
-                and start_of_yesterday <= t.assignedAt < end_of_yesterday
-                and t.status == TicketStatus.IN_PROGRESS
-            ]
-        )
-        prev_day_closed = len(
-            [
-                t
-                for t in tickets
-                if t.status == TicketStatus.CLOSED
-                and t.closedAt
-                and start_of_yesterday <= t.closedAt < end_of_yesterday
-            ]
-        )
-
-        daily_leaderboard_data = []
-        for user in users_with_closed_tickets:
-            daily_closed_count = sum(
-                1
-                for ticket in (user.closedTickets or [])
-                if ticket.closedAt
-                and start_of_yesterday <= ticket.closedAt < end_of_yesterday
-            )
-            if daily_closed_count > 0:
-                daily_leaderboard_data.append(
-                    {"user": user, "count": daily_closed_count}
-                )
-
-        sorted_daily_users = sorted(
-            daily_leaderboard_data,
-            key=lambda data: data["count"],
-            reverse=True,
-        )
+        stats = await calculate_daily_stats(start_of_yesterday, end_of_yesterday)
 
         daily_leaderboard_lines = [
-            f"{i + 1}. <@{data['user'].slackId}> - {data['count']} closed tickets"
-            for i, data in enumerate(sorted_daily_users[:3])
+            f"{i + 1}. <@{entry['user'].slackId}> - {entry['count']} closed tickets"
+            for i, entry in enumerate(stats.helpers_leaderboard[:3])
         ]
         if not daily_leaderboard_lines:
             daily_leaderboard_str = "_No tickets were closed yesterday!_"
         else:
             daily_leaderboard_str = "\n".join(daily_leaderboard_lines)
 
-        pie_chart = await get_ticket_status_pie_chart(raw=True)
+        tickets_awaiting_response = await get_unanswered_tickets(
+            since=today_midnight_london - timedelta(days=5)
+        )
+
+        pie_chart = await get_ticket_status_pie_chart(
+            raw=True, tz=timezone(now_london.utcoffset() or timedelta(0))
+        )
 
         msg = f"""
 um, um, hi there! hope i'm not disturbing you, but i just wanted to let you know that i've got some stats for you! :rac_cute:
 
-well, uh, let's see here...
-
-*:rac_graph: total stats*
-tickets opened: *{total}*
-tickets open: *{total_open}*
-tickets in progress: *{total_in_progress}*
-tickets closed: *{total_closed}*
-
-*:rac_lfg: overall leaderboard*
-{overall_leaderboard_str}
-
 *:mc-clock: in the last 24 hours...* _(that's a day, right? right? that's a day, yeah ok)_
-:rac_woah: *{prev_day_total}* total tickets were opened and you managed to close *{prev_day_only_closed}* of them! congrats!! :D
-:rac_info: *{prev_day_in_progress}* tickets have been assigned to users, and *{prev_day_open}* are still open
-you managed to close a whopping *{prev_day_closed}* tickets in the last 24 hours, well done!
+:rac_woah: *{stats.new_tickets_total}* total tickets were opened and you managed to close *{stats.closed_today_from_today}* of them! congrats!! :D
+:rac_info: *{stats.assigned_today_in_progress}* tickets have been assigned to users, and *{stats.new_tickets_still_open}* are still open
+you managed to close a whopping *{stats.closed_today}* tickets in the last 24 hours, well done!
 
-*:rac_shy: today's leaderboard*
+*:rac_info: today's leaderboard*
 {daily_leaderboard_str}
+
+{await tickets_awaiting_response_message(tickets_awaiting_response)}
 """
 
         await env.slack_client.files_upload_v2(

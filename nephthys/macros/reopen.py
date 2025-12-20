@@ -6,6 +6,7 @@ from nephthys.macros.types import Macro
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.slack_user import get_user_profile
+from nephthys.utils.ticket_methods import get_question_message_link
 from nephthys.utils.ticket_methods import reply_to_ticket
 from prisma.enums import TicketStatus
 
@@ -44,7 +45,7 @@ class Reopen(Macro):
             return
         author_id = ticket.openedBy.slackId
         author = await get_user_profile(author_id)
-        thread_url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{ticket.msgTs.replace('.', '')}"
+        thread_url = get_question_message_link(ticket)
 
         backend_message = await env.slack_client.chat_postMessage(
             channel=env.slack_ticket_channel,

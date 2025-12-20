@@ -62,3 +62,13 @@ async def delete_and_clean_up_ticket(ticket: Ticket):
     await delete_message(env.slack_ticket_channel, ticket.ticketTs)
     # TODO deal with DMs to tag subscribers?
     await env.db.ticket.delete(where={"id": ticket.id})
+
+
+def get_question_message_link(ticket: Ticket) -> str:
+    """Get the Slack message link to the original help message for the provided ticket"""
+    return f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{ticket.msgTs.replace('.', '')}"
+
+
+def get_backend_message_link(ticket: Ticket) -> str:
+    """Get the Slack message link to the backend ticket message for the provided ticket"""
+    return f"https://hackclub.slack.com/archives/{env.slack_ticket_channel}/p{ticket.ticketTs.replace('.', '')}"
