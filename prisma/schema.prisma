@@ -66,12 +66,19 @@ model Ticket {
   assignedAt   DateTime?
 
   tagsOnTickets TagsOnTickets[]
-  questionTag   Tag?            @relation(fields: [questionTagId], references: [id])
+  questionTag   QuestionTag?    @relation("QuestionTagTickets", fields: [questionTagId], references: [id])
   questionTagId Int?
 
   createdAt DateTime @default(now())
 }
 
+model QuestionTag {
+  id      Int      @id @unique @default(autoincrement())
+  label   String   @unique
+  tickets Ticket[] @relation("QuestionTagTickets")
+}
+
+// These tags are team tags
 model Tag {
   id   Int    @id @unique @default(autoincrement())
   name String @unique
@@ -80,7 +87,6 @@ model Tag {
 
   userSubscriptions UserTagSubscription[]
   createdAt         DateTime              @default(now())
-  tickets           Ticket[]
 }
 
 model TagsOnTickets {
