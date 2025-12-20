@@ -78,11 +78,13 @@ async def handle_message_in_thread(event: Dict[str, Any], db_user: User | None):
         where={"msgTs": event["thread_ts"]},
         data={
             "lastMsgAt": datetime.now(),
-            "lastMsgBy": UserType.AUTHOR
-            if is_author
-            else UserType.HELPER
-            if is_helper
-            else UserType.OTHER,
+            "lastMsgBy": (
+                UserType.AUTHOR
+                if is_author
+                else UserType.HELPER
+                if is_helper
+                else UserType.OTHER
+            ),
         },
     )
 
