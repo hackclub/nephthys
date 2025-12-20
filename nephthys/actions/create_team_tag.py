@@ -4,7 +4,7 @@ from slack_sdk.web.async_client import AsyncWebClient
 from nephthys.events.app_home_opened import open_app_home
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
-from nephthys.views.modals.create_tag import get_create_tag_modal
+from nephthys.views.modals.create_team_tag import get_create_team_tag_modal
 
 
 async def create_team_tag_view_callback(
@@ -44,5 +44,5 @@ async def create_team_tag_btn_callback(
         )
         return
 
-    view = get_create_tag_modal()
+    view = get_create_team_tag_modal()
     await client.views_open(trigger_id=trigger_id, view=view, user_id=user_id)

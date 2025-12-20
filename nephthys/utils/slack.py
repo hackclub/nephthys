@@ -7,8 +7,10 @@ from slack_bolt.context.ack.async_ack import AsyncAck
 from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.actions.assign_tag import assign_tag_callback
-from nephthys.actions.create_tag import create_team_tag_btn_callback
-from nephthys.actions.create_tag import create_team_tag_view_callback
+from nephthys.actions.create_question_tag import create_question_tag_btn_callback
+from nephthys.actions.create_question_tag import create_question_tag_view_callback
+from nephthys.actions.create_team_tag import create_team_tag_btn_callback
+from nephthys.actions.create_team_tag import create_team_tag_view_callback
 from nephthys.actions.resolve import resolve
 from nephthys.actions.tag_subscribe import tag_subscribe_callback
 from nephthys.commands.dm_magic_link import dm_magic_link_cmd_callback
@@ -89,11 +91,25 @@ async def create_team_tag(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebC
     await create_team_tag_btn_callback(ack, body, client)
 
 
+@app.action("create-question-tag")
+async def create_question_tag(
+    ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
+):
+    await create_question_tag_btn_callback(ack, body, client)
+
+
 @app.view("create_team_tag")
 async def create_team_tag_view(
     ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
 ):
     await create_team_tag_view_callback(ack, body, client)
+
+
+@app.view("create_question_tag")
+async def create_question_tag_view(
+    ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
+):
+    await create_question_tag_view_callback(ack, body, client)
 
 
 @app.action("tag-subscribe")

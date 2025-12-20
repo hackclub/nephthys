@@ -118,7 +118,7 @@ async def send_ticket_message(
 
     return await client.chat_postMessage(
         channel=env.slack_ticket_channel,
-        text=f"New message from <@{user}>: {text}",
+        text=f"New question from <@{user}>: {text}",
         blocks=[
             {
                 "type": "input",
@@ -165,7 +165,7 @@ async def send_ticket_message(
                         "text": ":wrench: new question tag",
                         "emoji": True,
                     },
-                    "action_id": "new-question-tag",
+                    "action_id": "create-question-tag",
                 },
             },
             {

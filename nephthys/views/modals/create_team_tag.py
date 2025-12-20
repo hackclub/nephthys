@@ -1,4 +1,4 @@
-def get_create_tag_modal():
+def get_create_team_tag_modal():
     return {
         "type": "modal",
         "callback_id": "create_team_tag",
