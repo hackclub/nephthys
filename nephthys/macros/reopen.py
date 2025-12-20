@@ -2,6 +2,7 @@ import logging
 
 from slack_sdk.errors import SlackApiError
 
+from nephthys.events.message.send_backend_message import send_backend_message
 from nephthys.macros.types import Macro
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
@@ -45,40 +46,22 @@ class Reopen(Macro):
             return
         author_id = ticket.openedBy.slackId
         author = await get_user_profile(author_id)
-        thread_url = get_question_message_link(ticket)
+        other_tickets = await env.db.ticket.count(
+            where={
+                "openedById": ticket.openedById,
+                "id": {"not": ticket.id},
+            }
+        )
 
-        backend_message = await env.slack_client.chat_postMessage(
-            channel=env.slack_ticket_channel,
-            text=f"Reopened ticket from <@{author_id}>: {ticket.description}",
-            blocks=[
-                {
-                    "type": "input",
-                    "label": {
-                        "type": "plain_text",
-                        "text": "Tag ticket",
-                        "emoji": True,
-                    },
-                    "element": {
-                        "action_id": "team-tag-list",
-                        "type": "multi_external_select",
-                        "placeholder": {"type": "plain_text", "text": "Select tags"},
-                        "min_query_length": 0,
-                    },
-                },
-                {
-                    "type": "context",
-                    "elements": [
-                        {
-                            "type": "mrkdwn",
-                            "text": f"Reopened by <@{helper.slackId}>. Originally submitted by <@{author_id}>. <{thread_url}|View thread>.",
-                        }
-                    ],
-                },
-            ],
-            username=author.display_name(),
-            icon_url=author.profile_pic_512x() or "",
-            unfurl_links=True,
-            unfurl_media=True,
+        backend_message = await send_backend_message(
+            author_user_id=author_id,
+            description=ticket.description,
+            msg_ts=ticket.msgTs,
+            past_tickets=other_tickets,
+            client=env.slack_client,
+            reopened_by=helper,
+            display_name=author.display_name(),
+            profile_pic=author.profile_pic_512x(),
         )
 
         new_ticket_ts = backend_message["ts"]

@@ -8,6 +8,7 @@ from prometheus_client import Histogram
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
+from nephthys.events.message.send_backend_message import send_backend_message
 from nephthys.macros import run_macro
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
@@ -104,97 +105,6 @@ async def handle_message_in_thread(event: Dict[str, Any], db_user: User | None):
         )
 
 
-async def send_ticket_message(
-    event: Dict[str, Any],
-    client: AsyncWebClient,
-    past_tickets: int,
-    display_name: str | None,
-    profile_pic: str | None,
-):
-    """Send a "backend" message to the tickets channel with ticket details."""
-    user = event.get("user", "unknown")
-    text = event.get("text", "")
-    thread_url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{event['ts'].replace('.', '')}"
-
-    return await client.chat_postMessage(
-        channel=env.slack_ticket_channel,
-        text=f"New question from <@{user}>: {text}",
-        blocks=[
-            {
-                "type": "input",
-                "label": {"type": "plain_text", "text": "Question tag", "emoji": True},
-                "element": {
-                    "type": "static_select",
-                    "action_id": "question-tag-list",
-                    "placeholder": {
-                        "type": "plain_text",
-                        "text": "Which question tag fits best?",
-                    },
-                    "options": [
-                        {
-                            "text": {
-                                "type": "plain_text",
-                                "text": tag.label,
-                            },
-                            "value": f"{tag.id}",
-                        }
-                        for tag in await env.db.questiontag.find_many()
-                    ]
-                    or [
-                        {
-                            "text": {
-                                "type": "plain_text",
-                                "text": ":dotted_line_face: No question tags available",
-                                "emoji": True,
-                            },
-                            "value": "None",
-                        }
-                    ],
-                },
-            },
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": "If none of the existing tags fit :point_right:",
-                },
-                "accessory": {
-                    "type": "button",
-                    "text": {
-                        "type": "plain_text",
-                        "text": ":wrench: new question tag",
-                        "emoji": True,
-                    },
-                    "action_id": "create-question-tag",
-                },
-            },
-            {
-                "type": "input",
-                "label": {"type": "plain_text", "text": "Team tags", "emoji": True},
-                "element": {
-                    "action_id": "team-tag-list",
-                    "type": "multi_external_select",
-                    "placeholder": {"type": "plain_text", "text": "Select tags"},
-                    "min_query_length": 0,
-                },
-            },
-            {
-                "type": "context",
-                "elements": [
-                    {
-                        "type": "mrkdwn",
-                        "text": f"Submitted by <@{user}>. They have {past_tickets} past tickets. <{thread_url}|View thread>.",
-                    }
-                ],
-            },
-        ],
-        username=display_name,
-        icon_url=profile_pic,
-        unfurl_links=True,
-        unfurl_media=True,
-    )
-
-
 async def handle_new_question(
     event: Dict[str, Any], client: AsyncWebClient, db_user: User | None
 ):
@@ -231,10 +141,12 @@ async def handle_new_question(
             )
 
     async with perf_timer("Sending backend ticket message"):
-        ticket_message = await send_ticket_message(
-            event,
-            client,
+        ticket_message = await send_backend_message(
+            author_user_id=author_id,
+            description=text,
+            msg_ts=event["ts"],
             past_tickets=past_tickets,
+            client=client,
             display_name=author.display_name(),
             profile_pic=author.profile_pic_512x() or "",
         )

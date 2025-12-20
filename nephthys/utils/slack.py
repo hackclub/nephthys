@@ -18,7 +18,7 @@ from nephthys.events.app_home_opened import on_app_home_opened
 from nephthys.events.app_home_opened import open_app_home
 from nephthys.events.channel_join import channel_join
 from nephthys.events.channel_left import channel_left
-from nephthys.events.message import on_message
+from nephthys.events.message_creation import on_message
 from nephthys.events.message_deletion import on_message_deletion
 from nephthys.options.tags import get_team_tags
 from nephthys.utils.env import env
