@@ -32,12 +32,4 @@ Nice — this ticket was marked resolved by <@{{user_id}}>.
 If you need additional changes or the issue returns, send a message in <#{help_channel}> and we'll take another look.
 """
 
-    home_unknown_user_title: str = ":wrench: whoa — access limited"
-    home_unknown_user_text: str = """
-_Checking permissions_
-
-Hey {name}, it looks like you don't have access to this page right now.
-If that's a mistake, please ask <@{program_owner}> to grant access and include a short note about why you need it.
-"""
-
     not_allowed_channel: str = f"Oops — you don't have permission for that channel. If you think this is wrong, ask <@{program_owner}> to check your access."

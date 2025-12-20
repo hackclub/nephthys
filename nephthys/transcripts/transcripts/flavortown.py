@@ -49,14 +49,4 @@ It'll keep your case confidential and make it easier for the fraud team to keep 
 _I've marked this thread as resolved_
 """
 
-    home_unknown_user_title: str = ":upside-down_orpheus: woah, wait one sec!"
-    home_unknown_user_text: str = """
-_checks records_
-
-heyy {name}, it doesn't look like you're on the list of people allowed to access this page – sorry!
-
-If you think this isn't right, ask <@{program_owner}> and they'll check for you! I'm still new to this \
-fancy "role-based access" stuff :P
-"""
-
     not_allowed_channel: str = f"hey, it looks like you're not supposed to be in that channel, pls talk to <@{program_owner}> if that's wrong"

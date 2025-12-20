@@ -37,9 +37,13 @@ async def resolve(
         )
         return
     ticket = await env.db.ticket.find_first(
-        where={"msgTs": ts, "NOT": [{"status": TicketStatus.CLOSED}]}
+        where={"msgTs": ts, "NOT": [{"status": TicketStatus.CLOSED}]},
+        include={"assignedTo": True},
     )
     if not ticket:
+        logging.warning(
+            f"Failed to resolve ticket ts={ts} because it's already closed or doesn't exist."
+        )
         return
 
     if not resolving_user.helper and ticket.assignedTo:
@@ -100,3 +104,5 @@ async def resolve(
         await delete_message(
             channel_id=env.slack_ticket_channel, message_ts=tkt.ticketTs
         )
+
+    logging.info(f"Resolved ticket ts={ts} resolving_user={resolving_user.slackId}")

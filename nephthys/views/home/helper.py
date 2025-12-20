@@ -1,8 +1,9 @@
+import logging
+
 import pytz
 
 from nephthys.utils.env import env
 from nephthys.utils.performance import perf_timer
-from nephthys.views.home.components.buttons import get_buttons
 from nephthys.views.home.components.header import get_header
 from nephthys.views.home.components.leaderboards import get_leaderboard_view
 from nephthys.views.home.components.ticket_status_pie import get_ticket_status_pie_chart
@@ -10,14 +11,19 @@ from nephthys.views.home.error import get_error_view
 from prisma.models import User
 
 
-async def get_helper_view(user: User):
+async def get_helper_view(slack_user: str, db_user: User | None):
     async with perf_timer("Fetching user info"):
-        user_info = await env.slack_client.users_info(user=user.slackId)
-    if not user_info or not (slack_user := user_info.get("user")):
+        user_info_response = await env.slack_client.users_info(user=slack_user)
+    user_info = user_info_response.get("user")
+    if not user_info:
+        logging.error(f"Failed to fetch user={slack_user}: {user_info_response}")
         return get_error_view(
             ":rac_freaking: oops, i couldn't find your info! try again in a bit?"
         )
-    tz_string = slack_user.get("tz", "Europe/London")
+    tz_string = user_info.get("tz")
+    if not tz_string:
+        logging.warning(f"No timezone found user={slack_user}")
+        tz_string = "Europe/London"
     tz = pytz.timezone(tz_string)
 
     async with perf_timer("Rendering pie chart (total time)"):
@@ -26,15 +32,12 @@ async def get_helper_view(user: User):
     async with perf_timer("Generating leaderboard"):
         leaderboard = await get_leaderboard_view()
 
-    header = get_header()
-    btns = get_buttons(user, "dashboard")
+    header = get_header(db_user, "dashboard")
 
     return {
         "type": "home",
         "blocks": [
-            header,
-            btns,
-            {"type": "divider"},
+            *header,
             {
                 "type": "header",
                 "text": {
