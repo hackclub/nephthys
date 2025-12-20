@@ -5,6 +5,7 @@ from nephthys.events.app_home_opened import open_app_home
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from nephthys.views.modals.create_tag import get_create_tag_modal
+from prisma.enums import TagType
 
 
 async def create_tag_view_callback(ack: AsyncAck, body: dict, client: AsyncWebClient):
@@ -20,7 +21,7 @@ async def create_tag_view_callback(ack: AsyncAck, body: dict, client: AsyncWebCl
         return
 
     name = body["view"]["state"]["values"]["tag_name"]["tag_name"]["value"]
-    await env.db.tag.create(data={"name": name})
+    await env.db.tag.create(data={"name": name, "type": TagType.TEAM})
 
     await open_app_home("team-tags", client, user_id)
 
