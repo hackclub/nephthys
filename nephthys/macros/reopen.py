@@ -59,7 +59,7 @@ class Reopen(Macro):
                         "emoji": True,
                     },
                     "element": {
-                        "action_id": "tag-list",
+                        "action_id": "team-tag-list",
                         "type": "multi_external_select",
                         "placeholder": {"type": "plain_text", "text": "Select tags"},
                         "min_query_length": 0,

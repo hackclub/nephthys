@@ -122,9 +122,57 @@ async def send_ticket_message(
         blocks=[
             {
                 "type": "input",
-                "label": {"type": "plain_text", "text": "Tag ticket", "emoji": True},
+                "label": {"type": "plain_text", "text": "Question tag", "emoji": True},
                 "element": {
-                    "action_id": "tag-list",
+                    "type": "static_select",
+                    "action_id": "question-tag-list",
+                    "placeholder": {
+                        "type": "plain_text",
+                        "text": "Which question tag fits best?",
+                    },
+                    "options": [
+                        {
+                            "text": {
+                                "type": "plain_text",
+                                "text": tag.label,
+                            },
+                            "value": f"{tag.id}",
+                        }
+                        for tag in await env.db.questiontag.find_many()
+                    ]
+                    or [
+                        {
+                            "text": {
+                                "type": "plain_text",
+                                "text": ":dotted_line_face: No question tags available",
+                                "emoji": True,
+                            },
+                            "value": "None",
+                        }
+                    ],
+                },
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "If none of the existing tags fit :point_right:",
+                },
+                "accessory": {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":wrench: new question tag",
+                        "emoji": True,
+                    },
+                    "action_id": "new-question-tag",
+                },
+            },
+            {
+                "type": "input",
+                "label": {"type": "plain_text", "text": "Team tags", "emoji": True},
+                "element": {
+                    "action_id": "team-tag-list",
                     "type": "multi_external_select",
                     "placeholder": {"type": "plain_text", "text": "Select tags"},
                     "min_query_length": 0,
@@ -282,7 +330,16 @@ async def send_user_facing_message(
                         "style": "primary",
                         "action_id": "mark_resolved",
                         "value": f"{event['ts']}",
-                    }
+                    },
+                    # {
+                    #     "type": "button",
+                    #     "text": {
+                    #         "type": "plain_text",
+                    #         "text": "Manage tags (helpers only)",
+                    #     },
+                    #     "action_id": "manage_tags_from_thread",
+                    #     "value": f"{event['ts']}",
+                    # },
                 ],
             },
             {
