@@ -64,11 +64,11 @@ async def delete_and_clean_up_ticket(ticket: Ticket):
     await env.db.ticket.delete(where={"id": ticket.id})
 
 
-async def get_question_message_link(ticket: Ticket) -> str:
+def get_question_message_link(ticket: Ticket) -> str:
     """Get the Slack message link to the original help message for the provided ticket"""
     return f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{ticket.msgTs.replace('.', '')}"
 
 
-async def get_backend_message_link(ticket: Ticket) -> str:
+def get_backend_message_link(ticket: Ticket) -> str:
     """Get the Slack message link to the backend ticket message for the provided ticket"""
     return f"https://hackclub.slack.com/archives/{env.slack_ticket_channel}/p{ticket.ticketTs.replace('.', '')}"

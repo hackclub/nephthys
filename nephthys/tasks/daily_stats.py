@@ -6,8 +6,56 @@ from zoneinfo import ZoneInfo
 
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
+from nephthys.utils.old_tickets import get_unanswered_tickets
 from nephthys.utils.stats import calculate_daily_stats
+from nephthys.utils.ticket_methods import get_question_message_link
 from nephthys.views.home.components.ticket_status_pie import get_ticket_status_pie_chart
+from prisma.models import Ticket
+
+
+def slack_timestamp(dt: datetime, format: str = "date_short") -> str:
+    fallback = dt.isoformat().replace("T", " ")
+    return f"<!date^{int(dt.timestamp())}^{{{format}}}|{fallback}>"
+
+
+async def tickets_awaiting_response_message(tickets: list[Ticket]) -> str:
+    if not tickets:
+        return ":rac_woah: _btw, i looked for old unanswered tickets, but found none. well done team!_"
+
+    count = len(tickets)
+    MAX_TICKETS = 5
+
+    msg_lines = [
+        ":rac_shy: *tickets you could take a look at*",
+        "i found some older tickets that might be waiting for a response from someone...",
+    ]
+    for i, ticket in enumerate(tickets[:MAX_TICKETS]):
+        label = (
+            ticket.title
+            or ticket.description[:100]
+            or f"Ticket #{ticket.id} (no description)"
+        )
+        last_reply = (
+            slack_timestamp(ticket.lastMsgAt, format="date_short")
+            if ticket.lastMsgAt
+            else "unknown"
+        )
+        created_date = slack_timestamp(ticket.createdAt, format="date_short")
+        tags = await env.db.tagsontickets.find_many(
+            where={"ticketId": ticket.id}, include={"tag": True}
+        )
+        tags_string = (
+            " (" + ", ".join(f"*{t.tag.name}*" for t in tags if t.tag) + ")"
+            if tags
+            else ""
+        )
+        msg_lines.append(
+            f"{i + 1}. <{get_question_message_link(ticket)}|{label}>{tags_string} (created {created_date}, last reply {last_reply}*)"
+        )
+    if count > MAX_TICKETS:
+        msg_lines.append(f"_(plus {count - MAX_TICKETS} more)_")
+
+    return "\n".join(msg_lines)
 
 
 async def send_daily_stats():
@@ -41,6 +89,10 @@ async def send_daily_stats():
         else:
             daily_leaderboard_str = "\n".join(daily_leaderboard_lines)
 
+        tickets_awaiting_response = await get_unanswered_tickets(
+            since=today_midnight_london - timedelta(days=5)
+        )
+
         pie_chart = await get_ticket_status_pie_chart(
             raw=True, tz=timezone(now_london.utcoffset() or timedelta(0))
         )
@@ -53,8 +105,10 @@ um, um, hi there! hope i'm not disturbing you, but i just wanted to let you know
 :rac_info: *{stats.assigned_today_in_progress}* tickets have been assigned to users, and *{stats.new_tickets_still_open}* are still open
 you managed to close a whopping *{stats.new_tickets_now_closed}* tickets in the last 24 hours, well done!
 
-*:rac_shy: today's leaderboard*
+*:rac_info: today's leaderboard*
 {daily_leaderboard_str}
+
+{await tickets_awaiting_response_message(tickets_awaiting_response)}
 """
 
         await env.slack_client.files_upload_v2(
