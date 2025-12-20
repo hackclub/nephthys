@@ -71,6 +71,8 @@ model Ticket {
   assignedAt   DateTime?
 
   tagsOnTickets TagsOnTickets[]
+  questionTag   Tag?            @relation(fields: [questionTagId], references: [id])
+  questionTagId Int?
 
   createdAt DateTime @default(now())
 }
@@ -84,6 +86,7 @@ model Tag {
 
   userSubscriptions UserTagSubscription[]
   createdAt         DateTime              @default(now())
+  tickets           Ticket[]
 }
 
 model TagsOnTickets {
