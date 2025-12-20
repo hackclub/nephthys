@@ -106,7 +106,7 @@ async def get_team_tags_view(user: User | None) -> dict:
                             "text": ":rac_cute: add a tag?",
                             "emoji": True,
                         },
-                        "action_id": "create-tag",
+                        "action_id": "create-team-tag",
                         "style": "primary",
                     }
                 ],

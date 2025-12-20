@@ -7,7 +7,9 @@ from nephthys.utils.logging import send_heartbeat
 from nephthys.views.modals.create_tag import get_create_tag_modal
 
 
-async def create_tag_view_callback(ack: AsyncAck, body: dict, client: AsyncWebClient):
+async def create_team_tag_view_callback(
+    ack: AsyncAck, body: dict, client: AsyncWebClient
+):
     """
     Callback for the create tag view submission
     """
@@ -25,7 +27,9 @@ async def create_tag_view_callback(ack: AsyncAck, body: dict, client: AsyncWebCl
     await open_app_home("team-tags", client, user_id)
 
 
-async def create_tag_btn_callback(ack: AsyncAck, body: dict, client: AsyncWebClient):
+async def create_team_tag_btn_callback(
+    ack: AsyncAck, body: dict, client: AsyncWebClient
+):
     """
     Open modal to create a tag
     """
