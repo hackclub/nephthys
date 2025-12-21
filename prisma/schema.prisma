@@ -73,9 +73,10 @@ model Ticket {
 }
 
 model QuestionTag {
-  id      Int      @id @unique @default(autoincrement())
-  label   String   @unique
-  tickets Ticket[] @relation("QuestionTagTickets")
+  id        Int      @id @unique @default(autoincrement())
+  label     String   @unique
+  tickets   Ticket[] @relation("QuestionTagTickets")
+  createdAt DateTime @default(now())
 }
 
 // These tags are team tags
