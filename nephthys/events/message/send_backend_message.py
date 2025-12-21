@@ -34,23 +34,13 @@ async def backend_message_blocks(
         "type": "input",
         "label": {"type": "plain_text", "text": "Question tag", "emoji": True},
         "element": {
-            "type": "static_select",
+            "type": "external_select",
             "action_id": "question-tag-list",
             "placeholder": {
                 "type": "plain_text",
                 "text": "Which question tag fits?",
             },
-            "options": options
-            or [
-                {
-                    "text": {
-                        "type": "plain_text",
-                        "text": ":dotted_line_face: No question tags available",
-                        "emoji": True,
-                    },
-                    "value": "None",
-                }
-            ],
+            "min_query_length": 0,
         },
     }
     if initial_option:
