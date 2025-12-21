@@ -12,7 +12,7 @@ They can be added to tickets in the private tickets channel.
 
 ### Team tags
 
-Team tags let you tag tickets that are the respopnsibility of a specific group of people (or perhaps just one person). E.g. you could have tags for Fufillment, Hack Club Auth, Onboarding flow, etc.
+Team tags let you tag tickets that are the responsibility of a specific group of people (or perhaps just one person). E.g. you could have tags for Fufillment, Hack Club Auth, Onboarding flow, etc.
 
 You can add team tags to tickets in the private tickets channel or with the macro `?tag <tag_name>`. This will DM the people who are specialised in responding to those issues and have it show up in their assigned tickets.
 You can assign yourself to get notified for specific tags on the app home
