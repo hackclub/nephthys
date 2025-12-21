@@ -55,6 +55,7 @@ async def handle_mark_resolved_button(
     await resolve(value, resolver, client)
 
 
+@app.options("tag-list")  # compat with old backend msgs
 @app.options("team-tag-list")
 async def handle_team_tag_list_options(ack: AsyncAck, payload: dict):
     tags = await get_team_tags(payload)
@@ -125,6 +126,7 @@ async def tag_subscribe(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebCli
     await tag_subscribe_callback(ack, body, client)
 
 
+@app.action("tag-list")  # compat with old backend msgs
 @app.action("team-tag-list")
 async def assign_team_tag(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient):
     await assign_team_tag_callback(ack, body, client)
