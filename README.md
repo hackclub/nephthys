@@ -4,6 +4,12 @@ Nephthys is the bot powering #summer-of-making-help and #identity-help in the Ha
 
 ## Features
 
+### Question tags
+
+Quite often in help channels, the same question gets asked again and again. Helpers can associate tickets with a "question tag", which are pre-defined questions/issue such as "What's the payout range?", "How to top up grant?", or "404 on /shop". We can then keep track of how these questions trend over time, to provide a feedback loop for people building the event/platform/YSWS.
+
+They can be added to tickets in the private tickets channel.
+
 ### Team tags
 
 Team tags let you tag tickets that are the respopnsibility of a specific group of people (or perhaps just one person). E.g. you could have tags for Fufillment, Hack Club Auth, Onboarding flow, etc.
