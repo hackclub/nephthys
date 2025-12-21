@@ -100,6 +100,18 @@ async def backend_message_blocks(
     ]
 
 
+def backend_message_fallback_text(
+    author_user_id: str,
+    description: str,
+    reopened_by: User | None = None,
+) -> str:
+    return (
+        f"Reopened ticket from <@{author_user_id}>: {description}"
+        if reopened_by
+        else f"New question from <@{author_user_id}>: {description}"
+    )
+
+
 async def send_backend_message(
     author_user_id: str,
     msg_ts: str,
@@ -115,11 +127,7 @@ async def send_backend_message(
 
     return await client.chat_postMessage(
         channel=env.slack_ticket_channel,
-        text=(
-            f"Reopened ticket from <@{author_user_id}>: {description}"
-            if reopened_by
-            else f"New question from <@{author_user_id}>: {description}"
-        ),
+        text=backend_message_fallback_text(author_user_id, description, reopened_by),
         blocks=await backend_message_blocks(
             author_user_id, msg_ts, past_tickets, current_question_tag_id, reopened_by
         ),

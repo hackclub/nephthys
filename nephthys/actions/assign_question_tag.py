@@ -5,6 +5,8 @@ from typing import Dict
 from slack_bolt.async_app import AsyncAck
 from slack_sdk.web.async_client import AsyncWebClient
 
+from nephthys.events.message.send_backend_message import backend_message_blocks
+from nephthys.events.message.send_backend_message import backend_message_fallback_text
 from nephthys.utils.env import env
 
 
@@ -42,12 +44,41 @@ async def assign_question_tag_callback(
     ticket = await env.db.ticket.update(
         where={"ticketTs": ts},
         data={"questionTag": {"connect": {"id": tag_id}}},
+        include={"openedBy": True},
     )
     if not ticket:
         logging.error(
             f"Failed to find corresponding ticket to update question tag ticket_ts={ts}"
         )
         return
+
+    other_tickets = await env.db.ticket.count(
+        where={
+            "openedById": ticket.openedById,
+            "id": {"not": ticket.id},
+        }
+    )
+    if not ticket.openedBy:
+        logging.error(f"Cannot find who opened ticket ticket_id={ticket.id}")
+        return
+    # Update the backend message so it has the new tag selected
+    await client.chat_update(
+        channel=channel_id,
+        ts=ts,
+        text=backend_message_fallback_text(
+            ticket.openedBy.slackId,
+            ticket.description,
+            None,  # FIXME
+        ),
+        blocks=await backend_message_blocks(
+            author_user_id=ticket.openedBy.slackId,
+            msg_ts=ticket.msgTs,
+            past_tickets=other_tickets,
+            current_question_tag_id=tag_id,
+            reopened_by=None,  # FIXME
+        ),
+    )
+
     logging.info(
         f"Assigned question tag to ticket ticket_id={ticket.id} tag_id={tag_id}"
     )
