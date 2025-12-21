@@ -12,24 +12,24 @@ async def backend_message_blocks(
     reopened_by: User | None = None,
 ) -> list[dict]:
     thread_url = f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{msg_ts.replace('.', '')}"
-    options = [
-        {
-            "text": {
-                "type": "plain_text",
-                "text": tag.label,
-            },
-            "value": f"{tag.id}",
-        }
-        for tag in await env.db.questiontag.find_many()
-    ]
-    initial_option = next(
-        (
+    if current_question_tag_id is not None:
+        options = [
+            {
+                "text": {
+                    "type": "plain_text",
+                    "text": tag.label,
+                },
+                "value": f"{tag.id}",
+            }
+            for tag in await env.db.questiontag.find_many()
+        ]
+        initial_option = [
             option
             for option in options
             if option["value"] == f"{current_question_tag_id}"
-        ),
-        None,
-    )
+        ][0]
+    else:
+        initial_option = None
     question_tags_dropdown = {
         "type": "input",
         "label": {"type": "plain_text", "text": "Question tag", "emoji": True},
