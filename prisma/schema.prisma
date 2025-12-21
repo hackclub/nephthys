@@ -30,6 +30,7 @@ model User {
   openedTickets   Ticket[] @relation("OpenedTickets")
   closedTickets   Ticket[] @relation("ClosedTickets")
   assignedTickets Ticket[] @relation("AssignedTickets")
+  reopenedTickets Ticket[] @relation("ReopenedTickets")
 
   tagSubscriptions UserTagSubscription[]
   helper           Boolean               @default(false)
@@ -56,6 +57,9 @@ model Ticket {
 
   openedBy   User @relation("OpenedTickets", fields: [openedById], references: [id])
   openedById Int
+
+  reopenedBy   User? @relation("ReopenedTickets", fields: [reopenedById], references: [id])
+  reopenedById Int?
 
   closedBy   User?     @relation("ClosedTickets", fields: [closedById], references: [id])
   closedById Int?

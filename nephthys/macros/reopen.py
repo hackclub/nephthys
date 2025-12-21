@@ -7,7 +7,6 @@ from nephthys.macros.types import Macro
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.slack_user import get_user_profile
-from nephthys.utils.ticket_methods import get_question_message_link
 from nephthys.utils.ticket_methods import reply_to_ticket
 from prisma.enums import TicketStatus
 
@@ -29,6 +28,7 @@ class Reopen(Macro):
             data={
                 "status": TicketStatus.OPEN,
                 "closedBy": {"disconnect": True},
+                "reopenedBy": {"connect": {"id": helper.id}},
                 "closedAt": None,
             },
         )

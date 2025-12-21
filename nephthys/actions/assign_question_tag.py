@@ -48,7 +48,7 @@ async def assign_question_tag_callback(
                 else {"disconnect": True}
             )
         },
-        include={"openedBy": True},
+        include={"openedBy": True, "reopenedBy": True},
     )
     if not ticket:
         logging.error(
@@ -70,16 +70,16 @@ async def assign_question_tag_callback(
         channel=channel_id,
         ts=ts,
         text=backend_message_fallback_text(
-            ticket.openedBy.slackId,
-            ticket.description,
-            None,  # FIXME
+            author_user_id=ticket.openedBy.slackId,
+            description=ticket.description,
+            reopened_by=ticket.reopenedBy,
         ),
         blocks=await backend_message_blocks(
             author_user_id=ticket.openedBy.slackId,
             msg_ts=ticket.msgTs,
             past_tickets=other_tickets,
             current_question_tag_id=tag_id,
-            reopened_by=None,  # FIXME
+            reopened_by=ticket.reopenedBy,
         ),
     )
 
