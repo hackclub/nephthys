@@ -5,8 +5,8 @@ from nephthys.views.home.components.header import get_header
 from prisma.models import User
 
 
-async def get_manage_tags_view(user: User | None) -> dict:
-    header = get_header(user, "tags")
+async def get_team_tags_view(user: User | None) -> dict:
+    header = get_header(user, "team-tags")
     is_admin = bool(user and user.admin)
     is_helper = bool(user and user.helper)
     tags = await env.db.tag.find_many(include={"userSubscriptions": True})
@@ -44,19 +44,21 @@ async def get_manage_tags_view(user: User | None) -> dict:
                     "type": "mrkdwn",
                     "text": f"*{tag.name}* - {''.join(stringified_subs) if stringified_subs else ':rac_nooo: no subscriptions'}",
                 },
-                "accessory": {
-                    "type": "button",
-                    "text": {
-                        "type": "plain_text",
-                        "text": f":rac_cute: {'subscribe' if user.id not in subs else 'unsubscribe'}",
-                        "emoji": True,
-                    },
-                    "action_id": "tag-subscribe",
-                    "value": f"{tag.id};{tag.name}",
-                    "style": "primary" if user.id not in subs else "danger",
-                }
-                if user and is_helper
-                else {},
+                "accessory": (
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": f":rac_cute: {'subscribe' if user.id not in subs else 'unsubscribe'}",
+                            "emoji": True,
+                        },
+                        "action_id": "tag-subscribe",
+                        "value": f"{tag.id};{tag.name}",
+                        "style": "primary" if user.id not in subs else "danger",
+                    }
+                    if user and is_helper
+                    else {}
+                ),
             }
         )
 
@@ -68,7 +70,7 @@ async def get_manage_tags_view(user: User | None) -> dict:
                 "type": "header",
                 "text": {
                     "type": "plain_text",
-                    "text": ":rac_info: Manage Tags",
+                    "text": ":rac_info: Manage Team Tags",
                     "emoji": True,
                 },
             },
@@ -76,11 +78,15 @@ async def get_manage_tags_view(user: User | None) -> dict:
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": ":rac_thumbs: here you can manage tags and your subscriptions"
-                    if is_admin
-                    else ":rac_thumbs: here you can manage your tag subscriptions"
-                    if is_helper
-                    else ":rac_thumbs: note: you're not a helper, so you can only view tags",
+                    "text": (
+                        ":rac_thumbs: here you can manage tags and your subscriptions"
+                        if is_admin
+                        else (
+                            ":rac_thumbs: here you can manage your tag subscriptions"
+                            if is_helper
+                            else ":rac_thumbs: note: you're not a helper, so you can only view tags"
+                        )
+                    ),
                 },
             },
             {"type": "section", "text": {"type": "plain_text", "text": " "}},
@@ -100,7 +106,7 @@ async def get_manage_tags_view(user: User | None) -> dict:
                             "text": ":rac_cute: add a tag?",
                             "emoji": True,
                         },
-                        "action_id": "create-tag",
+                        "action_id": "create-team-tag",
                         "style": "primary",
                     }
                 ],

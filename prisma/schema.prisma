@@ -30,6 +30,7 @@ model User {
   openedTickets   Ticket[] @relation("OpenedTickets")
   closedTickets   Ticket[] @relation("ClosedTickets")
   assignedTickets Ticket[] @relation("AssignedTickets")
+  reopenedTickets Ticket[] @relation("ReopenedTickets")
 
   tagSubscriptions UserTagSubscription[]
   helper           Boolean               @default(false)
@@ -57,6 +58,9 @@ model Ticket {
   openedBy   User @relation("OpenedTickets", fields: [openedById], references: [id])
   openedById Int
 
+  reopenedBy   User? @relation("ReopenedTickets", fields: [reopenedById], references: [id])
+  reopenedById Int?
+
   closedBy   User?     @relation("ClosedTickets", fields: [closedById], references: [id])
   closedById Int?
   closedAt   DateTime?
@@ -66,10 +70,20 @@ model Ticket {
   assignedAt   DateTime?
 
   tagsOnTickets TagsOnTickets[]
+  questionTag   QuestionTag?    @relation("QuestionTagTickets", fields: [questionTagId], references: [id])
+  questionTagId Int?
 
   createdAt DateTime @default(now())
 }
 
+model QuestionTag {
+  id        Int      @id @unique @default(autoincrement())
+  label     String   @unique
+  tickets   Ticket[] @relation("QuestionTagTickets")
+  createdAt DateTime @default(now())
+}
+
+// These tags are team tags
 model Tag {
   id   Int    @id @unique @default(autoincrement())
   name String @unique

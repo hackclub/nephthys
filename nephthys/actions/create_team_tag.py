@@ -4,10 +4,12 @@ from slack_sdk.web.async_client import AsyncWebClient
 from nephthys.events.app_home_opened import open_app_home
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
-from nephthys.views.modals.create_tag import get_create_tag_modal
+from nephthys.views.modals.create_team_tag import get_create_team_tag_modal
 
 
-async def create_tag_view_callback(ack: AsyncAck, body: dict, client: AsyncWebClient):
+async def create_team_tag_view_callback(
+    ack: AsyncAck, body: dict, client: AsyncWebClient
+):
     """
     Callback for the create tag view submission
     """
@@ -22,10 +24,12 @@ async def create_tag_view_callback(ack: AsyncAck, body: dict, client: AsyncWebCl
     name = body["view"]["state"]["values"]["tag_name"]["tag_name"]["value"]
     await env.db.tag.create(data={"name": name})
 
-    await open_app_home("tags", client, user_id)
+    await open_app_home("team-tags", client, user_id)
 
 
-async def create_tag_btn_callback(ack: AsyncAck, body: dict, client: AsyncWebClient):
+async def create_team_tag_btn_callback(
+    ack: AsyncAck, body: dict, client: AsyncWebClient
+):
     """
     Open modal to create a tag
     """
@@ -40,5 +44,5 @@ async def create_tag_btn_callback(ack: AsyncAck, body: dict, client: AsyncWebCli
         )
         return
 
-    view = get_create_tag_modal()
+    view = get_create_team_tag_modal()
     await client.views_open(trigger_id=trigger_id, view=view, user_id=user_id)

@@ -6,7 +6,7 @@ from thefuzz import process
 from nephthys.utils.env import env
 
 
-async def get_tags(payload: dict) -> list[dict[str, dict[str, str] | str]]:
+async def get_team_tags(payload: dict) -> list[dict[str, dict[str, str] | str]]:
     tags = await env.db.tag.find_many()
     if not tags:
         return []
@@ -25,5 +25,5 @@ async def get_tags(payload: dict) -> list[dict[str, dict[str, str] | str]]:
         }
         for tag in tags
     ]
-    logging.info(res)
+    logging.debug(res)
     return res

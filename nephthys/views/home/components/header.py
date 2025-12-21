@@ -26,9 +26,9 @@ def header_buttons(current_view: str):
     buttons.append(
         {
             "type": "button",
-            "text": {"type": "plain_text", "text": "Tags", "emoji": True},
-            "action_id": "tags",
-            **({"style": "primary"} if current_view != "tags" else {}),
+            "text": {"type": "plain_text", "text": "Team Tags", "emoji": True},
+            "action_id": "team-tags",
+            **({"style": "primary"} if current_view != "team-tags" else {}),
         }
     )
 

@@ -11,7 +11,7 @@ from nephthys.utils.ticket_methods import get_backend_message_link
 from nephthys.utils.ticket_methods import get_question_message_link
 
 
-async def assign_tag_callback(
+async def assign_team_tag_callback(
     ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
 ):
     await ack()

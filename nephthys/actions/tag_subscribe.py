@@ -41,4 +41,4 @@ async def tag_subscribe_callback(
             }
         )
 
-    await open_app_home("tags", client, slack_id)
+    await open_app_home("team-tags", client, slack_id)

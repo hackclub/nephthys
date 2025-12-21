@@ -1,7 +1,7 @@
-def get_create_tag_modal():
+def get_create_team_tag_modal():
     return {
         "type": "modal",
-        "callback_id": "create_tag",
+        "callback_id": "create_team_tag",
         "title": {
             "type": "plain_text",
             "text": ":rac_info: create a tag!",
