@@ -16,13 +16,11 @@ async def assign_question_tag_callback(
     await ack()
     user_id = body["user"]["id"]
     selected = body["actions"][0]["selected_option"]
-    if not selected:
-        return
-    selected_value = selected["value"]
-    if selected_value.lower() == "none":
+    selected_value = selected["value"] if selected else None
+    if selected_value and selected_value.lower() == "none":
         return
     try:
-        tag_id = int(selected_value)
+        tag_id = int(selected_value) if selected_value else None
     except ValueError as e:
         raise ValueError(f"Invalid tag ID: {selected_value}") from e
 
@@ -43,7 +41,13 @@ async def assign_question_tag_callback(
 
     ticket = await env.db.ticket.update(
         where={"ticketTs": ts},
-        data={"questionTag": {"connect": {"id": tag_id}}},
+        data={
+            "questionTag": (
+                {"connect": {"id": tag_id}}
+                if tag_id is not None
+                else {"disconnect": True}
+            )
+        },
         include={"openedBy": True},
     )
     if not ticket:
@@ -80,5 +84,5 @@ async def assign_question_tag_callback(
     )
 
     logging.info(
-        f"Assigned question tag to ticket ticket_id={ticket.id} tag_id={tag_id}"
+        f"Updated question tag on ticket ticket_id={ticket.id} tag_id={tag_id}"
     )
