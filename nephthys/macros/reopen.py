@@ -59,6 +59,7 @@ class Reopen(Macro):
             msg_ts=ticket.msgTs,
             past_tickets=other_tickets,
             client=env.slack_client,
+            current_question_tag_id=ticket.questionTagId,
             reopened_by=helper,
             display_name=author.display_name(),
             profile_pic=author.profile_pic_512x(),
