@@ -25,5 +25,5 @@ async def get_team_tags(payload: dict) -> list[dict[str, dict[str, str] | str]]:
         }
         for tag in tags
     ]
-    logging.info(res)
+    logging.debug(res)
     return res

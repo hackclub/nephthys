@@ -26,5 +26,5 @@ async def get_question_tags(payload: dict) -> list[dict[str, dict[str, str] | st
         }
         for tag in tags
     ]
-    logging.info(res)
+    logging.debug(res)
     return res
