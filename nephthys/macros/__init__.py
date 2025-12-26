@@ -4,7 +4,7 @@ from nephthys.macros.faq import FAQ
 from nephthys.macros.fraud import Fraud
 from nephthys.macros.hello_world import HelloWorld
 from nephthys.macros.identity import Identity
-from nephthys.macros.shipwrights import Shipwright
+from nephthys.macros.shipwrights import Shipwrights
 from nephthys.macros.reopen import Reopen
 from nephthys.macros.resolve import Resolve
 from nephthys.macros.shipcertqueue import ShipCertQueue
@@ -28,7 +28,7 @@ macro_list: list[type[Macro]] = [
     Thread,
     Reopen,
     DailyStats,
-    Shipwright,
+    Shipwrights,
 ]
 
 macros = [macro() for macro in macro_list]

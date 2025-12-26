@@ -5,7 +5,7 @@ from nephthys.utils.slack_user import get_user_profile
 from nephthys.utils.ticket_methods import reply_to_ticket
 
 
-class Shipwright(Macro):
+class Shipwrights(Macro):
     name = "shipwrights"
 
     async def run(self, ticket, helper, **kwargs):
