@@ -87,7 +87,7 @@ class Transcript(BaseModel):
     )
 
     shipwrights_macro: str = Field(
-        default="Hey, (user)! \nPlease ask questions about project shipping / certifications in <#C099P9FQQ91>.  \n\nShipwrights Team will help with your question!",
+        default="Hey, (user)! \nPlease ask questions about project shipping / certifications in <#C099P9FQQ91>. \n\nShipwrights Team will help with your question!",
         description="Message to be sent when the shipwrights macro is used",
     )
 
