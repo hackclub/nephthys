@@ -17,7 +17,9 @@ class Shipwright(Macro):
             return
         user = await get_user_profile(sender.slackId)
         await reply_to_ticket(
-            text=env.transcript.shipwrights_macro.replace("(user)", user.display_name()),
+            text=env.transcript.shipwrights_macro.replace(
+                "(user)", user.display_name()
+            ),
             ticket=ticket,
             client=env.slack_client,
         )

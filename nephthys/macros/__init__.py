@@ -4,13 +4,13 @@ from nephthys.macros.faq import FAQ
 from nephthys.macros.fraud import Fraud
 from nephthys.macros.hello_world import HelloWorld
 from nephthys.macros.identity import Identity
+from nephthys.macros.shipwrights import Shipwright
 from nephthys.macros.reopen import Reopen
 from nephthys.macros.resolve import Resolve
 from nephthys.macros.shipcertqueue import ShipCertQueue
 from nephthys.macros.thread import Thread
 from nephthys.macros.trigger_daily_stats import DailyStats
 from nephthys.macros.types import Macro
-from nephthys.macros.shipwrights import Shipwright
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from prisma.enums import TicketStatus
