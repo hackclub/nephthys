@@ -86,6 +86,11 @@ class Transcript(BaseModel):
         description="Message to be sent when the fraud macro is used",
     )
 
+    shipwrights_macro: str = Field(
+        default="Hey, (user)!\nPlease ask questions about project shipping or certifications in <#C099P9FQQ91>.\n\nThe Shipwrights Team will help with your question!",
+        description="Message to be sent when the shipwrights macro is used",
+    )
+
     identity_macro: str = Field(
         default="", description="Message to be sent when the identity macro is used"
     )
