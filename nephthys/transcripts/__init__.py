@@ -15,4 +15,5 @@ transcripts: List[Type[Transcript]] = [
     Flavortown,
     Midnight,
     Construct,
+    Jumpstart,
 ]
