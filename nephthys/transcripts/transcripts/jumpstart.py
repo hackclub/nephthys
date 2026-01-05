@@ -15,7 +15,7 @@ class Jumpstart(Transcript):
     identity_help_channel: str = "C092833JXKK"  # #identity-help
 
     first_ticket_create: str = f"""
-:rac_info: Hey (user)! I'm **Godorpheus**, your friendly game-dev sidekick.  
+:rac_info: Hey (user)! I'm Godorpheus, your friendly game-dev sidekick.  
 While a human helper gets to your question, you can:  
 • Check out <{faq_link}|*the FAQ*> — it might already have the answer you need  
 • When your question’s solved, hit the green button below so I can level up my helpfulness!
