@@ -13,26 +13,28 @@ class Jumpstart(Transcript):
 
     faq_link: str = "https://hackclub.enterprise.slack.com/docs/T0266FRGM/F0A6AMXU744"
     identity_help_channel: str = "C092833JXKK"  # #identity-help
-
+    README_Link: str = (
+        "https://hackclub.enterprise.slack.com/docs/T0266FRGM/F0A6MFGFW56"
+    )
     first_ticket_create: str = f"""
-:rac_info: Hey (user)! I'm **Godorpheus**, your friendly game-dev sidekick.  
+:godot: Hey (user)! I'm Godorpheus, your friendly game-dev sidekick.  
 While a human helper gets to your question, you can:  
-• Check out <{faq_link}|*the FAQ*> — it might already have the answer you need  
-• When your question’s solved, hit the green button below so I can level up my helpfulness!
+• Check out <{faq_link}|*the FAQ*> and <{README_Link}|*the README*>, it might already have the answer you need  
+• When your question is solved, hit the green button below so I can level up my helpfulness!
 """
     ticket_create: str = f"""
 :rac_info: Hey (user)! Godorpheus here — just hanging out in code-space while we wait for a human helper.  
 • Take a peek at <{faq_link}|*the FAQ*> — it might already contain the answer you’re looking for  
-• Once your question is answered, tap the green button below and I’ll happily log another XP point
+•Once your question is resolved, tap the green button below to complete this quest 🏁
 """
     ticket_resolve: str = f"""
-✅ This post has been marked resolved by <@{{user_id}}>! Godorpheus is heading back to my digital corner.  
+✅ This post has been marked as resolved by <@{{user_id}}>! I’m heading back to my digital corner.  
 Need more help? Post in <#{help_channel}> and I’ll respawn instantly!
 """
 
     faq_macro: str = f"""
-Hey (user)! This question’s already answered in the FAQ: <{faq_link}|*Jumpstart FAQ*> 🎮  
-
+Hey (user)! This question’s already answered in the FAQ or READNE: <{faq_link}|*Jumpstart FAQ*> 🎮  
+<{README_Link}|*Jumpstart README*> 👾
 _I’ve marked this thread as resolved. Start a new thread if you need more help!_
 """
     identity_macro: str = f"""
