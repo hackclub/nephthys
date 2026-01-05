@@ -13,7 +13,9 @@ class Jumpstart(Transcript):
 
     faq_link: str = "https://hackclub.enterprise.slack.com/docs/T0266FRGM/F0A6AMXU744"
     identity_help_channel: str = "C092833JXKK"  # #identity-help
-    README_Link: str = "https://hackclub.enterprise.slack.com/docs/T0266FRGM/F0A6MFGFW56"
+    README_Link: str = (
+        "https://hackclub.enterprise.slack.com/docs/T0266FRGM/F0A6MFGFW56"
+    )
     first_ticket_create: str = f"""
 :godot: Hey (user)! I'm Godorpheus, your friendly game-dev sidekick.  
 While a human helper gets to your question, you can:  
