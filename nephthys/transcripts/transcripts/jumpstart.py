@@ -18,35 +18,35 @@ class Jumpstart(Transcript):
     )
 
     first_ticket_create: str = f"""
-:godot: Hey (user)! I'm Godorpheus, your friendly game-dev sidekick.  
-While a human helper gets to your question, you can:  
-• Check out <{faq_link}|*the FAQ*> and <{readme_link}|*the README*>, it might already have the answer you need  
+:godot: Hey (user)! I'm Godorpheus, your friendly game-dev sidekick.
+While a human helper gets to your question, you can:
+• Check out <{faq_link}|*the FAQ*> and <{readme_link}|*the README*>, it might already have the answer you need
 • When your question is solved, hit the green button below so I can level up my helpfulness!
 """
     ticket_create: str = f"""
-:rac_info: Hey (user)! Godorpheus here — just hanging out in code-space while we wait for a human helper.  
-• Take a peek at <{faq_link}|*the FAQ*> — it might already contain the answer you’re looking for  
+:rac_info: Hey (user)! Godorpheus here — just hanging out in code-space while we wait for a human helper.
+• Take a peek at <{faq_link}|*the FAQ*> — it might already contain the answer you’re looking for
 • Once your question is resolved, tap the green button below to complete this quest 🏁
 """
     ticket_resolve: str = f"""
-✅ This post has been marked as resolved by <@{{user_id}}>! I’m heading back to my digital corner.  
+✅ This post has been marked as resolved by <@{{user_id}}>! I’m heading back to my digital corner.
 Need more help? Post in <#{help_channel}> and I’ll respawn instantly!
 """
 
     faq_macro: str = f"""
-Hey (user)! This question’s already answered in the FAQ or README: <{faq_link}|*Jumpstart FAQ*> 🎮  
+Hey (user)! This question’s already answered in the FAQ or README: <{faq_link}|*Jumpstart FAQ*> 🎮
 <{readme_link}|*Jumpstart README*> 👾
 _I’ve marked this thread as resolved. Start a new thread if you need more help!_
 """
     identity_macro: str = f"""
-Hey (user)! For identity verification questions, please head over to <#{identity_help_channel}> :rac_cute:  
+Hey (user)! For identity verification questions, please head over to <#{identity_help_channel}> :rac_cute:
 
-It keeps things tidy and makes it easier for the verification team to help.  
+It keeps things tidy and makes it easier for the verification team to help.
 
 _I’ve marked this thread as resolved!_
 """
     fraud_macro: str = """
-Hey (user)! Fraud-related questions go to <@U08TU92QGHM> — they handle it all securely 🛡️  
+Hey (user)! Fraud-related questions go to <@U08TU92QGHM> — they handle it all securely 🛡️
 
 _I’ve marked this thread as resolved to keep things organized!_
 """
