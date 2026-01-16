@@ -96,8 +96,8 @@ class Transcript(BaseModel):
     )
 
     ship_cert_queue_macro: str | None = Field(
-        default=None,
-        description="Message to be sent when the ship cert queue macro is used (only applies to SoM)",
+        default="",
+        description="Message to be sent when the ship cert queue macro is used (only applies to FlavorTown)",
     )
 
     not_allowed_channel: str = Field(
