@@ -29,6 +29,7 @@ Sometimes it’s nice to be able to do things quickly... Here’s where macros c
 - `?shipcertqueue` - tell them to wait and vote because there's a backlog of ships
 - `?fraud` - redirect to fraud dept
 - `?thread` - remove the reaction and all Nephthys replies to unclutter duplicates
+- `?shipwrights` - redirect to #ask-the-shipwrights
 - more to come?? feel free to PR your own into hackclub/nephthys or tell me what you want
 
 ### Stale
