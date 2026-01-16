@@ -33,7 +33,7 @@ Need more help? Post in <#{help_channel}> and I’ll respawn instantly!
 """
 
     faq_macro: str = f"""
-Hey (user)! This question’s already answered in the FAQ or READNE: <{faq_link}|*Jumpstart FAQ*> 🎮  
+Hey (user)! This question’s already answered in the FAQ or README: <{faq_link}|*Jumpstart FAQ*> 🎮  
 <{README_Link}|*Jumpstart README*> 👾
 _I’ve marked this thread as resolved. Start a new thread if you need more help!_
 """
