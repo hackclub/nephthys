@@ -51,4 +51,6 @@ _I've marked this thread as resolved_
 
     not_allowed_channel: str = f"hey, it looks like you're not supposed to be in that channel, pls talk to <@{program_owner}> if that's wrong"
 
-    ship_cert_queue_macro: str = "Hey (user), we currently have a backlog of projects waiting to be certified. Please be patient.\n\n*You can keep track of the queue <https://us.review.hackclub.com/queue | here>!*"
+    ship_cert_queue_macro: str | None = (
+        "Hey (user), we currently have a backlog of projects waiting to be certified. Please be patient.\n\n*You can keep track of the queue <https://us.review.hackclub.com/queue | here>!*"
+    )
