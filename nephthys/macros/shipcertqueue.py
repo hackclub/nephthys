@@ -7,7 +7,7 @@ from nephthys.utils.ticket_methods import reply_to_ticket
 
 class ShipCertQueue(Macro):
     name = "shipqueue"
-    aliases = ["shipcertqueue"]
+    aliases = ["shipcert", "shipcertqueue"]
 
     async def run(self, ticket, helper, **kwargs):
         """
