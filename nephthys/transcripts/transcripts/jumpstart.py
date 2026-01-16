@@ -26,7 +26,7 @@ While a human helper gets to your question, you can:
     ticket_create: str = f"""
 :rac_info: Hey (user)! Godorpheus here — just hanging out in code-space while we wait for a human helper.  
 • Take a peek at <{faq_link}|*the FAQ*> — it might already contain the answer you’re looking for  
-•Once your question is resolved, tap the green button below to complete this quest 🏁
+• Once your question is resolved, tap the green button below to complete this quest 🏁
 """
     ticket_resolve: str = f"""
 ✅ This post has been marked as resolved by <@{{user_id}}>! I’m heading back to my digital corner.  
