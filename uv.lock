@@ -113,6 +113,15 @@ wheels = [
 ]
 
 [[package]]
+name = "blockkit"
+version = "2.1.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/83/21/ad8c9c05251d4a56d6c4a4b95db73e3385e33754e0034f65f1361156c57a/blockkit-2.1.2.tar.gz", hash = "sha256:65788c6ac924a432deae1f2790f716a311176e1947070068f5bb646d98c8186a", size = 67151, upload-time = "2025-09-28T17:37:37.48Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f8/77/44c5c471b08a600196751465665f1115f28806553f328a5a9ae31e935646/blockkit-2.1.2-py3-none-any.whl", hash = "sha256:f8e6bcffc73b2f168b2b5a7c5e9303961e9b5c167759eeda4811910072bfc706", size = 20131, upload-time = "2025-09-28T17:37:36.092Z" },
+]
+
+[[package]]
 name = "certifi"
 version = "2025.6.15"
 source = { registry = "https://pypi.org/simple" }
@@ -640,6 +649,7 @@ dependencies = [
     { name = "aiohttp" },
     { name = "apscheduler" },
     { name = "astral" },
+    { name = "blockkit" },
     { name = "matplotlib" },
     { name = "numpy" },
     { name = "openai" },
@@ -669,6 +679,7 @@ requires-dist = [
     { name = "aiohttp", specifier = ">=3.11.14" },
     { name = "apscheduler", specifier = ">=3.10.4" },
     { name = "astral", specifier = ">=3.2" },
+    { name = "blockkit", specifier = ">=2.1.2" },
     { name = "matplotlib", specifier = ">=3.10.3" },
     { name = "numpy", specifier = ">=2.3.1" },
     { name = "openai", specifier = ">=2.8.0" },
