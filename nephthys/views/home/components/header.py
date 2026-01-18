@@ -4,43 +4,22 @@ from blockkit import Header
 from blockkit.core import ModalBlock
 
 from nephthys.utils.env import env
+from nephthys.views.home import APP_HOME_VIEWS
 from prisma.models import User
 
 
 def header_buttons(current_view: str, user: User | None):
     buttons = []
 
-    buttons.add_element(
-        Button(
-            "Dashboard",
-            action_id="dashboard",
-            style="primary" if current_view != "dashboard" else None,
+    for view in APP_HOME_VIEWS:
+        style = Button.PRIMARY if view.id == current_view else None
+        buttons.add_element(
+            Button(
+                text=view.name,
+                action_id=view.id,
+                style=style,
+            )
         )
-    )
-
-    buttons.add_element(
-        Button(
-            "Assigned Tickets",
-            action_id="assigned-tickets",
-            style="primary" if current_view != "assigned-tickets" else None,
-        )
-    )
-
-    buttons.add_element(
-        Button(
-            "Team Tags",
-            action_id="team-tags",
-            style="primary" if current_view != "team-tags" else None,
-        )
-    )
-
-    buttons.add_element(
-        Button(
-            "My Stats",
-            action_id="my-stats",
-            style="primary" if current_view != "my-stats" else None,
-        )
-    )
 
     return buttons
 
