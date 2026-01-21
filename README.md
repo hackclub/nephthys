@@ -21,13 +21,13 @@ You can assign yourself to get notified for specific tags on the app home
 
 Sometimes it’s nice to be able to do things quickly... Here’s where macros come in! Send one of the following messages in an open thread and something will happen
 
-- `?resolve` - the ticket gets closed. Equivalent of hitting i get it now
+- `?resolve` - the ticket gets closed. Equivalent of hitting the resolve button
 - `?reopen` - reopen a closed ticket
 - `?identity` - redirect to #identity-help
 - `?faq` - redirect to the FAQ
 - `?hii` - silly message :3
 - `?shipcertqueue` - tell them to wait and vote because there's a backlog of ships
-- `?fraud` - redirect to fraud dept
+- `?fraud` - redirect to Fraud Squad
 - `?thread` - remove the reaction and all Nephthys replies to unclutter duplicates
 - `?shipwrights` - redirect to #ask-the-shipwrights
 - more to come?? feel free to PR your own into hackclub/nephthys or tell me what you want
