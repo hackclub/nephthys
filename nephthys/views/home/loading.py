@@ -16,7 +16,7 @@ def get_loading_view(home_type: str):
             },
             {
                 "type": "image",
-                "image_url": f"{env.hostname}/public/loading.gif",
+                "image_url": f"{env.base_url}/public/loading.gif",
                 "alt_text": "Loading...",
             },
         ],

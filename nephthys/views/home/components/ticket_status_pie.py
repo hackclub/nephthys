@@ -89,7 +89,7 @@ async def get_ticket_status_pie_chart(
     caption = "Ticket stats"
 
     if not url:
-        url = f"{env.hostname}/public/binoculars.png"
+        url = f"{env.base_url}/public/binoculars.png"
         caption = "looks like heidi's scrounging around for tickets in the trash"
 
     return {

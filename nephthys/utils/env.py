@@ -41,7 +41,7 @@ class Environment:
             or default_log_level
         )
         self.log_level_otel = os.environ.get("LOG_LEVEL_OTEL", logging.INFO)
-        self.hostname: str = os.environ.get("HOSTNAME", "https://nephthys.hackclub.com")
+        self.base_url: str = os.environ.get("BASE_URL", "https://nephthys.hackclub.com")
 
         self.slack_help_channel = os.environ.get("SLACK_HELP_CHANNEL", "unset")
         self.slack_ticket_channel = os.environ.get("SLACK_TICKET_CHANNEL", "unset")
