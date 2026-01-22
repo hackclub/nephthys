@@ -8,6 +8,7 @@ import numpy as np
 from nephthys.utils.bucky import upload_file
 from nephthys.utils.env import env
 from nephthys.utils.graphs.pie import generate_pie_chart
+from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.performance import perf_timer
 from nephthys.utils.time import is_day
 from prisma.enums import TicketStatus
@@ -89,7 +90,8 @@ async def get_ticket_status_pie_chart(
     caption = "Ticket stats"
 
     if not url:
-        url = "https://hc-cdn.hel1.your-objectstorage.com/s/v3/888f292372d8450449b41dd18767812c72518449_binoculars.png"
+        url = f"{env.hostname}/public/binoculars.png"
+        await send_heartbeat(url)
         caption = "looks like heidi's scrounging around for tickets in the trash"
 
     return {
