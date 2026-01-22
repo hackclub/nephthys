@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from prometheus_client import CONTENT_TYPE_LATEST
 from prometheus_client import generate_latest
 from slack_bolt.adapter.starlette.async_handler import AsyncSlackRequestHandler
@@ -6,7 +8,9 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.responses import RedirectResponse
 from starlette.responses import Response
+from starlette.routing import Mount
 from starlette.routing import Route
+from starlette.staticfiles import StaticFiles
 from starlette_exporter import PrometheusMiddleware
 
 from nephthys.__main__ import main
@@ -53,6 +57,8 @@ async def root(req: Request):
     return RedirectResponse(url="https://github.com/hackclub/nephthys")
 
 
+STATIC_DIR = Path(Path.cwd() / "nephthys" / "public")
+
 app = Starlette(
     debug=True if env.environment != "production" else False,
     routes=[
@@ -63,6 +69,7 @@ app = Starlette(
         Route(path="/api/ticket", endpoint=ticket_info, methods=["GET"]),
         Route(path="/health", endpoint=health, methods=["GET"]),
         Route(path="/metrics", endpoint=metrics, methods=["GET"]),
+        Mount("/public", app=StaticFiles(directory=STATIC_DIR), name="static"),
     ],
     lifespan=main,
 )
