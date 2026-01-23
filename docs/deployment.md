@@ -73,13 +73,11 @@ Note: These steps have to be done by a Workspace Admin (otherwise it will be una
    APP_TITLE="Heidi the Assistant"
    # Hack Club AI API key for generating ticket titles (highly recommended)
    HACK_CLUB_AI_API_KEY="sk-hc-v1-..."
-   # Set this to anything
-   SITE_API_KEY="none"
    # Set this to the URL where the site will be hosted
    BASE_URL="https://summer.nephthys.hackclub.com"
    ```
 
-   - `SITE_API_KEY` (and `SITE_URL`) are only used for generating magic links for Summer of Making, so they don't have to be included (but `SITE_API_KEY` must be set due to a bug)
+   - `SITE_API_KEY` (and `SITE_URL`) are only used for generating magic links for Summer of Making, so they don't have to be included
 
 3. There's more optional environment variables that you can set, which I shall document here:
 
