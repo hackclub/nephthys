@@ -312,7 +312,7 @@ async def generate_ticket_title(text: str):
     if not env.ai_client:
         return "No title available from AI."
 
-    model = "qwen/qwen3-32b"
+    model = "openai/gpt-oss-120b"
     try:
         response = await env.ai_client.chat.completions.create(
             model=model,
@@ -321,7 +321,9 @@ async def generate_ticket_title(text: str):
                     "role": "system",
                     "content": (
                         "You are a helpful assistant that helps organise tickets for Hack Club's support team. You're going to take in a message and give it a title. "
-                        "You will return no other content. Do *NOT* use title case. Avoid quote marks. Even if it's silly please summarise it. Use no more than 7 words, but as few as possible."
+                        "You will return no other content. Do *NOT* use title case. Avoid quote marks. Even if it's silly please summarise it. Use no more than 7 words, but as few as possible.",
+                        "When mentioning Flavortown, do *NOT* change it to 'flavor town' or 'flavour town'. Hack Club should *NOT* be changed to 'hackclub'.",
+                        "Hackatime, Flavortown, and Hack club should always be capitalized correctly. Same goes for terms like VSCode, PyCharm, API, and GitHub."
                     ),
                 },
                 {
