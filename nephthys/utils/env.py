@@ -22,9 +22,14 @@ class Environment:
         self.slack_app_token = os.environ.get("SLACK_APP_TOKEN")
 
         self.uptime_url = os.environ.get("UPTIME_URL")
-        self.site_url = os.environ.get("SITE_URL", "https://summer.hackclub.com")
-        self.site_api_key = os.environ.get("SITE_API_KEY", "unset")
         self.hack_club_ai_api_key = os.environ.get("HACK_CLUB_AI_API_KEY")
+
+        self.site_url = os.environ.get("SITE_URL")
+        self.site_api_key = os.environ.get("SITE_API_KEY")
+        if self.site_url and not self.site_api_key:
+            raise ValueError(
+                "SITE_API_KEY must be set if SITE_URL is set to generate magic links"
+            )
 
         self.otel_logs_url = os.environ.get("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT")
         self.otel_service_name = os.environ.get("OTEL_SERVICE_NAME", "nephthys")
