@@ -35,8 +35,8 @@ async def get_leaderboard_view():
         else "No hang time data available"
     )
     avg_prev_day_hang_time_str = (
-        f"{prev_day.avg_hang_time_minutes:.2f} minutes"
-        if prev_day.avg_hang_time_minutes is not None
+        f"{prev_day.avg_hang_time_current_minutes:.2f} minutes"
+        if prev_day.avg_hang_time_current_minutes is not None
         else "No hang time data available"
     )
 

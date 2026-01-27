@@ -25,10 +25,12 @@ class OverallStatsResult:
     mean_resolution_time_minutes: float | None
 
 
-def calculate_hang_times(tickets: list[Ticket]) -> list[float]:
+def calculate_hang_times(
+    tickets: list[Ticket], include_closed_tickets: bool
+) -> list[float]:
     hang_times = []
     for tkt in tickets:
-        if tkt.status == TicketStatus.CLOSED:
+        if not include_closed_tickets and tkt.status == TicketStatus.CLOSED:
             continue
         if not tkt.assignedAt:
             continue
@@ -67,7 +69,7 @@ async def calculate_overall_stats() -> OverallStatsResult:
         reverse=True,
     )
 
-    hang_times = calculate_hang_times(tickets)
+    hang_times = calculate_hang_times(tickets, include_closed_tickets=False)
     resolution_times = calculate_resolution_times(tickets)
 
     return OverallStatsResult(
@@ -85,6 +87,9 @@ async def calculate_overall_stats() -> OverallStatsResult:
 
 @dataclass
 class DailyStatsResult:
+    """Processed statistics for a time interval
+    (usually 24h but doesn't have to be)"""
+
     new_tickets_total: int
     new_tickets_now_closed: int
     new_tickets_still_open: int
@@ -93,7 +98,11 @@ class DailyStatsResult:
     closed_today_from_today: int
     assigned_today_in_progress: int
     helpers_leaderboard: list[LeaderboardEntry]
-    avg_hang_time_minutes: float | None
+    # Mean time to response for tickets created today and currently in-progress
+    avg_hang_time_current_minutes: float | None
+    # Mean time to response for all tickets created today
+    avg_hang_time_all_minutes: float | None
+    # Mean time to resolution for tickets created today
     mean_resolution_time_minutes: float | None
 
 
@@ -101,38 +110,27 @@ async def calculate_daily_stats(
     start_time: datetime, end_time: datetime
 ) -> DailyStatsResult:
     tickets = await env.db.ticket.find_many() or []
+    tickets_created_today = [t for t in tickets if start_time <= t.createdAt < end_time]
     users_with_closed_tickets = await env.db.user.find_many(
         include={"closedTickets": True},
         where={"helper": True, "closedTickets": {"some": {}}},
     )
 
-    new_tickets_total = len(
-        [t for t in tickets if start_time <= t.createdAt < end_time]
-    )
+    new_tickets_total = len(tickets_created_today)
     new_tickets_now_closed = len(
         [
             t
-            for t in tickets
+            for t in tickets_created_today
             if t.status == TicketStatus.CLOSED
             and t.closedAt
             and start_time <= t.closedAt < end_time
-            and start_time <= t.createdAt < end_time
         ]
     )
     new_tickets_still_open = len(
-        [
-            t
-            for t in tickets
-            if start_time <= t.createdAt < end_time and t.status == TicketStatus.OPEN
-        ]
+        [t for t in tickets_created_today if t.status == TicketStatus.OPEN]
     )
     new_tickets_in_progress = len(
-        [
-            t
-            for t in tickets
-            if start_time <= t.createdAt < end_time
-            and t.status == TicketStatus.IN_PROGRESS
-        ]
+        [t for t in tickets_created_today if t.status == TicketStatus.IN_PROGRESS]
     )
     tickets_closed_today = [
         t
@@ -170,13 +168,15 @@ async def calculate_daily_stats(
         reverse=True,
     )
 
-    hang_times = calculate_hang_times(
-        [t for t in tickets if start_time <= t.createdAt < end_time]
+    hang_times_current = calculate_hang_times(
+        tickets_created_today, include_closed_tickets=False
     )
-    resolution_times = calculate_resolution_times(
-        [t for t in tickets if start_time <= t.createdAt < end_time]
+    hang_times_all = calculate_hang_times(
+        tickets_created_today, include_closed_tickets=True
     )
-    hang_time = fmean(hang_times) if hang_times else None
+    resolution_times = calculate_resolution_times(tickets_created_today)
+    hang_time_current = fmean(hang_times_current) if hang_times_current else None
+    hang_time_all = fmean(hang_times_all) if hang_times_all else None
     resolution_time = fmean(resolution_times) if resolution_times else None
 
     return DailyStatsResult(
@@ -188,6 +188,7 @@ async def calculate_daily_stats(
         new_tickets_now_closed=new_tickets_now_closed,
         new_tickets_in_progress=new_tickets_in_progress,
         new_tickets_still_open=new_tickets_still_open,
-        avg_hang_time_minutes=hang_time,
+        avg_hang_time_current_minutes=hang_time_current,
+        avg_hang_time_all_minutes=hang_time_all,
         mean_resolution_time_minutes=resolution_time,
     )

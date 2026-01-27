@@ -42,7 +42,7 @@ async def stats(req: Request):
                 }
                 for entry in prev_day_stats.helpers_leaderboard[:3]
             ],
-            "prev_day_average_hang_time_minutes": prev_day_stats.avg_hang_time_minutes,
+            "prev_day_average_hang_time_minutes": prev_day_stats.avg_hang_time_current_minutes,
             "prev_day_mean_resolution_time_minutes": prev_day_stats.mean_resolution_time_minutes,
         }
     )
