@@ -21,8 +21,8 @@ class OverallStatsResult:
     tickets_closed: int
     tickets_in_progress: int
     helpers_leaderboard: list[LeaderboardEntry]
-    avg_hang_time_minutes: float
-    mean_resolution_time_minutes: float
+    avg_hang_time_minutes: float | None
+    mean_resolution_time_minutes: float | None
 
 
 def calculate_hang_times(tickets: list[Ticket]) -> list[float]:
@@ -67,14 +67,19 @@ async def calculate_overall_stats() -> OverallStatsResult:
         reverse=True,
     )
 
+    hang_times = calculate_hang_times(tickets)
+    resolution_times = calculate_resolution_times(tickets)
+
     return OverallStatsResult(
         tickets_total=total,
         tickets_open=total_open,
         tickets_closed=total_closed,
         tickets_in_progress=total_in_progress,
         helpers_leaderboard=helpers_leaderboard,
-        avg_hang_time_minutes=fmean(calculate_hang_times(tickets) or [0]),
-        mean_resolution_time_minutes=fmean(calculate_resolution_times(tickets) or [0]),
+        avg_hang_time_minutes=fmean(hang_times) if hang_times else None,
+        mean_resolution_time_minutes=fmean(resolution_times)
+        if resolution_times
+        else None,
     )
 
 
@@ -88,8 +93,8 @@ class DailyStatsResult:
     closed_today_from_today: int
     assigned_today_in_progress: int
     helpers_leaderboard: list[LeaderboardEntry]
-    avg_hang_time_minutes: float
-    mean_resolution_time_minutes: float
+    avg_hang_time_minutes: float | None
+    mean_resolution_time_minutes: float | None
 
 
 async def calculate_daily_stats(
@@ -171,8 +176,8 @@ async def calculate_daily_stats(
     resolution_times = calculate_resolution_times(
         [t for t in tickets if start_time <= t.createdAt < end_time]
     )
-    hang_time = fmean(hang_times) if hang_times else 0
-    resolution_time = fmean(resolution_times) if resolution_times else 0
+    hang_time = fmean(hang_times) if hang_times else None
+    resolution_time = fmean(resolution_times) if resolution_times else None
 
     return DailyStatsResult(
         closed_today=closed_today,
