@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from slack_sdk.errors import SlackApiError
 
@@ -29,6 +30,7 @@ class Reopen(Macro):
                 "status": TicketStatus.OPEN,
                 "closedBy": {"disconnect": True},
                 "reopenedBy": {"connect": {"id": helper.id}},
+                "reopenedAt": datetime.now(),
                 "closedAt": None,
             },
         )
