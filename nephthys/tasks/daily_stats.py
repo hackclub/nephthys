@@ -113,7 +113,7 @@ you managed to close a whopping *{stats.closed_today}* tickets in the last 24 ho
 
         await env.slack_client.files_upload_v2(
             channel=env.slack_bts_channel,
-            file=pie_chart,
+            file=pie_chart,  # type: ignore (we requested a raw pie chart so type is bytes)
             title="ticket status",
             initial_comment=msg,
         )

@@ -4,6 +4,7 @@ from statistics import fmean
 from typing import TypedDict
 
 from nephthys.utils.env import env
+from nephthys.utils.old_tickets import get_unanswered_tickets
 from prisma.enums import TicketStatus
 from prisma.models import Ticket
 from prisma.models import User
@@ -24,6 +25,7 @@ class OverallStatsResult:
     mean_hang_time_minutes_unresolved: float | None
     mean_hang_time_minutes_all: float | None
     mean_resolution_time_minutes: float | None
+    oldest_unanswered_ticket_age_minutes: float | None
 
     def as_dict(self) -> dict:
         # Warning: Changing these keys will break the stats API
@@ -95,6 +97,14 @@ async def calculate_overall_stats() -> OverallStatsResult:
     hang_times_all = calculate_hang_times(tickets, include_closed_tickets=True)
     resolution_times = calculate_resolution_times(tickets)
 
+    oldest_unanswered_tickets = await get_unanswered_tickets()
+    now = datetime.now().astimezone()
+    oldest_unanswered_ticket_age = (
+        (now - oldest_unanswered_tickets[0].createdAt).total_seconds() / 60
+        if oldest_unanswered_tickets
+        else None
+    )
+
     return OverallStatsResult(
         tickets_total=total,
         tickets_open=total_open,
@@ -108,6 +118,7 @@ async def calculate_overall_stats() -> OverallStatsResult:
         mean_resolution_time_minutes=fmean(resolution_times)
         if resolution_times
         else None,
+        oldest_unanswered_ticket_age_minutes=oldest_unanswered_ticket_age,
     )
 
 
