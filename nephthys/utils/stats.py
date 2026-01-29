@@ -75,8 +75,9 @@ async def calculate_overall_stats() -> OverallStatsResult:
     resolution_times = calculate_resolution_times(tickets)
 
     oldest_unanswered_tickets = await get_unanswered_tickets()
+    now = datetime.now().astimezone()
     oldest_unanswered_ticket_age = (
-        (datetime.now() - oldest_unanswered_tickets[0].createdAt).total_seconds() / 60
+        (now - oldest_unanswered_tickets[0].createdAt).total_seconds() / 60
         if oldest_unanswered_tickets
         else None
     )
