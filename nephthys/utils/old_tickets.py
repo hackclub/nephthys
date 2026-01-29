@@ -6,7 +6,7 @@ from prisma.enums import UserType
 from prisma.models import Ticket
 
 
-async def get_unanswered_tickets(since: datetime) -> list[Ticket]:
+async def get_unanswered_tickets(since: datetime | None = None) -> list[Ticket]:
     """
     Finds tickets that have been awaiting a response from a helper for a while.
 
@@ -16,7 +16,7 @@ async def get_unanswered_tickets(since: datetime) -> list[Ticket]:
     unanswered_tickets = await env.db.ticket.find_many(
         where={
             "status": TicketStatus.OPEN,
-            "lastMsgAt": {"lt": since},
+            "lastMsgAt": {"lt": since} if since else {},
             "AND": [{"NOT": [{"lastMsgBy": UserType.HELPER}]}],
         },
         order={"lastMsgAt": "asc"},
