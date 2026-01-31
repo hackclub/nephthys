@@ -2,7 +2,7 @@ from nephthys.utils.env import env
 from prisma.models import User
 
 
-def header_buttons(current_view: str):
+def header_buttons(current_view: str, user: User | None):
     buttons = []
 
     buttons.append(
@@ -41,6 +41,15 @@ def header_buttons(current_view: str):
         }
     )
 
+    if user and user.admin:
+        buttons.append(
+            {
+                "type": "button",
+                "text": {"type": "plain_text", "text": "Manage Tags", "emoji": True},
+                "action_id": "manage-tags",
+            }
+        )
+
     blocks = {"type": "actions", "elements": buttons}
     return blocks
 
@@ -59,6 +68,6 @@ def title_line():
 def get_header(user: User | None, current: str = "dashboard") -> list[dict]:
     return [
         title_line(),
-        header_buttons(current),
+        header_buttons(current, user),
         {"type": "divider"},
     ]

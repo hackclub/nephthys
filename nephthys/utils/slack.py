@@ -145,3 +145,17 @@ async def dm_magic_link(
     command, ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
 ):
     await dm_magic_link_cmd_callback(command, ack, body, client)
+
+
+@app.action("manage-tags")
+async def manage_tags(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient):
+    from nephthys.actions.manage_tags import open_manage_tags_modal
+
+    await open_manage_tags_modal(ack, body, client)
+
+
+@app.view("save-tags")
+async def save_tags(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient):
+    from nephthys.actions.manage_tags import handle_manage_tags_save
+
+    await handle_manage_tags_save(ack, body, client)

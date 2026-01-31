@@ -128,3 +128,8 @@ model BotMessage {
 
   @@unique([ts, channelId])
 }
+
+model SystemSettings {
+  id           Int      @id @default(autoincrement())
+  questionTags String[]
+}
