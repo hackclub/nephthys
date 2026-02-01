@@ -1,10 +1,10 @@
-def get_create_question_tag_modal():
+def get_create_category_tag_modal():
     return {
         "type": "modal",
-        "callback_id": "create_question_tag",
+        "callback_id": "create_category_tag",
         "title": {
             "type": "plain_text",
-            "text": "Create question tag",
+            "text": "Create category tag",
             "emoji": True,
         },
         "blocks": [
@@ -13,7 +13,7 @@ def get_create_question_tag_modal():
                 "text": {
                     "type": "mrkdwn",
                     "text": """
-Question tags are used to keep track of how often specific questions are being asked, so tag names should be brief but specific enough to uniquely identify the question.
+Category tags are used to keep track of how often specific questions are being asked, so tag names should be brief but specific enough to uniquely identify the question.
 
 Examples:
 • Missing CSS on site
@@ -24,14 +24,14 @@ Examples:
             },
             {
                 "type": "input",
-                "block_id": "tag_label",
+                "block_id": "tag_name",
                 "label": {
                     "type": "plain_text",
-                    "text": "Question label",
+                    "text": "Category name",
                 },
                 "element": {
                     "type": "plain_text_input",
-                    "action_id": "tag_label",
+                    "action_id": "tag_name",
                 },
             },
         ],

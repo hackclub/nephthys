@@ -175,14 +175,14 @@ async def handle_new_question(
         "AI ticket title generation", TICKET_TITLE_GENERATION_DURATION
     ):
         title = await generate_ticket_title(text)
-        question_tag_id = await generate_question_tag(text)
+        category_tag_id = await generate_category_tag(text)
 
-    if question_tag_id:
+    if category_tag_id:
         blocks = await backend_message_blocks(
             author_user_id=author_id,
             msg_ts=event["ts"],
             past_tickets=past_tickets,
-            current_question_tag_id=question_tag_id,
+            current_category_tag_id=category_tag_id,
         )
 
         await client.chat_update(
@@ -212,8 +212,8 @@ async def handle_new_question(
             },
         }
 
-        if question_tag_id:
-            ticket_data["questionTag"] = {"connect": {"id": question_tag_id}}
+        if category_tag_id:
+            ticket_data["categoryTag"] = {"connect": {"id": category_tag_id}}
 
         ticket = await env.db.ticket.create(ticket_data)
 
@@ -365,14 +365,14 @@ async def generate_ticket_title(text: str):
     return title
 
 
-async def generate_question_tag(text: str) -> int | None:
-    settings = await env.db.systemsettings.find_first()
+async def generate_category_tag(text: str) -> int | None:
+    category_tags = await env.db.categorytag.find_many()
 
-    if not settings or not settings.questionTags:
+    if not category_tags:
         return None
 
-    tag_options = ", ".join(settings.questionTags)
-    tag_map = {tag.lower(): tag for tag in settings.questionTags}
+    tag_options = ", ".join([tag.name for tag in category_tags])
+    tag_map = {tag.name.lower(): tag for tag in category_tags}
 
     if not env.ai_client:
         return None
@@ -413,12 +413,6 @@ async def generate_question_tag(text: str) -> int | None:
         original_label = tag_map.get(suggested_tag_label.lower())
 
     if original_label:
-        tag_record = await env.db.questiontag.find_unique(
-            where={"label": original_label}
-        )
-
-        if not tag_record:
-            tag_record = await env.db.questiontag.create(data={"label": original_label})
-        return tag_record.id
+        return original_label.id
 
     return None

@@ -45,7 +45,11 @@ def header_buttons(current_view: str, user: User | None):
         buttons.append(
             {
                 "type": "button",
-                "text": {"type": "plain_text", "text": "Manage Tags", "emoji": True},
+                "text": {
+                    "type": "plain_text",
+                    "text": "Manage Category Tags",
+                    "emoji": True,
+                },
                 "action_id": "manage-tags",
             }
         )

@@ -6,10 +6,10 @@ from slack_bolt.async_app import AsyncApp
 from slack_bolt.context.ack.async_ack import AsyncAck
 from slack_sdk.web.async_client import AsyncWebClient
 
-from nephthys.actions.assign_question_tag import assign_question_tag_callback
+from nephthys.actions.assign_category_tag import assign_category_tag_callback
 from nephthys.actions.assign_team_tag import assign_team_tag_callback
-from nephthys.actions.create_question_tag import create_question_tag_btn_callback
-from nephthys.actions.create_question_tag import create_question_tag_view_callback
+from nephthys.actions.create_category_tag import create_category_tag_btn_callback
+from nephthys.actions.create_category_tag import create_category_tag_view_callback
 from nephthys.actions.create_team_tag import create_team_tag_btn_callback
 from nephthys.actions.create_team_tag import create_team_tag_view_callback
 from nephthys.actions.resolve import resolve
@@ -21,7 +21,7 @@ from nephthys.events.channel_join import channel_join
 from nephthys.events.channel_left import channel_left
 from nephthys.events.message_creation import on_message
 from nephthys.events.message_deletion import on_message_deletion
-from nephthys.options.question_tags import get_question_tags
+from nephthys.options.category_tags import get_category_tags
 from nephthys.options.team_tags import get_team_tags
 from nephthys.utils.env import env
 from nephthys.utils.performance import perf_timer
@@ -62,9 +62,9 @@ async def handle_team_tag_list_options(ack: AsyncAck, payload: dict):
     await ack(options=tags)
 
 
-@app.options("question-tag-list")
-async def handle_question_tag_list_options(ack: AsyncAck, payload: dict):
-    tags = await get_question_tags(payload)
+@app.options("category-tag-list")
+async def handle_category_tag_list_options(ack: AsyncAck, payload: dict):
+    tags = await get_category_tags(payload)
     await ack(options=tags)
 
 
@@ -100,11 +100,11 @@ async def create_team_tag(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebC
     await create_team_tag_btn_callback(ack, body, client)
 
 
-@app.action("create-question-tag")
-async def create_question_tag(
+@app.action("create-category-tag")
+async def create_category_tag(
     ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
 ):
-    await create_question_tag_btn_callback(ack, body, client)
+    await create_category_tag_btn_callback(ack, body, client)
 
 
 @app.view("create_team_tag")
@@ -114,11 +114,11 @@ async def create_team_tag_view(
     await create_team_tag_view_callback(ack, body, client)
 
 
-@app.view("create_question_tag")
-async def create_question_tag_view(
+@app.view("create_category_tag")
+async def create_category_tag_view(
     ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
 ):
-    await create_question_tag_view_callback(ack, body, client)
+    await create_category_tag_view_callback(ack, body, client)
 
 
 @app.action("tag-subscribe")
@@ -132,11 +132,11 @@ async def assign_team_tag(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebC
     await assign_team_tag_callback(ack, body, client)
 
 
-@app.action("question-tag-list")
-async def assign_question_tag(
+@app.action("category-tag-list")
+async def assign_category_tag(
     ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
 ):
-    await assign_question_tag_callback(ack, body, client)
+    await assign_category_tag_callback(ack, body, client)
 
 
 @app.command("/dm-magic-link")
