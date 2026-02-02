@@ -160,13 +160,7 @@ async def calculate_daily_stats(
 
     new_tickets_total = len(tickets_created_today)
     new_tickets_now_closed = len(
-        [
-            t
-            for t in tickets_created_today
-            if t.status == TicketStatus.CLOSED
-            and t.closedAt
-            and start_time <= t.closedAt < end_time
-        ]
+        [t for t in tickets_created_today if t.status == TicketStatus.CLOSED]
     )
     new_tickets_still_open = len(
         [t for t in tickets_created_today if t.status == TicketStatus.OPEN]
