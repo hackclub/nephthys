@@ -21,7 +21,7 @@ class OverallStatsResult:
     tickets_closed: int
     tickets_in_progress: int
     helpers_leaderboard: list[LeaderboardEntry]
-    avg_hang_time_minutes: float | None
+    mean_hang_time_minutes: float | None
     mean_resolution_time_minutes: float | None
 
     def as_dict(self) -> dict:
@@ -39,7 +39,7 @@ class OverallStatsResult:
                 }
                 for entry in self.helpers_leaderboard
             ],
-            "avg_hang_time_minutes": self.avg_hang_time_minutes,
+            "mean_hang_time_minutes": self.mean_hang_time_minutes,
             "mean_resolution_time_minutes": self.mean_resolution_time_minutes,
         }
 
@@ -97,7 +97,7 @@ async def calculate_overall_stats() -> OverallStatsResult:
         tickets_closed=total_closed,
         tickets_in_progress=total_in_progress,
         helpers_leaderboard=helpers_leaderboard,
-        avg_hang_time_minutes=fmean(hang_times) if hang_times else None,
+        mean_hang_time_minutes=fmean(hang_times) if hang_times else None,
         mean_resolution_time_minutes=fmean(resolution_times)
         if resolution_times
         else None,
@@ -118,9 +118,9 @@ class DailyStatsResult:
     assigned_today_in_progress: int
     helpers_leaderboard: list[LeaderboardEntry]
     # Mean time to response for tickets created today and currently in-progress
-    avg_hang_time_current_minutes: float | None
+    mean_hang_time_minutes_unresolved: float | None
     # Mean time to response for all tickets created today
-    avg_hang_time_all_minutes: float | None
+    mean_hang_time_minutes_all: float | None
     # Mean time to resolution for tickets created today
     mean_resolution_time_minutes: float | None
 
@@ -142,8 +142,8 @@ class DailyStatsResult:
                 }
                 for entry in self.helpers_leaderboard
             ],
-            "avg_hang_time_live_minutes": self.avg_hang_time_current_minutes,
-            "avg_hang_time_minutes": self.avg_hang_time_all_minutes,
+            "mean_hang_time_minutes_unresolved": self.mean_hang_time_minutes_unresolved,
+            "mean_hang_time_minutes_all": self.mean_hang_time_minutes_all,
             "mean_resolution_time_minutes": self.mean_resolution_time_minutes,
         }
 
@@ -230,7 +230,7 @@ async def calculate_daily_stats(
         new_tickets_now_closed=new_tickets_now_closed,
         new_tickets_in_progress=new_tickets_in_progress,
         new_tickets_still_open=new_tickets_still_open,
-        avg_hang_time_current_minutes=hang_time_current,
-        avg_hang_time_all_minutes=hang_time_all,
+        mean_hang_time_minutes_unresolved=hang_time_current,
+        mean_hang_time_minutes_all=hang_time_all,
         mean_resolution_time_minutes=resolution_time,
     )
