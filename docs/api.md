@@ -30,6 +30,7 @@ interface OverallStats {
   mean_hang_time_minutes_unresolved: number | null
   mean_hang_time_minutes_all: number | null
   mean_resolution_time_minutes: number | null
+  oldest_unanswered_ticket: OldestUnansweredTicket | null
 }
 
 interface TimeBoundStats {
@@ -61,6 +62,13 @@ interface LeaderboardEntry {
   id: number
   slack_id: string
   count: number
+}
+
+interface OldestUnansweredTicket {
+  id: number
+  created_at: string
+  age_minutes: number
+  link: string
 }
 ```
 

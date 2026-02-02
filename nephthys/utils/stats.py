@@ -5,6 +5,7 @@ from typing import TypedDict
 
 from nephthys.utils.env import env
 from nephthys.utils.old_tickets import get_unanswered_tickets
+from nephthys.utils.ticket_methods import get_question_message_link
 from prisma.enums import TicketStatus
 from prisma.models import Ticket
 from prisma.models import User
@@ -13,6 +14,13 @@ from prisma.models import User
 class LeaderboardEntry(TypedDict):
     user: User
     count: int
+
+
+class OldestUnansweredTicket(TypedDict):
+    id: int
+    created_at: str
+    age_minutes: float
+    link: str
 
 
 @dataclass
@@ -25,7 +33,7 @@ class OverallStatsResult:
     mean_hang_time_minutes_unresolved: float | None
     mean_hang_time_minutes_all: float | None
     mean_resolution_time_minutes: float | None
-    oldest_unanswered_ticket_age_minutes: float | None
+    oldest_unanswered_ticket: OldestUnansweredTicket | None
 
     def as_dict(self) -> dict:
         # Warning: Changing these keys will break the stats API
@@ -46,6 +54,7 @@ class OverallStatsResult:
             "mean_hang_time_minutes_unresolved": self.mean_hang_time_minutes_unresolved,
             "mean_hang_time_minutes_all": self.mean_hang_time_minutes_all,
             "mean_resolution_time_minutes": self.mean_resolution_time_minutes,
+            "oldest_unanswered_ticket": self.oldest_unanswered_ticket,
         }
 
 
@@ -98,10 +107,18 @@ async def calculate_overall_stats() -> OverallStatsResult:
     resolution_times = calculate_resolution_times(tickets)
 
     oldest_unanswered_tickets = await get_unanswered_tickets()
+    oldest_unanswered_ticket = (
+        oldest_unanswered_tickets[0] if oldest_unanswered_tickets else None
+    )
     now = datetime.now().astimezone()
-    oldest_unanswered_ticket_age = (
-        (now - oldest_unanswered_tickets[0].createdAt).total_seconds() / 60
-        if oldest_unanswered_tickets
+    oldest_unanswered_ticket_info = (
+        OldestUnansweredTicket(
+            id=oldest_unanswered_ticket.id,
+            created_at=oldest_unanswered_ticket.createdAt.isoformat(),
+            age_minutes=(now - oldest_unanswered_ticket.createdAt).total_seconds() / 60,
+            link=get_question_message_link(oldest_unanswered_ticket),
+        )
+        if oldest_unanswered_ticket
         else None
     )
 
@@ -118,7 +135,7 @@ async def calculate_overall_stats() -> OverallStatsResult:
         mean_resolution_time_minutes=fmean(resolution_times)
         if resolution_times
         else None,
-        oldest_unanswered_ticket_age_minutes=oldest_unanswered_ticket_age,
+        oldest_unanswered_ticket=oldest_unanswered_ticket_info,
     )
 
 
