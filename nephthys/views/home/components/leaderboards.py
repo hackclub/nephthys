@@ -30,8 +30,8 @@ async def get_leaderboard_view():
         prev_day_leaderboard_str = "\n".join(prev_day_leaderboard_lines)
 
     avg_hang_time_str = (
-        f"{stats.mean_hang_time_minutes:.2f} minutes"
-        if stats.mean_hang_time_minutes is not None
+        f"{stats.mean_hang_time_minutes_unresolved:.2f} minutes"
+        if stats.mean_hang_time_minutes_unresolved is not None
         else "No hang time data available"
     )
     avg_prev_day_hang_time_str = (

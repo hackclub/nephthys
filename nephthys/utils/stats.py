@@ -21,7 +21,8 @@ class OverallStatsResult:
     tickets_closed: int
     tickets_in_progress: int
     helpers_leaderboard: list[LeaderboardEntry]
-    mean_hang_time_minutes: float | None
+    mean_hang_time_minutes_unresolved: float | None
+    mean_hang_time_minutes_all: float | None
     mean_resolution_time_minutes: float | None
 
     def as_dict(self) -> dict:
@@ -40,7 +41,8 @@ class OverallStatsResult:
                 }
                 for entry in self.helpers_leaderboard
             ],
-            "mean_hang_time_minutes": self.mean_hang_time_minutes,
+            "mean_hang_time_minutes_unresolved": self.mean_hang_time_minutes_unresolved,
+            "mean_hang_time_minutes_all": self.mean_hang_time_minutes_all,
             "mean_resolution_time_minutes": self.mean_resolution_time_minutes,
         }
 
@@ -89,7 +91,8 @@ async def calculate_overall_stats() -> OverallStatsResult:
         reverse=True,
     )
 
-    hang_times = calculate_hang_times(tickets, include_closed_tickets=False)
+    hang_times_unresolved = calculate_hang_times(tickets, include_closed_tickets=False)
+    hang_times_all = calculate_hang_times(tickets, include_closed_tickets=True)
     resolution_times = calculate_resolution_times(tickets)
 
     return OverallStatsResult(
@@ -98,7 +101,10 @@ async def calculate_overall_stats() -> OverallStatsResult:
         tickets_closed=total_closed,
         tickets_in_progress=total_in_progress,
         helpers_leaderboard=helpers_leaderboard,
-        mean_hang_time_minutes=fmean(hang_times) if hang_times else None,
+        mean_hang_time_minutes_unresolved=fmean(hang_times_unresolved)
+        if hang_times_unresolved
+        else None,
+        mean_hang_time_minutes_all=fmean(hang_times_all) if hang_times_all else None,
         mean_resolution_time_minutes=fmean(resolution_times)
         if resolution_times
         else None,

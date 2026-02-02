@@ -28,7 +28,7 @@ async def stats(req: Request):
                 }
                 for entry in total_stats.helpers_leaderboard[:3]
             ],
-            "average_hang_time_minutes": total_stats.mean_hang_time_minutes,
+            "average_hang_time_minutes": total_stats.mean_hang_time_minutes_unresolved,
             "mean_resolution_time_minutes": total_stats.mean_resolution_time_minutes,
             "prev_day_total": prev_day_stats.new_tickets_total,
             "prev_day_open": prev_day_stats.new_tickets_still_open,

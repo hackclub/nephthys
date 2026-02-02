@@ -27,7 +27,8 @@ interface OverallStats {
   tickets_closed: number
   tickets_in_progress: number
   helpers_leaderboard: Array<LeaderboardEntry>
-  mean_hang_time_minutes: number | null
+  mean_hang_time_minutes_unresolved: number | null
+  mean_hang_time_minutes_all: number | null
   mean_resolution_time_minutes: number | null
 }
 
