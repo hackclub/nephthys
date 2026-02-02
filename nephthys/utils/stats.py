@@ -31,7 +31,14 @@ class OverallStatsResult:
             "tickets_open": self.tickets_open,
             "tickets_closed": self.tickets_closed,
             "tickets_in_progress": self.tickets_in_progress,
-            "helpers_leaderboard": self.helpers_leaderboard,
+            "helpers_leaderboard": [
+                {
+                    "id": entry["user"].id,
+                    "slack_id": entry["user"].slackId,
+                    "count": entry["count"],
+                }
+                for entry in self.helpers_leaderboard
+            ],
             "avg_hang_time_minutes": self.avg_hang_time_minutes,
             "mean_resolution_time_minutes": self.mean_resolution_time_minutes,
         }
@@ -127,9 +134,16 @@ class DailyStatsResult:
             "closed_today": self.closed_today,
             "closed_today_from_today": self.closed_today_from_today,
             "assigned_today_in_progress": self.assigned_today_in_progress,
-            "helpers_leaderboard": self.helpers_leaderboard,
-            "avg_hang_time_current_minutes": self.avg_hang_time_current_minutes,
-            "avg_hang_time_all_minutes": self.avg_hang_time_all_minutes,
+            "helpers_leaderboard": [
+                {
+                    "id": entry["user"].id,
+                    "slack_id": entry["user"].slackId,
+                    "count": entry["count"],
+                }
+                for entry in self.helpers_leaderboard
+            ],
+            "avg_hang_time_live_minutes": self.avg_hang_time_current_minutes,
+            "avg_hang_time_minutes": self.avg_hang_time_all_minutes,
             "mean_resolution_time_minutes": self.mean_resolution_time_minutes,
         }
 
