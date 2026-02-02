@@ -26,6 +26,7 @@ class OverallStatsResult:
 
     def as_dict(self) -> dict:
         # Warning: Changing these keys will break the stats API
+        # Note: These fields are documented for end users in api.md
         return {
             "tickets_total": self.tickets_total,
             "tickets_open": self.tickets_open,
@@ -126,6 +127,7 @@ class DailyStatsResult:
 
     def as_dict(self) -> dict:
         # Warning: Changing these keys will break the stats API
+        # Note: These fields are documented for end users in api.md
         return {
             "new_tickets_total": self.new_tickets_total,
             "new_tickets_now_closed": self.new_tickets_now_closed,
