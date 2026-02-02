@@ -24,6 +24,18 @@ class OverallStatsResult:
     avg_hang_time_minutes: float | None
     mean_resolution_time_minutes: float | None
 
+    def as_dict(self) -> dict:
+        # Warning: Changing these keys will break the stats API
+        return {
+            "tickets_total": self.tickets_total,
+            "tickets_open": self.tickets_open,
+            "tickets_closed": self.tickets_closed,
+            "tickets_in_progress": self.tickets_in_progress,
+            "helpers_leaderboard": self.helpers_leaderboard,
+            "avg_hang_time_minutes": self.avg_hang_time_minutes,
+            "mean_resolution_time_minutes": self.mean_resolution_time_minutes,
+        }
+
 
 def calculate_hang_times(
     tickets: list[Ticket], include_closed_tickets: bool
@@ -104,6 +116,22 @@ class DailyStatsResult:
     avg_hang_time_all_minutes: float | None
     # Mean time to resolution for tickets created today
     mean_resolution_time_minutes: float | None
+
+    def as_dict(self) -> dict:
+        # Warning: Changing these keys will break the stats API
+        return {
+            "new_tickets_total": self.new_tickets_total,
+            "new_tickets_now_closed": self.new_tickets_now_closed,
+            "new_tickets_still_open": self.new_tickets_still_open,
+            "new_tickets_in_progress": self.new_tickets_in_progress,
+            "closed_today": self.closed_today,
+            "closed_today_from_today": self.closed_today_from_today,
+            "assigned_today_in_progress": self.assigned_today_in_progress,
+            "helpers_leaderboard": self.helpers_leaderboard,
+            "avg_hang_time_current_minutes": self.avg_hang_time_current_minutes,
+            "avg_hang_time_all_minutes": self.avg_hang_time_all_minutes,
+            "mean_resolution_time_minutes": self.mean_resolution_time_minutes,
+        }
 
 
 async def calculate_daily_stats(
