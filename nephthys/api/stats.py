@@ -30,7 +30,11 @@ async def stats(req: Request):
             ],
             "average_hang_time_minutes": total_stats.mean_hang_time_minutes_unresolved,
             "mean_resolution_time_minutes": total_stats.mean_resolution_time_minutes,
-            "oldest_unanswered_ticket_age_minutes": total_stats.oldest_unanswered_ticket_age_minutes,
+            "oldest_unanswered_ticket_age_minutes": total_stats.oldest_unanswered_ticket[
+                "age_minutes"
+            ]
+            if total_stats.oldest_unanswered_ticket
+            else None,
             "prev_day_total": prev_day_stats.new_tickets_total,
             "prev_day_open": prev_day_stats.new_tickets_still_open,
             "prev_day_in_progress": prev_day_stats.new_tickets_in_progress,
