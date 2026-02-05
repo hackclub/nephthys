@@ -37,6 +37,18 @@ async def tickets_list(req: Request):
             msg = f"created_before parameter is not a valid ISO datetime: {filter_created_before}"
             return JSONResponse({"error": msg}, status_code=400)
 
+    if (
+        (not filter_status or filter_status == TicketStatus.CLOSED)
+        and not filter_created_after
+        and not filter_created_before
+    ):
+        # Prevent returning a massive number of tickets by default
+        # If they want them, they should set a big date range explicitly
+        # (that may also be disallowed in the future if it impacts performance too much)
+        msg = "Provided filters are too broad"
+        tip = "Please provide a ?since= or ?until= parameter, or filter by ?status=open or ?status=in_progress"
+        return JSONResponse({"error": msg, "tip": tip}, status_code=400)
+
     db_filter: TicketWhereInput = {}
     if filter_status:
         db_filter["status"] = filter_status
