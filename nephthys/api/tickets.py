@@ -3,27 +3,10 @@ from datetime import datetime
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from nephthys.api.ticket import ticket_to_json
 from nephthys.utils.env import env
 from prisma.enums import TicketStatus
-from prisma.models import Ticket
-from prisma.models import User
 from prisma.types import TicketWhereInput
-
-
-def user_to_json(user: User | None) -> dict | None:
-    return {"slack_id": user.slackId, "id": user.id} if user else None
-
-
-def ticket_to_json(ticket: Ticket) -> dict:
-    return {
-        "title": ticket.title,
-        "description": ticket.description,
-        "status": ticket.status,
-        "opened_by": user_to_json(ticket.openedBy),
-        "closed_by": user_to_json(ticket.closedBy),
-        "assigned_to": user_to_json(ticket.assignedTo),
-        "created_at": ticket.createdAt.isoformat(),
-    }
 
 
 async def tickets_list(req: Request):
@@ -71,7 +54,7 @@ async def tickets_list(req: Request):
             "closedBy": True,
             "assignedTo": True,
             "reopenedBy": True,
-            "tagsOnTickets": True,
+            "tagsOnTickets": {"include": {"tag": True}},
         },
     )
     return JSONResponse([ticket_to_json(t) for t in tickets])
