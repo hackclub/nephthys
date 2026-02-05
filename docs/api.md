@@ -93,7 +93,7 @@ interface Ticket {
   id: number
   title: string
   description: string
-  status: "open" | "closed" | "in_progress"
+  status: "OPEN" | "CLOSED" | "IN_PROGRESS"
   opened_by: User | null
   closed_by: User | null
   assigned_to: User | null
