@@ -68,5 +68,6 @@ async def tickets_list(req: Request):
             "reopenedBy": True,
             "tagsOnTickets": {"include": {"tag": True}},
         },
+        order={"createdAt": "asc"},
     )
     return JSONResponse([ticket_to_json(t) for t in tickets])
