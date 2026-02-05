@@ -74,3 +74,45 @@ interface OldestUnansweredTicket {
 
 Note that some fields can be `null` if there are no tickets (or no open/closed/in-progress tickets)
 within the time period.
+
+## `/api/tickets`
+
+Returns a big list of tickets and their details! Please provide filters using query parameters
+to avoid overloading Nephthys as it tries to provide 1,000s of tickets at once.
+
+Parameters available are:
+
+- `?status=` - filter by ticket status, can be `open`, `closed`, or `in_progress`
+- `?since=` or `?after=` - filter for tickets created after a certain date/time, in ISO 8601 format (e.g. `2026-01-01`)
+- `?until=` or `?before=` - filter for tickets created before a certain date/time, in ISO 8601 format (e.g. `2026-01-31T12:00:00`)
+
+Returns an array of ticket objects. Ticket objects look like this:
+
+```ts
+interface Ticket {
+  id: number
+  title: string
+  description: string
+  status: "open" | "closed" | "in_progress"
+  opened_by: User | null
+  closed_by: User | null
+  assigned_to: User | null
+  reopened_by: User | null
+  tags: Array<string>
+  created_at: string
+  message_ts: string
+}
+
+interface User {
+  id: number
+  slack_id: string
+}
+```
+
+## `/api/ticket?id=<TICKET_ID>`
+
+Returns a single ticket! See above for details on the ticket object returned.
+
+Required parameter:
+
+- `?id=` - the ID of the ticket to return
