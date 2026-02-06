@@ -16,7 +16,7 @@ def slack_timestamp(dt: datetime, format: str = "date_short") -> str:
 async def send_fulfillment_reminder():
     """
     Checks for 'Shop/fulfillment query' tag and sends a reminder with open tickets for the fulfillment team/amber
-    Run daily at 2 PM EST
+    Run daily at 2 PM (London Time)
     """
 
     target_tag_name = "Shop/fulfillment query"
@@ -48,7 +48,9 @@ async def send_fulfillment_reminder():
         msg_header = f"oh hi <@{target_slack_id}>! i found some fulfillment tickets for you! :rac_cute:"
 
         if not tickets:
-            msg_body = "_no new open fulfillment tickets in the last 24 hours! nice!_"
+            logging.info("No open fulfillment tickets found. Skipping Slack reminder.")
+            return
+
         else:
             msg_lines = [
                 f":rac_shy: *tickets needing attention ({len(tickets)})*",

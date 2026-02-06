@@ -8,8 +8,6 @@ from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.actions.assign_category_tag import assign_category_tag_callback
 from nephthys.actions.assign_team_tag import assign_team_tag_callback
-from nephthys.actions.create_category_tag import create_category_tag_btn_callback
-from nephthys.actions.create_category_tag import create_category_tag_view_callback
 from nephthys.actions.create_team_tag import create_team_tag_btn_callback
 from nephthys.actions.create_team_tag import create_team_tag_view_callback
 from nephthys.actions.resolve import resolve
@@ -100,25 +98,11 @@ async def create_team_tag(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebC
     await create_team_tag_btn_callback(ack, body, client)
 
 
-@app.action("create-category-tag")
-async def create_category_tag(
-    ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
-):
-    await create_category_tag_btn_callback(ack, body, client)
-
-
 @app.view("create_team_tag")
 async def create_team_tag_view(
     ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
 ):
     await create_team_tag_view_callback(ack, body, client)
-
-
-@app.view("create_category_tag")
-async def create_category_tag_view(
-    ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
-):
-    await create_category_tag_view_callback(ack, body, client)
 
 
 @app.action("tag-subscribe")
@@ -145,17 +129,3 @@ async def dm_magic_link(
     command, ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
 ):
     await dm_magic_link_cmd_callback(command, ack, body, client)
-
-
-@app.action("manage-tags")
-async def manage_tags(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient):
-    from nephthys.actions.manage_tags import open_manage_tags_modal
-
-    await open_manage_tags_modal(ack, body, client)
-
-
-@app.view("save-tags")
-async def save_tags(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient):
-    from nephthys.actions.manage_tags import handle_manage_tags_save
-
-    await handle_manage_tags_save(ack, body, client)

@@ -49,22 +49,6 @@ async def backend_message_blocks(
     return [
         question_tags_dropdown,
         {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": "If none of the existing tags fit :point_right:",
-            },
-            "accessory": {
-                "type": "button",
-                "text": {
-                    "type": "plain_text",
-                    "text": ":wrench: new category tag",
-                    "emoji": True,
-                },
-                "action_id": "create-category-tag",
-            },
-        },
-        {
             "type": "input",
             "label": {"type": "plain_text", "text": "Team tags", "emoji": True},
             "element": {

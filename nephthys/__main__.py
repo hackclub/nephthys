@@ -49,7 +49,11 @@ async def main(_app: Starlette):
             scheduler.add_job(send_daily_stats, "cron", hour=0, minute=0)
 
         scheduler.add_job(
-            send_fulfillment_reminder, "cron", hour=14, minute=0, timezone="US/Eastern"
+            send_fulfillment_reminder,
+            "cron",
+            hour=14,
+            minute=0,
+            timezone="Europe/London",
         )
 
         scheduler.add_job(

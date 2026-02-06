@@ -31,6 +31,12 @@ TICKET_TITLE_GENERATION_DURATION = Histogram(
 )
 
 
+TICKET_CATEGORY_GENERATION_DURATION = Histogram(
+    "nephthys_ticket_category_generation_duration_seconds",
+    "How long it takes to generate a category tag using AI",
+)
+
+
 async def handle_message_sent_to_channel(event: Dict[str, Any], client: AsyncWebClient):
     """Tell a non-helper off because they sent a thread message with the 'send to channel' box checked."""
     await client.chat_delete(
@@ -175,6 +181,10 @@ async def handle_new_question(
         "AI ticket title generation", TICKET_TITLE_GENERATION_DURATION
     ):
         title = await generate_ticket_title(text)
+
+    async with perf_timer(
+        "AI category tag generation", TICKET_CATEGORY_GENERATION_DURATION
+    ):
         category_tag_id = await generate_category_tag(text)
 
     if category_tag_id:
@@ -216,6 +226,11 @@ async def handle_new_question(
             ticket_data["categoryTag"] = {"connect": {"id": category_tag_id}}
 
         ticket = await env.db.ticket.create(ticket_data)
+
+        if not category_tag_id:
+            logging.warning(
+                f"Failed to generate category tag for ticket_id={ticket.id}"
+            )
 
     try:
         await client.reactions_add(

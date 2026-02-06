@@ -41,19 +41,6 @@ def header_buttons(current_view: str, user: User | None):
         }
     )
 
-    if user and user.admin:
-        buttons.append(
-            {
-                "type": "button",
-                "text": {
-                    "type": "plain_text",
-                    "text": "Manage Category Tags",
-                    "emoji": True,
-                },
-                "action_id": "manage-tags",
-            }
-        )
-
     blocks = {"type": "actions", "elements": buttons}
     return blocks
 
