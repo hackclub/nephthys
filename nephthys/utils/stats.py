@@ -5,6 +5,7 @@ from typing import TypedDict
 
 from nephthys.utils.env import env
 from nephthys.utils.old_tickets import get_unanswered_tickets
+from nephthys.utils.ticket_methods import get_question_message_link
 from prisma.enums import TicketStatus
 from prisma.models import Ticket
 from prisma.models import User
@@ -15,6 +16,13 @@ class LeaderboardEntry(TypedDict):
     count: int
 
 
+class OldestUnansweredTicket(TypedDict):
+    id: int
+    created_at: str
+    age_minutes: float
+    link: str
+
+
 @dataclass
 class OverallStatsResult:
     tickets_total: int
@@ -22,9 +30,32 @@ class OverallStatsResult:
     tickets_closed: int
     tickets_in_progress: int
     helpers_leaderboard: list[LeaderboardEntry]
-    avg_hang_time_minutes: float | None
+    mean_hang_time_minutes_unresolved: float | None
+    mean_hang_time_minutes_all: float | None
     mean_resolution_time_minutes: float | None
-    oldest_unanswered_ticket_age_minutes: float | None
+    oldest_unanswered_ticket: OldestUnansweredTicket | None
+
+    def as_dict(self) -> dict:
+        # Warning: Changing these keys will break the stats API
+        # Note: These fields are documented for end users in api.md
+        return {
+            "tickets_total": self.tickets_total,
+            "tickets_open": self.tickets_open,
+            "tickets_closed": self.tickets_closed,
+            "tickets_in_progress": self.tickets_in_progress,
+            "helpers_leaderboard": [
+                {
+                    "id": entry["user"].id,
+                    "slack_id": entry["user"].slackId,
+                    "count": entry["count"],
+                }
+                for entry in self.helpers_leaderboard
+            ],
+            "mean_hang_time_minutes_unresolved": self.mean_hang_time_minutes_unresolved,
+            "mean_hang_time_minutes_all": self.mean_hang_time_minutes_all,
+            "mean_resolution_time_minutes": self.mean_resolution_time_minutes,
+            "oldest_unanswered_ticket": self.oldest_unanswered_ticket,
+        }
 
 
 def calculate_hang_times(
@@ -71,14 +102,23 @@ async def calculate_overall_stats() -> OverallStatsResult:
         reverse=True,
     )
 
-    hang_times = calculate_hang_times(tickets, include_closed_tickets=False)
+    hang_times_unresolved = calculate_hang_times(tickets, include_closed_tickets=False)
+    hang_times_all = calculate_hang_times(tickets, include_closed_tickets=True)
     resolution_times = calculate_resolution_times(tickets)
 
     oldest_unanswered_tickets = await get_unanswered_tickets()
+    oldest_unanswered_ticket = (
+        oldest_unanswered_tickets[0] if oldest_unanswered_tickets else None
+    )
     now = datetime.now().astimezone()
-    oldest_unanswered_ticket_age = (
-        (now - oldest_unanswered_tickets[0].createdAt).total_seconds() / 60
-        if oldest_unanswered_tickets
+    oldest_unanswered_ticket_info = (
+        OldestUnansweredTicket(
+            id=oldest_unanswered_ticket.id,
+            created_at=oldest_unanswered_ticket.createdAt.isoformat(),
+            age_minutes=(now - oldest_unanswered_ticket.createdAt).total_seconds() / 60,
+            link=get_question_message_link(oldest_unanswered_ticket),
+        )
+        if oldest_unanswered_ticket
         else None
     )
 
@@ -88,11 +128,14 @@ async def calculate_overall_stats() -> OverallStatsResult:
         tickets_closed=total_closed,
         tickets_in_progress=total_in_progress,
         helpers_leaderboard=helpers_leaderboard,
-        avg_hang_time_minutes=fmean(hang_times) if hang_times else None,
+        mean_hang_time_minutes_unresolved=fmean(hang_times_unresolved)
+        if hang_times_unresolved
+        else None,
+        mean_hang_time_minutes_all=fmean(hang_times_all) if hang_times_all else None,
         mean_resolution_time_minutes=fmean(resolution_times)
         if resolution_times
         else None,
-        oldest_unanswered_ticket_age_minutes=oldest_unanswered_ticket_age,
+        oldest_unanswered_ticket=oldest_unanswered_ticket_info,
     )
 
 
@@ -110,11 +153,35 @@ class DailyStatsResult:
     assigned_today_in_progress: int
     helpers_leaderboard: list[LeaderboardEntry]
     # Mean time to response for tickets created today and currently in-progress
-    avg_hang_time_current_minutes: float | None
+    mean_hang_time_minutes_unresolved: float | None
     # Mean time to response for all tickets created today
-    avg_hang_time_all_minutes: float | None
+    mean_hang_time_minutes_all: float | None
     # Mean time to resolution for tickets created today
     mean_resolution_time_minutes: float | None
+
+    def as_dict(self) -> dict:
+        # Warning: Changing these keys will break the stats API
+        # Note: These fields are documented for end users in api.md
+        return {
+            "new_tickets_total": self.new_tickets_total,
+            "new_tickets_now_closed": self.new_tickets_now_closed,
+            "new_tickets_still_open": self.new_tickets_still_open,
+            "new_tickets_in_progress": self.new_tickets_in_progress,
+            "closed_today": self.closed_today,
+            "closed_today_from_today": self.closed_today_from_today,
+            "assigned_today_in_progress": self.assigned_today_in_progress,
+            "helpers_leaderboard": [
+                {
+                    "id": entry["user"].id,
+                    "slack_id": entry["user"].slackId,
+                    "count": entry["count"],
+                }
+                for entry in self.helpers_leaderboard
+            ],
+            "mean_hang_time_minutes_unresolved": self.mean_hang_time_minutes_unresolved,
+            "mean_hang_time_minutes_all": self.mean_hang_time_minutes_all,
+            "mean_resolution_time_minutes": self.mean_resolution_time_minutes,
+        }
 
 
 async def calculate_daily_stats(
@@ -129,13 +196,7 @@ async def calculate_daily_stats(
 
     new_tickets_total = len(tickets_created_today)
     new_tickets_now_closed = len(
-        [
-            t
-            for t in tickets_created_today
-            if t.status == TicketStatus.CLOSED
-            and t.closedAt
-            and start_time <= t.closedAt < end_time
-        ]
+        [t for t in tickets_created_today if t.status == TicketStatus.CLOSED]
     )
     new_tickets_still_open = len(
         [t for t in tickets_created_today if t.status == TicketStatus.OPEN]
@@ -199,7 +260,7 @@ async def calculate_daily_stats(
         new_tickets_now_closed=new_tickets_now_closed,
         new_tickets_in_progress=new_tickets_in_progress,
         new_tickets_still_open=new_tickets_still_open,
-        avg_hang_time_current_minutes=hang_time_current,
-        avg_hang_time_all_minutes=hang_time_all,
+        mean_hang_time_minutes_unresolved=hang_time_current,
+        mean_hang_time_minutes_all=hang_time_all,
         mean_resolution_time_minutes=resolution_time,
     )
