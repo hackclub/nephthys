@@ -7,7 +7,7 @@ class Stasis(Transcript):
     program_name: str = "Stasis"
     program_owner: str = "U01581HFAGZ"
 
-    help_channel: str = "C09JP51FHN"
+    help_channel: str = "C09JP51FHNE"
     ticket_channel: str = "C0ADS32EJKE"
     team_channel: str = "C09HXBX6336"
 
