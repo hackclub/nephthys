@@ -21,6 +21,7 @@ from nephthys.utils.ticket_methods import delete_and_clean_up_ticket
 from prisma.enums import TicketStatus
 from prisma.enums import UserType
 from prisma.models import User
+from prisma.types import TicketCreateInput
 
 # Message subtypes that should be handled by on_message (messages with no subtype are always handled)
 ALLOWED_SUBTYPES = ["file_share", "me_message", "thread_broadcast"]
@@ -208,7 +209,7 @@ async def handle_new_question(
         return
 
     async with perf_timer("Creating ticket in DB"):
-        ticket_data = {
+        ticket_data: TicketCreateInput = {
             "title": title,
             "description": text,
             "msgTs": event["ts"],
