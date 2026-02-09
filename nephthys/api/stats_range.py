@@ -13,7 +13,7 @@ async def stats_range(req: Request):
         try:
             since = datetime.fromisoformat(since).astimezone(UTC)
         except ValueError:
-            msg = f"created_after parameter is not a valid ISO datetime: {since}"
+            msg = f"not a valid ISO datetime: {since}"
             return JSONResponse({"error": msg}, status_code=400)
     else:
         since = datetime.fromtimestamp(0, UTC)
@@ -23,7 +23,7 @@ async def stats_range(req: Request):
         try:
             until = datetime.fromisoformat(until).astimezone(UTC)
         except ValueError:
-            msg = f"created_before parameter is not a valid ISO datetime: {until}"
+            msg = f"not a valid ISO datetime: {until}"
             return JSONResponse({"error": msg}, status_code=400)
     else:
         until = datetime.now(UTC)
