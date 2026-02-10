@@ -4,11 +4,12 @@ Nephthys is the bot powering many support channels in the Hack Club Slack such a
 
 ## Features
 
-### Question tags
 
-Quite often in help channels, the same question gets asked again and again. Helpers can associate tickets with a "question tag", which are pre-defined questions/issue such as "What's the payout range?", "How to top up grant?", or "404 on /shop". We can then keep track of how these questions trend over time, to provide a feedback loop for people building the event/platform/YSWS.
+### Category tags
 
-They can be added to tickets in the private tickets channel.
+Category tags are used to classify tickets into broader categories such as "Fulfillment", "Identity", or "Platform Issues". When a new ticket is created, AI analyzes the message content and automatically assigns the most relevant category tag.
+
+Helpers can reassign these tags in the private tickets channel if the AI suggestion is incorrect.
 
 ### Team tags
 

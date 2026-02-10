@@ -30,7 +30,7 @@ async def backend_message_blocks(
         ][0]
     else:
         initial_option = None
-    question_tags_dropdown = {
+    category_tags_dropdown = {
         "type": "input",
         "label": {"type": "plain_text", "text": "Category tag", "emoji": True},
         "element": {
@@ -44,10 +44,10 @@ async def backend_message_blocks(
         },
     }
     if initial_option:
-        question_tags_dropdown["element"]["initial_option"] = initial_option
+        category_tags_dropdown["element"]["initial_option"] = initial_option
 
     return [
-        question_tags_dropdown,
+        category_tags_dropdown,
         {
             "type": "input",
             "label": {"type": "plain_text", "text": "Team tags", "emoji": True},
