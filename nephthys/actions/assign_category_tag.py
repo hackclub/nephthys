@@ -10,7 +10,7 @@ from nephthys.events.message.send_backend_message import backend_message_fallbac
 from nephthys.utils.env import env
 
 
-async def assign_question_tag_callback(
+async def assign_category_tag_callback(
     ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
 ):
     await ack()
@@ -30,7 +30,7 @@ async def assign_question_tag_callback(
     user = await env.db.user.find_unique(where={"slackId": user_id})
     if not user or not user.helper:
         logging.warning(
-            f"Unauthorized user attempted to assign question tag user_id={user_id}"
+            f"Unauthorized user attempted to assign category tag user_id={user_id}"
         )
         await client.chat_postEphemeral(
             channel=channel_id,
@@ -42,7 +42,7 @@ async def assign_question_tag_callback(
     ticket = await env.db.ticket.update(
         where={"ticketTs": ts},
         data={
-            "questionTag": (
+            "categoryTag": (
                 {"connect": {"id": tag_id}}
                 if tag_id is not None
                 else {"disconnect": True}
@@ -52,7 +52,7 @@ async def assign_question_tag_callback(
     )
     if not ticket:
         logging.error(
-            f"Failed to find corresponding ticket to update question tag ticket_ts={ts}"
+            f"Failed to find corresponding ticket to update category tag ticket_ts={ts}"
         )
         return
 
@@ -78,11 +78,11 @@ async def assign_question_tag_callback(
             author_user_id=ticket.openedBy.slackId,
             msg_ts=ticket.msgTs,
             past_tickets=other_tickets,
-            current_question_tag_id=tag_id,
+            current_category_tag_id=tag_id,
             reopened_by=ticket.reopenedBy,
         ),
     )
 
     logging.info(
-        f"Updated question tag on ticket ticket_id={ticket.id} tag_id={tag_id}"
+        f"Updated category tag on ticket ticket_id={ticket.id} tag_id={tag_id}"
     )

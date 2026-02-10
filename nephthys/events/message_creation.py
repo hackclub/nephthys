@@ -1,4 +1,5 @@
 import logging
+import string
 from datetime import datetime
 from typing import Any
 from typing import Dict
@@ -8,6 +9,8 @@ from prometheus_client import Histogram
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
+from nephthys.events.message.send_backend_message import backend_message_blocks
+from nephthys.events.message.send_backend_message import backend_message_fallback_text
 from nephthys.events.message.send_backend_message import send_backend_message
 from nephthys.macros import run_macro
 from nephthys.utils.env import env
@@ -18,6 +21,7 @@ from nephthys.utils.ticket_methods import delete_and_clean_up_ticket
 from prisma.enums import TicketStatus
 from prisma.enums import UserType
 from prisma.models import User
+from prisma.types import TicketCreateInput
 
 # Message subtypes that should be handled by on_message (messages with no subtype are always handled)
 ALLOWED_SUBTYPES = ["file_share", "me_message", "thread_broadcast"]
@@ -25,6 +29,12 @@ ALLOWED_SUBTYPES = ["file_share", "me_message", "thread_broadcast"]
 TICKET_TITLE_GENERATION_DURATION = Histogram(
     "nephthys_ticket_title_generation_duration_seconds",
     "How long it takes to generate a ticket title using AI",
+)
+
+
+TICKET_CATEGORY_GENERATION_DURATION = Histogram(
+    "nephthys_ticket_category_generation_duration_seconds",
+    "How long it takes to generate a category tag using AI",
 )
 
 
@@ -173,27 +183,55 @@ async def handle_new_question(
     ):
         title = await generate_ticket_title(text)
 
+    async with perf_timer(
+        "AI category tag generation", TICKET_CATEGORY_GENERATION_DURATION
+    ):
+        category_tag_id = await generate_category_tag(text)
+
+    if category_tag_id:
+        blocks = await backend_message_blocks(
+            author_user_id=author_id,
+            msg_ts=event["ts"],
+            past_tickets=past_tickets,
+            current_category_tag_id=category_tag_id,
+        )
+
+        await client.chat_update(
+            channel=env.slack_ticket_channel,
+            ts=ticket_message_ts,
+            text=backend_message_fallback_text(author_id, text),
+            blocks=blocks,
+        )
+
     user_facing_message_ts = user_facing_message["ts"]
     if not user_facing_message_ts:
         logging.error(f"User-facing message has no ts: {user_facing_message}")
         return
 
     async with perf_timer("Creating ticket in DB"):
-        ticket = await env.db.ticket.create(
-            {
-                "title": title,
-                "description": text,
-                "msgTs": event["ts"],
-                "ticketTs": ticket_message_ts,
-                "openedBy": {"connect": {"id": db_user.id}},
-                "userFacingMsgs": {
-                    "create": {
-                        "channelId": event["channel"],
-                        "ts": user_facing_message_ts,
-                    }
-                },
+        ticket_data: TicketCreateInput = {
+            "title": title,
+            "description": text,
+            "msgTs": event["ts"],
+            "ticketTs": ticket_message_ts,
+            "openedBy": {"connect": {"id": db_user.id}},
+            "userFacingMsgs": {
+                "create": {
+                    "channelId": event["channel"],
+                    "ts": user_facing_message_ts,
+                }
             },
-        )
+        }
+
+        if category_tag_id:
+            ticket_data["categoryTag"] = {"connect": {"id": category_tag_id}}
+
+        ticket = await env.db.ticket.create(ticket_data)
+
+        if not category_tag_id:
+            logging.warning(
+                f"Failed to generate category tag for ticket_id={ticket.id}"
+            )
 
     try:
         await client.reactions_add(
@@ -341,3 +379,56 @@ async def generate_ticket_title(text: str):
     # Capitalise first letter
     title = title[0].upper() + title[1:] if len(title) > 1 else title.upper()
     return title
+
+
+async def generate_category_tag(text: str) -> int | None:
+    category_tags = await env.db.categorytag.find_many()
+
+    if not category_tags:
+        return None
+
+    tag_options = ", ".join([tag.name for tag in category_tags])
+    tag_map = {tag.name.lower(): tag for tag in category_tags}
+
+    if not env.ai_client:
+        return None
+
+    model = "google/gemini-3-flash-preview"
+    try:
+        response = await env.ai_client.chat.completions.create(
+            model=model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a helpful assistant that categorizes support tickets! "
+                        f"Choose the best tag from this list: [{tag_options}]. "
+                        "Return ONLY the exact tag name. If none fit, return 'None'."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": f"Ticket content: {text}",
+                },
+            ],
+        )
+    except OpenAIError as e:
+        await send_heartbeat(f"Failed to get AI response for tag generation: {e}")
+        return None
+
+    if not (len(response.choices) and response.choices[0].message.content):
+        return None
+
+    suggested_tag_label = response.choices[0].message.content.strip()
+
+    suggested_clean = suggested_tag_label.strip(string.punctuation)
+
+    original_label = tag_map.get(suggested_clean.lower())
+
+    if not original_label:
+        original_label = tag_map.get(suggested_tag_label.lower())
+
+    if original_label:
+        return original_label.id
+
+    return None

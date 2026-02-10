@@ -2,7 +2,7 @@ from nephthys.utils.env import env
 from prisma.models import User
 
 
-def header_buttons(current_view: str):
+def header_buttons(current_view: str, user: User | None):
     buttons = []
 
     buttons.append(
@@ -59,6 +59,6 @@ def title_line():
 def get_header(user: User | None, current: str = "dashboard") -> list[dict]:
     return [
         title_line(),
-        header_buttons(current),
+        header_buttons(current, user),
         {"type": "divider"},
     ]
