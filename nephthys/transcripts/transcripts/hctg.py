@@ -7,9 +7,9 @@ class Hctg(Transcript):
     program_name: str = "Hack Club The Game"
     program_owner: str = "U01MPHKFZ7S"
 
-    help_channel: str = "C0A9XULS1SL" #hctg-help
-    ticket_channel: str = "C0AF2HXHNSG" #hctg-tickets
-    team_channel: str = "C08B3M2DNSW" #hack-club-the-game-internals
+    help_channel: str = "C0A9XULS1SL" # hctg-help
+    ticket_channel: str = "C0AF2HXHNSG" # hctg-tickets
+    team_channel: str = "C08B3M2DNSW" # hack-club-the-game-internals
 
     faq_link: str = "https://hackclub.enterprise.slack.com/docs/T0266FRGM/F0AEVK71A69"
 
