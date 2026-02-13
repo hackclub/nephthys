@@ -20,4 +20,5 @@ transcripts: List[Type[Transcript]] = [
     Construct,
     Jumpstart,
     Stasis,
+    Hctg,
 ]
