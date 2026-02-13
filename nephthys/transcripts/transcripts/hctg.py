@@ -4,7 +4,7 @@ from nephthys.transcripts.transcript import Transcript
 class Hctg(Transcript):
     """Transcript for Hack Club The Game"""
 
-    program_name: str = "Hack Club The Game"
+    program_name: str = "hctg"
     program_owner: str = "U01MPHKFZ7S"
 
     help_channel: str = "C0A9XULS1SL" # hctg-help
