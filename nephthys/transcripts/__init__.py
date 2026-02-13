@@ -8,6 +8,7 @@ from nephthys.transcripts.transcripts.identity import Identity
 from nephthys.transcripts.transcripts.jumpstart import Jumpstart
 from nephthys.transcripts.transcripts.midnight import Midnight
 from nephthys.transcripts.transcripts.stasis import Stasis
+from nephthys.transcripts.transcripts.hctg import HCTG
 from nephthys.transcripts.transcripts.summer_of_making import SummerOfMaking
 
 
@@ -19,4 +20,5 @@ transcripts: List[Type[Transcript]] = [
     Construct,
     Jumpstart,
     Stasis,
+    HCTG
 ]
