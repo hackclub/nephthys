@@ -23,6 +23,7 @@ from nephthys.options.category_tags import get_category_tags
 from nephthys.options.team_tags import get_team_tags
 from nephthys.utils.env import env
 from nephthys.utils.performance import perf_timer
+from nephthys.views.home import APP_HOME_VIEWS
 
 app = AsyncApp(token=env.slack_bot_token, signing_secret=env.slack_signing_secret)
 
@@ -71,16 +72,16 @@ async def app_home_opened_handler(event: dict[str, Any], client: AsyncWebClient)
     await on_app_home_opened(event, client)
 
 
-@app.action("dashboard")
-@app.action("assigned-tickets")
-@app.action("team-tags")
-@app.action("my-stats")
 async def manage_home_switcher(ack: AsyncAck, body, client: AsyncWebClient):
     await ack()
     user_id = body["user"]["id"]
     action_id = body["actions"][0]["action_id"]
 
     await open_app_home(action_id, client, user_id)
+
+
+for view in APP_HOME_VIEWS:
+    app.action(view.id)(manage_home_switcher)
 
 
 @app.event("member_joined_channel")

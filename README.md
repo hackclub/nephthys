@@ -4,7 +4,6 @@ Nephthys is the bot powering many support channels in the Hack Club Slack such a
 
 ## Features
 
-
 ### Category tags
 
 Category tags are used to classify tickets into broader categories such as "Fulfillment", "Identity", or "Platform Issues". When a new ticket is created, AI analyzes the message content and automatically assigns the most relevant category tag.
@@ -41,7 +40,9 @@ Stale ticket handling is not working at the moment, but more features for dealin
 
 ### Leaderboard
 
-At midnight UK time each day, you get to see the stats for the day in the team channel! Helpers can also see more detailed stats at any time on the app home for the bot!
+At midnight UK time each day, you get to see the stats for the day in the team channel, as well as a summary of any old tickets that have been waiting for a helper response for over 5 days.
+
+Helpers can see more detailed stats at any time on the app home for the bot!
 
 ### Assigned Tickets
 
@@ -131,6 +132,10 @@ Your Slack app should now be running and connected to your Slack workspace!
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+A work-in progress document with some codebase conventions can be found at [docs/contributing.md](docs/contributing.md).
+
+The [#nephthys-dev](https://hackclub.enterprise.slack.com/archives/C09QR2BH3GE) channel in the Slack is available for technical discussion or questions.
 
 ### Scripts
 

@@ -4,6 +4,7 @@ from datetime import timezone
 from io import BytesIO
 
 import numpy as np
+from blockkit import Image
 
 from nephthys.utils.bucky import upload_file
 from nephthys.utils.env import env
@@ -12,10 +13,12 @@ from nephthys.utils.performance import perf_timer
 from nephthys.utils.time import is_day
 from prisma.enums import TicketStatus
 
+LAST_DAYS = 7
 
-async def get_ticket_status_pie_chart(
-    tz: timezone | None = None, raw: bool = False
-) -> dict | bytes:
+
+async def generate_ticket_status_pie_image(tz: timezone | None = None) -> bytes:
+    """Generates a pie chart showing percentages of open/closed/in progress
+    tickets over the last 7 days, renders it as a PNG and returns it as bytes."""
     is_daytime = is_day(tz) if tz else True
 
     if is_daytime:
@@ -26,7 +29,7 @@ async def get_ticket_status_pie_chart(
         bg_colour = "#181A1E"
 
     now = datetime.now(timezone.utc)
-    one_week_ago = now - timedelta(days=7)
+    one_week_ago = now - timedelta(days=LAST_DAYS)
 
     async with perf_timer("Fetching ticket counts from DB"):
         recently_closed_tickets = await env.db.ticket.count(
@@ -76,29 +79,28 @@ async def get_ticket_status_pie_chart(
             format="png",
         )
 
-    if raw:
-        return b.getvalue()
+    return b.getvalue()
+
+
+async def ticket_status_pie_chart_component(tz: timezone | None = None):
+    pie_chart_image = await generate_ticket_status_pie_image(tz)
 
     async with perf_timer("Uploading pie chart"):
         url = await upload_file(
-            file=b.getvalue(),
+            file=pie_chart_image,
             filename="ticket_status.png",
             content_type="image/png",
         )
 
-    caption = "Ticket stats"
-
     if not url:
-        url = f"{env.base_url}/public/binoculars.png"
-        caption = "looks like heidi's scrounging around for tickets in the trash"
+        return Image(
+            image_url=f"{env.base_url}/public/binoculars.png",
+            alt_text="Heidi looking for tickets with binoculars",
+            title="looks like heidi's scrounging around for tickets in the trash",
+        )
 
-    return {
-        "type": "image",
-        "title": {
-            "type": "plain_text",
-            "text": caption,
-            "emoji": True,
-        },
-        "image_url": url,
-        "alt_text": "Ticket Stats",
-    }
+    return Image(
+        image_url=url,
+        alt_text="Ticket Stats",
+        title=f"Ticket stats (last {LAST_DAYS} days)",
+    )

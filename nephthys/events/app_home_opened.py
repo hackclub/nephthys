@@ -10,8 +10,8 @@ from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.performance import perf_timer
 from nephthys.views.home.assigned import get_assigned_tickets_view
+from nephthys.views.home.dashboard import get_dashboard_view
 from nephthys.views.home.error import get_error_view
-from nephthys.views.home.helper import get_helper_view
 from nephthys.views.home.loading import get_loading_view
 from nephthys.views.home.stats import get_stats_view
 from nephthys.views.home.team_tags import get_team_tags_view
@@ -51,7 +51,7 @@ async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
         ):
             match home_type:
                 case "dashboard":
-                    view = await get_helper_view(slack_user=user_id, db_user=user)
+                    view = await get_dashboard_view(slack_user=user_id, db_user=user)
                 case "assigned-tickets":
                     view = await get_assigned_tickets_view(user)
                 case "team-tags":

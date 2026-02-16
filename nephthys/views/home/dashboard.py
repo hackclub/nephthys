@@ -1,17 +1,21 @@
 import logging
 
 import pytz
+from blockkit import Header
+from blockkit import Home
 
 from nephthys.utils.env import env
 from nephthys.utils.performance import perf_timer
-from nephthys.views.home.components.header import get_header
-from nephthys.views.home.components.leaderboards import get_leaderboard_view
-from nephthys.views.home.components.ticket_status_pie import get_ticket_status_pie_chart
+from nephthys.views.home.components.header import get_header_components
+from nephthys.views.home.components.leaderboards import get_leaderboard_components
+from nephthys.views.home.components.ticket_status_pie import (
+    ticket_status_pie_chart_component,
+)
 from nephthys.views.home.error import get_error_view
 from prisma.models import User
 
 
-async def get_helper_view(slack_user: str, db_user: User | None):
+async def get_dashboard_view(slack_user: str, db_user: User | None):
     async with perf_timer("Fetching user info"):
         user_info_response = await env.slack_client.users_info(user=slack_user)
     user_info = user_info_response.get("user")
@@ -27,26 +31,16 @@ async def get_helper_view(slack_user: str, db_user: User | None):
     tz = pytz.timezone(tz_string)
 
     async with perf_timer("Rendering pie chart (total time)"):
-        pie_chart = await get_ticket_status_pie_chart(tz)
+        pie_chart = await ticket_status_pie_chart_component(tz)  # type: ignore (it works)
 
     async with perf_timer("Generating leaderboard"):
-        leaderboard = await get_leaderboard_view()
+        leaderboard = await get_leaderboard_components()
 
-    header = get_header(db_user, "dashboard")
-
-    return {
-        "type": "home",
-        "blocks": [
-            *header,
-            {
-                "type": "header",
-                "text": {
-                    "type": "plain_text",
-                    "text": ":rac_graph: funny circle and line things",
-                    "emoji": True,
-                },
-            },
+    return Home(
+        [
+            *get_header_components(db_user, "dashboard"),
+            Header(":rac_graph: funny circle and line things"),
             pie_chart,
             *leaderboard,
-        ],
-    }
+        ]
+    ).build()
