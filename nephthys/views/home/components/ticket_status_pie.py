@@ -13,6 +13,8 @@ from nephthys.utils.performance import perf_timer
 from nephthys.utils.time import is_day
 from prisma.enums import TicketStatus
 
+LAST_DAYS = 7
+
 
 async def generate_ticket_status_pie_image(tz: timezone | None = None) -> bytes:
     """Generates a pie chart showing percentages of open/closed/in progress
@@ -27,7 +29,7 @@ async def generate_ticket_status_pie_image(tz: timezone | None = None) -> bytes:
         bg_colour = "#181A1E"
 
     now = datetime.now(timezone.utc)
-    one_week_ago = now - timedelta(days=7)
+    one_week_ago = now - timedelta(days=LAST_DAYS)
 
     async with perf_timer("Fetching ticket counts from DB"):
         recently_closed_tickets = await env.db.ticket.count(
@@ -91,13 +93,14 @@ async def ticket_status_pie_chart_component(tz: timezone | None = None):
         )
 
     if not url:
-        url = f"{env.base_url}/public/binoculars.png"
-        caption = "looks like heidi's scrounging around for tickets in the trash"
-
-    caption = "Ticket stats"
+        return Image(
+            image_url=f"{env.base_url}/public/binoculars.png",
+            alt_text="Heidi looking for tickets with binoculars",
+            title="looks like heidi's scrounging around for tickets in the trash",
+        )
 
     return Image(
         image_url=url,
         alt_text="Ticket Stats",
-        title=caption,
+        title=f"Ticket stats (last {LAST_DAYS} days)",
     )
