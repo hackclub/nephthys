@@ -1,3 +1,4 @@
+from blockkit import Actions
 from blockkit import Button
 from blockkit import Divider
 from blockkit import Header
@@ -8,8 +9,8 @@ from nephthys.views.home import APP_HOME_VIEWS
 from prisma.models import User
 
 
-def header_buttons(current_view: str, user: User | None):
-    buttons = []
+def header_buttons(current_view: str):
+    buttons = Actions()
 
     for view in APP_HOME_VIEWS:
         style = Button.PRIMARY if view.id == current_view else None
