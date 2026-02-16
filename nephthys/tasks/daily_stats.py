@@ -9,7 +9,9 @@ from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.old_tickets import get_unanswered_tickets
 from nephthys.utils.stats import calculate_daily_stats
 from nephthys.utils.ticket_methods import get_question_message_link
-from nephthys.views.home.components.ticket_status_pie import get_ticket_status_pie_chart
+from nephthys.views.home.components.ticket_status_pie import (
+    generate_ticket_status_pie_image,
+)
 from prisma.models import Ticket
 
 
@@ -93,8 +95,8 @@ async def send_daily_stats():
             since=today_midnight_london - timedelta(days=5)
         )
 
-        pie_chart = await get_ticket_status_pie_chart(
-            raw=True, tz=timezone(now_london.utcoffset() or timedelta(0))
+        pie_chart = await generate_ticket_status_pie_image(
+            tz=timezone(now_london.utcoffset() or timedelta(0))
         )
 
         msg = f"""

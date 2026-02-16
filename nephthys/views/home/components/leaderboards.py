@@ -1,11 +1,15 @@
 from datetime import datetime
 from datetime import timedelta
 
+from blockkit import Header
+from blockkit import Section
+from blockkit import Text
+
 from nephthys.utils.stats import calculate_daily_stats
 from nephthys.utils.stats import calculate_overall_stats
 
 
-async def get_leaderboard_view():
+async def get_leaderboard_components():
     stats = await calculate_overall_stats()
     overall_leaderboard_lines = [
         f"{i + 1}. <@{entry['user'].slackId}> - {entry['count']} closed"
@@ -41,38 +45,28 @@ async def get_leaderboard_view():
     )
 
     return [
-        {
-            "type": "section",
-            "fields": [
-                {
-                    "type": "mrkdwn",
-                    "text": f"*Total Tickets*\nTotal: {stats.tickets_total}, Open: {stats.tickets_open}, In Progress: {stats.tickets_in_progress}, Closed: {stats.tickets_closed}\nHang time: {avg_hang_time_str}",
-                },
-                {
-                    "type": "mrkdwn",
-                    "text": f"*Past 24 Hours*\nTotal: {prev_day.new_tickets_total}, Open: {prev_day.new_tickets_still_open}, In Progress: {prev_day.assigned_today_in_progress}, Closed: {prev_day.closed_today}, Closed Today: {prev_day.closed_today_from_today}\nHang time: {avg_prev_day_hang_time_str}",
-                },
-            ],
-        },
-        {
-            "type": "header",
-            "text": {
-                "type": "plain_text",
-                "text": ":rac_lfg: leaderboard",
-                "emoji": True,
-            },
-        },
-        {
-            "type": "section",
-            "fields": [
-                {
-                    "type": "mrkdwn",
-                    "text": f"*:summer25: overall*\n{overall_leaderboard_str}",
-                },
-                {
-                    "type": "mrkdwn",
-                    "text": f"*:mc-clock: past 24 hours*\n{prev_day_leaderboard_str}",
-                },
-            ],
-        },
+        Section()
+        .add_field(
+            Text(
+                f"*Total Tickets*\nTotal: {stats.tickets_total}, "
+                f"Open: {stats.tickets_open}, "
+                f"In Progress: {stats.tickets_in_progress}, "
+                f"Closed: {stats.tickets_closed}\n"
+                f"Hang time: {avg_hang_time_str}",
+            )
+        )
+        .add_field(
+            Text(
+                f"*Past 24 Hours*\nTotal: {prev_day.new_tickets_total}, "
+                f"Open: {prev_day.new_tickets_still_open}, "
+                f"In Progress: {prev_day.assigned_today_in_progress}, "
+                f"Closed: {prev_day.closed_today}, "
+                f"Closed Today: {prev_day.closed_today_from_today}\n"
+                f"Hang time: {avg_prev_day_hang_time_str}",
+            )
+        ),
+        Header(":rac_lfg: leaderboard"),
+        Section()
+        .add_field(Text(f"*:summer25: overall*\n{overall_leaderboard_str}"))
+        .add_field(Text(f"*:mc-clock: past 24 hours*\n{prev_day_leaderboard_str}")),
     ]

@@ -30,6 +30,10 @@ def title_line():
 
 
 def get_header(user: User | None, current: str = "dashboard") -> list[dict]:
+    """Returns the app home header in Slack API JSON format
+
+    Deprecated over using blockkit and `get_header_components()`
+    """
     return [
         title_line().build(),
         header_buttons(current).build(),
@@ -40,6 +44,7 @@ def get_header(user: User | None, current: str = "dashboard") -> list[dict]:
 def get_header_components(
     user: User | None, current: str = "dashboard"
 ) -> list[ModalBlock]:
+    """Returns the app home header as blockkit components"""
     return [
         title_line(),
         header_buttons(current),
