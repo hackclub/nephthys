@@ -3,6 +3,7 @@ from typing import Type
 
 from nephthys.transcripts.transcript import Transcript
 from nephthys.transcripts.transcripts.construct import Construct
+from nephthys.transcripts.transcripts.fallout import Fallout
 from nephthys.transcripts.transcripts.flavortown import Flavortown
 from nephthys.transcripts.transcripts.hctg import Hctg
 from nephthys.transcripts.transcripts.identity import Identity
@@ -21,4 +22,5 @@ transcripts: List[Type[Transcript]] = [
     Jumpstart,
     Stasis,
     Hctg,
+    Fallout,
 ]
