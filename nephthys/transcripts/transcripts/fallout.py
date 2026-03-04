@@ -38,9 +38,9 @@ if you need any more help, just send another message in <#{help_channel}>!
 """
 
     faq_macro: str = f"""
-hey (user), this question is already answered in our FAQ! in case you missed it, you can get it here: <{faq_link}|*Flavortown FAQ*>.
+    hey (user), this question is already answered in our FAQ! in case you missed it, you can get it here: <{faq_link}|*Fallout FAQ*>.
 
-_i've marked this as resolved. if you need any more help, just send another message in <#{help_channel}>!_
-"""
+    _i've marked this as resolved. if you need any more help, just send another message in <#{help_channel}>!_
+    """
 
     not_allowed_channel: str = f"hey, it looks like you're not supposed to be in that channel, pls talk to <@{program_owner}> if that's wrong"
