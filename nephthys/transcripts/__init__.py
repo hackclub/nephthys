@@ -1,4 +1,5 @@
-from typing import List, Type
+from typing import List
+from typing import Type
 
 from nephthys.transcripts.transcript import Transcript
 from nephthys.transcripts.transcripts.construct import Construct
