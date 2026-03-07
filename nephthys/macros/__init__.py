@@ -8,6 +8,7 @@ from nephthys.macros.reopen import Reopen
 from nephthys.macros.resolve import Resolve
 from nephthys.macros.shipcertqueue import ShipCertQueue
 from nephthys.macros.shipwrights import Shipwrights
+from nephthys.macros.team_tag import TeamTag
 from nephthys.macros.thread import Thread
 from nephthys.macros.trigger_daily_stats import DailyStats
 from nephthys.macros.trigger_fulfillment_reminder import FulfillmentReminder
@@ -17,7 +18,6 @@ from nephthys.utils.logging import send_heartbeat
 from prisma.enums import TicketStatus
 from prisma.models import Ticket
 from prisma.models import User
-
 
 macro_list: list[type[Macro]] = [
     Resolve,
@@ -31,6 +31,7 @@ macro_list: list[type[Macro]] = [
     DailyStats,
     FulfillmentReminder,
     Shipwrights,
+    TeamTag,
 ]
 
 macros = [macro() for macro in macro_list]
