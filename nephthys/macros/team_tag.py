@@ -21,15 +21,15 @@ class TeamTag(Macro):
 
         tag_name = parts[1].strip()
 
-        tag = await env.db.tag.find_first(where={"name": tag_name})
+        all_tags = await env.db.tag.find_many()
+
+        tag = next((t for t in all_tags if t.name == tag_name), None)
         if not tag:
-            all_tags = await env.db.tag.find_many()
             matches = [t for t in all_tags if t.name.lower() == tag_name.lower()]
             tag = matches[0] if matches else None
 
         if not tag:
-            available = await env.db.tag.find_many()
-            names = ", ".join(f"`{t.name}`" for t in available)
+            names = ", ".join(f"`{t.name}`" for t in all_tags)
             await env.slack_client.chat_postEphemeral(
                 channel=env.slack_help_channel,
                 thread_ts=ticket.msgTs,

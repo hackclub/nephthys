@@ -10,6 +10,7 @@ from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.performance import perf_timer
 from nephthys.views.home.assigned import get_assigned_tickets_view
+from nephthys.views.home.category_tags import get_category_tags_view
 from nephthys.views.home.dashboard import get_dashboard_view
 from nephthys.views.home.error import get_error_view
 from nephthys.views.home.loading import get_loading_view
@@ -56,6 +57,8 @@ async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
                     view = await get_assigned_tickets_view(user)
                 case "team-tags":
                     view = await get_team_tags_view(user)
+                case "category-tags":
+                    view = await get_category_tags_view(user)
                 case "my-stats":
                     view = await get_stats_view(user)
                 case _:

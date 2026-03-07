@@ -48,8 +48,7 @@ async def get_is_stale(ts: str, max_retries: int = 3) -> bool:
                 )
                 await send_heartbeat(f"Thread not found for ticket {ts}.")
                 maintainer_user = await env.db.user.find_unique(
-                    # where={"slackId": env.slack_maintainer_id}
-                    where={"slackId": "U054VC2KM9P"}
+                    where={"slackId": env.slack_maintainer_id}
                 )
                 if maintainer_user:
                     await env.db.ticket.update(
@@ -109,14 +108,17 @@ async def close_stale_tickets():
 
                 if await get_is_stale(ticket.msgTs):
                     stale += 1
-                    resolver = (
-                        ticket.assignedToId
-                        if ticket.assignedToId
-                        else ticket.openedById
+                    resolver_user = (
+                        ticket.assignedTo if ticket.assignedTo else ticket.openedBy
                     )
+                    if not resolver_user:
+                        logging.warning(
+                            f"Skipping stale ticket {ticket.msgTs}: no assigned or opened user"
+                        )
+                        continue
                     await resolve(
                         ticket.msgTs,
-                        resolver,  # type: ignore (this is explicitly fetched in the db call)
+                        resolver_user.slackId,
                         env.slack_client,
                         stale=True,
                     )
