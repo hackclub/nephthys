@@ -56,13 +56,13 @@ async def main(_app: Starlette):
             timezone="Europe/London",
         )
 
-        scheduler.add_job(
-            close_stale_tickets,
-            "interval",
-            hours=1,
-            max_instances=1,
-            next_run_time=datetime.now(),
-        )
+        # scheduler.add_job(
+        #     close_stale_tickets,
+        #     "interval",
+        #     hours=1,
+        #     max_instances=1,
+        #     next_run_time=datetime.now(),
+        # )
         scheduler.start()
 
         delete_msg_task = asyncio.create_task(process_queue())
