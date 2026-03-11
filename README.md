@@ -34,9 +34,7 @@ Sometimes it’s nice to be able to do things quickly... Here’s where macros c
 
 ### Stale
 
-~~Tickets that have been not had a response for more than 3 days will automatically be closed as stale. The last helper to respond in the thread gets credit for closing them~~
-
-Stale ticket handling is not working at the moment, but more features for dealing with stale tickets are planned.
+Tickets that have not had a response for more than 3 days will automatically be closed as stale. The last helper to respond in the thread gets credit for closing them
 
 ### Leaderboard
 

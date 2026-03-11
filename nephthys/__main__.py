@@ -1,7 +1,6 @@
 import asyncio
 import contextlib
 import logging
-from datetime import datetime
 
 import uvicorn
 from aiohttp import ClientSession
@@ -9,7 +8,6 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 from starlette.applications import Starlette
 
-from nephthys.tasks.close_stale import close_stale_tickets
 from nephthys.tasks.daily_stats import send_daily_stats
 from nephthys.tasks.fulfillment_reminder import send_fulfillment_reminder
 from nephthys.tasks.update_helpers import update_helpers
@@ -56,13 +54,13 @@ async def main(_app: Starlette):
             timezone="Europe/London",
         )
 
-        scheduler.add_job(
-            close_stale_tickets,
-            "interval",
-            hours=1,
-            max_instances=1,
-            next_run_time=datetime.now(),
-        )
+        # scheduler.add_job(
+        #     close_stale_tickets,
+        #     "interval",
+        #     hours=1,
+        #     max_instances=1,
+        #     next_run_time=datetime.now(),
+        # )
         scheduler.start()
 
         delete_msg_task = asyncio.create_task(process_queue())
