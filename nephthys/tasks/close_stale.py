@@ -42,7 +42,8 @@ async def get_is_stale(ts: str, max_retries: int = 3) -> bool:
                 if attempt == max_retries - 1:
                     logging.error(f"Max retries exceeded for ticket {ts}")
                     return False
-            if e.response["error"] == "thread_not_found":
+                continue
+            elif e.response["error"] == "thread_not_found":
                 logging.warning(
                     f"Thread not found for ticket {ts}. This might be a deleted thread."
                 )
