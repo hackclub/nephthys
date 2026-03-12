@@ -108,7 +108,7 @@ class Transcript(BaseModel):
         default=None,
         description="Message to be sent when votes are marked low-quality (Flavortown)",
     )
-    
+
     not_allowed_channel: str = Field(
         default="", description="Message for unauthorized channel access"
     )
