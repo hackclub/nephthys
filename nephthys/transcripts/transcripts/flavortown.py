@@ -54,3 +54,21 @@ _I've marked this thread as resolved_
     ship_cert_queue_macro: str | None = (
         "Hey (user), we currently have a backlog of projects waiting to be certified. Please be patient.\n\n*You can keep track of the queue <https://us.review.hackclub.com/queue | here>!*"
     )
+
+    votequeue_macro: str | None = (
+    """
+    Hey (user), we currently have a backlog of projects waiting for votes to be voted on. Please be patient.
+    
+    _I've marked this question as resolved, so please start a new thread if it's  too long or you need more help!_
+    """
+    )
+
+    lqvotes_macro: str | None = (
+        "Hey (user), some of your votes are likely being marked as low quality votes and are discarded.\n\n"
+        "Go to <https://flavortown.hackclub.com/votes/new | voting>. You will get a project shown to you. Make sure you are:\n"
+        "- checking both the repo and demo links\n"
+        "- spending some time looking through the project's devlogs\n"
+        "- giving good, thoughtful scores and feedback\n"
+        "- generally caring and not rushing through voting\n\n"
+        "*_Casting low quality votes might receive a lower payout!_*"
+    )

@@ -30,6 +30,9 @@ Sometimes it’s nice to be able to do things quickly... Here’s where macros c
 - `?fraud` - redirect to Fraud Squad
 - `?thread` - remove the reaction and all Nephthys replies to unclutter duplicates
 - `?shipwrights` - redirect to #ask-the-shipwrights
+- `?votequeue` - tell them to wait for votes because there's a backlog of projects waiting for votes
+- `?lqvote` - explain how to cast high quality votes
+
 - more to come?? feel free to PR your own into hackclub/nephthys or tell me what you want
 
 ### Stale
