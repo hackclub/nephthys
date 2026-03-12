@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import Any
 from typing import Dict
 
@@ -12,6 +13,10 @@ from nephthys.actions.create_category_tag import create_category_tag_btn_callbac
 from nephthys.actions.create_category_tag import create_category_tag_view_callback
 from nephthys.actions.create_team_tag import create_team_tag_btn_callback
 from nephthys.actions.create_team_tag import create_team_tag_view_callback
+from nephthys.actions.edit_category_tag import edit_category_tag_btn_callback
+from nephthys.actions.edit_category_tag import edit_category_tag_view_callback
+from nephthys.actions.edit_team_tag import edit_team_tag_btn_callback
+from nephthys.actions.edit_team_tag import edit_team_tag_view_callback
 from nephthys.actions.resolve import resolve
 from nephthys.actions.tag_subscribe import tag_subscribe_callback
 from nephthys.commands.dm_magic_link import dm_magic_link_cmd_callback
@@ -108,6 +113,18 @@ async def create_team_tag_view(
     await create_team_tag_view_callback(ack, body, client)
 
 
+@app.action(re.compile(r"^edit-team-tag-\d+$"))
+async def edit_team_tag(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient):
+    await edit_team_tag_btn_callback(ack, body, client)
+
+
+@app.view(re.compile(r"^edit_team_tag_\d+$"))
+async def edit_team_tag_view(
+    ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
+):
+    await edit_team_tag_view_callback(ack, body, client)
+
+
 @app.action("create-category-tag")
 async def create_category_tag(
     ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
@@ -120,6 +137,20 @@ async def create_category_tag_view(
     ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
 ):
     await create_category_tag_view_callback(ack, body, client)
+
+
+@app.action(re.compile(r"^edit-category-tag-\d+$"))
+async def edit_category_tag(
+    ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
+):
+    await edit_category_tag_btn_callback(ack, body, client)
+
+
+@app.view(re.compile(r"^edit_category_tag_\d+$"))
+async def edit_category_tag_view(
+    ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
+):
+    await edit_category_tag_view_callback(ack, body, client)
 
 
 @app.action("tag-subscribe")
