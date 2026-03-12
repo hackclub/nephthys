@@ -104,7 +104,6 @@ class Transcript(BaseModel):
         default=None,
         description="Message to be sent when the vote queue macro is used (only applies to Flavortown)",
     )
-    
     lqvotes_macro: str | None = Field(
         default=None,
         description="Message to be sent when votes are marked low-quality (Flavortown)",
