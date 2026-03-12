@@ -14,6 +14,7 @@ from nephthys.views.home.category_tags import get_category_tags_view
 from nephthys.views.home.dashboard import get_dashboard_view
 from nephthys.views.home.error import get_error_view
 from nephthys.views.home.loading import get_loading_view
+from nephthys.views.home.settings import get_settings_view
 from nephthys.views.home.stats import get_stats_view
 from nephthys.views.home.team_tags import get_team_tags_view
 
@@ -59,6 +60,8 @@ async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
                     view = await get_team_tags_view(user)
                 case "category-tags":
                     view = await get_category_tags_view(user)
+                case "settings":
+                    view = await get_settings_view(user)
                 case "my-stats":
                     view = await get_stats_view(user)
                 case _:

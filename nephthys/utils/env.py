@@ -121,5 +121,20 @@ class Environment:
         self._workspace_admin_available = user_info["is_admin"]
         return user_info["is_admin"]
 
+    async def get_stale_ticket_days(self) -> int | None:
+        """Get the number of days before a ticket is considered stale from database settings."""
+        stale_days_setting = await self.db.settings.find_unique(
+            where={"key": "stale_ticket_days"}
+        )
+        if stale_days_setting and stale_days_setting.value:
+            try:
+                return int(stale_days_setting.value)
+            except ValueError:
+                logging.warning(
+                    f"Invalid stale_ticket_days value in database: {stale_days_setting.value}"
+                )
+                return None
+        return None
+
 
 env = Environment()
