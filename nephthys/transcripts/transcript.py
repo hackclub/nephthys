@@ -100,6 +100,15 @@ class Transcript(BaseModel):
         description="Message to be sent when the ship cert queue macro is used (only applies to Flavortown and SoM)",
     )
 
+    votequeue_macro: str | None = Field(
+        default=None,
+        description="Message to be sent when the vote queue macro is used (only applies to Flavortown)",
+    )
+    lqvotes_macro: str | None = Field(
+        default=None,
+        description="Message to be sent when votes are marked low-quality (Flavortown)",
+    )
+
     not_allowed_channel: str = Field(
         default="", description="Message for unauthorized channel access"
     )
