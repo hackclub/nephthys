@@ -68,5 +68,5 @@ _I've marked this question as resolved, so please start a new thread if it's  to
         "- spending some time looking through the project's devlogs\n"
         "- giving good, thoughtful scores and feedback\n"
         "- generally caring and not rushing through voting\n\n"
-        "*_Casting low quality votes might receive a lower payout!_*"
+        "*_Low quality votes won't count towards your vote requirement!_*"
     )
