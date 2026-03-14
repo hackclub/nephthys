@@ -109,8 +109,8 @@ After deployment, you can configure bot settings (like stale ticket auto-close) 
 1. Open the bot's App Home in Slack
 2. Navigate to the **Settings** tab
 3. Configure the stale ticket auto-close feature:
-   - Click **Configure** to set the number of days before tickets are auto-closed
-   - Click **Enable/Disable** to turn the feature on or off
+   - Click **Configure** to open the settings, set the number of days before tickets are auto-closed, and enable or disable the feature
+   - When the feature is enabled, a **Disable** button will appear that you can use to turn it off
    - Settings are stored in the database and take effect immediately
 
 ## Some final pre-requisites
