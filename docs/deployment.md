@@ -102,6 +102,17 @@ Note: These steps have to be done by a Workspace Admin (otherwise it will be una
 
 4. Don't forget to click **Save All Environment Variables**
 
+## Configuring Bot Settings
+
+After deployment, you can configure bot settings (like stale ticket auto-close) from the Slack App Home:
+
+1. Open the bot's App Home in Slack
+2. Navigate to the **Settings** tab
+3. Configure the stale ticket auto-close feature:
+   - Click **Configure** to open the settings, set the number of days before tickets are auto-closed, and enable or disable the feature
+   - When the feature is enabled, a **Disable** button will appear that you can use to turn it off
+   - Settings are stored in the database and take effect immediately
+
 ## Some final pre-requisites
 
 1. Add the bot to the BTS channel, help channel, tickets channel, and heartbeat channel
