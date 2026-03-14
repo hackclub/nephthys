@@ -89,7 +89,8 @@ async def get_is_stale(ts: str, max_retries: int = 3) -> bool:
 
 async def close_stale_tickets():
     """
-    Closes tickets that have been open for more than the configured number of days.
+    Closes tickets that have been inactive for more than the configured number of days,
+    based on the timestamp of the last message in the ticket's Slack thread.
     The number of days is configured in the database settings (key: stale_ticket_days).
     This task is intended to be run periodically.
     """
