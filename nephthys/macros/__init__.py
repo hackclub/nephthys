@@ -2,6 +2,7 @@ from typing import Any
 
 from nephthys.macros.faq import FAQ
 from nephthys.macros.fraud import Fraud
+from nephthys.macros.hackatime import Hackatime
 from nephthys.macros.hello_world import HelloWorld
 from nephthys.macros.identity import Identity
 from nephthys.macros.reopen import Reopen
@@ -32,6 +33,7 @@ macro_list: list[type[Macro]] = [
     FulfillmentReminder,
     Shipwrights,
     TeamTag,
+    Hackatime,
 ]
 
 macros = [macro() for macro in macro_list]
