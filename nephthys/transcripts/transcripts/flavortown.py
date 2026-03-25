@@ -56,11 +56,11 @@ _I've marked this thread as resolved_
     )
 
     lqvotes_macro: str | None = (
-        "Hey (user), some of your votes are likely being marked as low quality votes and are discarded.\n\n"
-        "Go to <https://flavortown.hackclub.com/votes/new | voting>. You will get a project shown to you. Make sure you are:\n"
-        "- checking both the repo and demo links\n"
-        "- spending some time looking through the project's devlogs\n"
-        "- giving good, thoughtful scores and feedback\n"
-        "- generally caring and not rushing through voting\n\n"
+        "Hey (user), some of your votes are likely being marked as low quality and are discarded.\n\n"
+        "When you're <https://flavortown.hackclub.com/votes/new | voting>, make sure that you are:\n"
+        "- Checking both the repo and demo links\n"
+        "- Spending some time looking through the project's devlogs\n"
+        "- Giving good, thoughtful scores and feedback\n"
+        "- Generally caring and not rushing through voting\n\n"
         "*_Low quality votes won't count towards your vote requirement!_*"
     )
