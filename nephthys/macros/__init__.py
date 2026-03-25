@@ -4,6 +4,7 @@ from nephthys.macros.faq import FAQ
 from nephthys.macros.fraud import Fraud
 from nephthys.macros.hello_world import HelloWorld
 from nephthys.macros.identity import Identity
+from nephthys.macros.low_quality_votes import LowQualityVotes
 from nephthys.macros.reopen import Reopen
 from nephthys.macros.resolve import Resolve
 from nephthys.macros.shipcertqueue import ShipCertQueue
@@ -32,6 +33,7 @@ macro_list: list[type[Macro]] = [
     FulfillmentReminder,
     Shipwrights,
     TeamTag,
+    LowQualityVotes,
 ]
 
 macros = [macro() for macro in macro_list]
