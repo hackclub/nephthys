@@ -58,9 +58,9 @@ _I've marked this thread as resolved_
     low_quality_votes_macro: str | None = (
         "Hey (user), some of your votes are likely being marked as low quality and are discarded.\n\n"
         "When you're <https://flavortown.hackclub.com/votes/new | voting>, make sure that you are:\n"
-        "- Checking both the repo and demo links\n"
-        "- Spending some time looking through the project's devlogs\n"
-        "- Giving good, thoughtful scores and feedback\n"
-        "- Generally caring and not rushing through voting\n\n"
-        "*_Low quality votes won't count towards your vote requirement!_*"
+        "• Checking both the repo and demo links\n"
+        "• Spending some time looking through the project's devlogs\n"
+        "• Giving good, thoughtful scores and feedback\n"
+        "• Generally caring and not rushing through voting\n\n"
+        "_Low quality votes won't count towards your vote requirement!_"
     )
