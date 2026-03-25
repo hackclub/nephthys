@@ -100,7 +100,7 @@ class Transcript(BaseModel):
         description="Message to be sent when the ship cert queue macro is used (only applies to Flavortown and SoM)",
     )
 
-    lqvotes_macro: str | None = Field(
+    low_quality_votes_macro: str | None = Field(
         default=None,
         description="Message to be sent when votes are marked low-quality (Flavortown)",
     )

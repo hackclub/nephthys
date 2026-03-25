@@ -5,7 +5,7 @@ from nephthys.utils.slack_user import get_user_profile
 from nephthys.utils.ticket_methods import reply_to_ticket
 
 
-class LQVotes(Macro):
+class LowQualityVotes(Macro):
     name = "lqvote"
     aliases = ["lqvote", "lqvotes"]
 
@@ -13,7 +13,7 @@ class LQVotes(Macro):
         """
         Macro to warn users their votes are being marked low-quality.
         """
-        macro_text = env.transcript.lqvotes_macro
+        macro_text = env.transcript.low_quality_votes_macro
         if not macro_text:
             await env.slack_client.chat_postEphemeral(
                 channel=env.slack_help_channel,

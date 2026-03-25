@@ -55,7 +55,7 @@ _I've marked this thread as resolved_
         "Hey (user), we currently have a backlog of projects waiting to be certified. Please be patient.\n\n*You can keep track of the queue <https://us.review.hackclub.com/queue | here>!*"
     )
 
-    lqvotes_macro: str | None = (
+    low_quality_votes_macro: str | None = (
         "Hey (user), some of your votes are likely being marked as low quality and are discarded.\n\n"
         "When you're <https://flavortown.hackclub.com/votes/new | voting>, make sure that you are:\n"
         "- Checking both the repo and demo links\n"
