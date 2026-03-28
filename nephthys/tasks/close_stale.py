@@ -12,14 +12,7 @@ from nephthys.utils.logging import send_heartbeat
 from prisma.enums import TicketStatus
 
 
-async def get_is_stale(ts: str, max_retries: int = 3) -> bool:
-    stale_ticket_days = await env.get_stale_ticket_days()
-    if not stale_ticket_days:
-        logging.error(
-            "get_is_stale called but stale_ticket_days not configured in database"
-        )
-        return False
-
+async def get_is_stale(ts: str, stale_ticket_days: int, max_retries: int = 3) -> bool:
     for attempt in range(max_retries):
         try:
             replies = await env.slack_client.conversations_replies(
@@ -91,15 +84,14 @@ async def close_stale_tickets():
     """
     Closes tickets that have been inactive for more than the configured number of days,
     based on the timestamp of the last message in the ticket's Slack thread.
-    The number of days is configured in the database settings (key: stale_ticket_days).
-    This task is intended to be run periodically.
+
+    Configure via the STALE_TICKET_DAYS environment variable.
+    This task is intended to be run periodically (e.g., hourly).
     """
 
-    stale_ticket_days = await env.get_stale_ticket_days()
+    stale_ticket_days = env.stale_ticket_days
     if not stale_ticket_days:
-        logging.info(
-            "Stale ticket auto-close is disabled (no stale_ticket_days setting)"
-        )
+        logging.info("Stale ticket auto-close is disabled (STALE_TICKET_DAYS not set)")
         return
 
     logging.info(f"Closing stale tickets (threshold: {stale_ticket_days} days)...")
@@ -125,7 +117,7 @@ async def close_stale_tickets():
             for ticket in batch:
                 await asyncio.sleep(1.2)  # Rate limiting delay
 
-                if await get_is_stale(ticket.msgTs):
+                if await get_is_stale(ticket.msgTs, stale_ticket_days):
                     stale += 1
                     resolver_user = (
                         ticket.assignedTo if ticket.assignedTo else ticket.openedBy

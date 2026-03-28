@@ -144,10 +144,4 @@ model CategoryTag {
   createdAt DateTime @default(now())
 }
 
-model Settings {
-  id        Int      @id @unique @default(autoincrement())
-  key       String   @unique
-  value     String?
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
-}
+

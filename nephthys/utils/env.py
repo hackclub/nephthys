@@ -63,6 +63,25 @@ class Environment:
 
         self.slack_heartbeat_channel = os.environ.get("SLACK_HEARTBEAT_CHANNEL")
 
+        # Stale ticket auto-close: number of days of inactivity before closing
+        # Set to a positive integer to enable, leave unset to disable
+        stale_days_str = os.environ.get("STALE_TICKET_DAYS")
+        if stale_days_str:
+            try:
+                stale_days = int(stale_days_str)
+                self.stale_ticket_days = stale_days if stale_days > 0 else None
+                if stale_days <= 0:
+                    logging.warning(
+                        f"STALE_TICKET_DAYS must be positive, got {stale_days}. Disabling."
+                    )
+            except ValueError:
+                logging.warning(
+                    f"Invalid STALE_TICKET_DAYS value: {stale_days_str}. Disabling."
+                )
+                self.stale_ticket_days = None
+        else:
+            self.stale_ticket_days = None
+
         unset = [key for key, value in self.__dict__.items() if value == "unset"]
 
         if unset:
@@ -120,21 +139,6 @@ class Environment:
             raise ValueError("Failed to get user info from Slack API.")
         self._workspace_admin_available = user_info["is_admin"]
         return user_info["is_admin"]
-
-    async def get_stale_ticket_days(self) -> int | None:
-        """Get the number of days before a ticket is considered stale from database settings."""
-        stale_days_setting = await self.db.settings.find_unique(
-            where={"key": "stale_ticket_days"}
-        )
-        if stale_days_setting and stale_days_setting.value:
-            try:
-                return int(stale_days_setting.value)
-            except ValueError:
-                logging.warning(
-                    f"Invalid stale_ticket_days value in database: {stale_days_setting.value}"
-                )
-                return None
-        return None
 
 
 env = Environment()

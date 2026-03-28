@@ -13,9 +13,6 @@ from nephthys.actions.create_category_tag import create_category_tag_view_callba
 from nephthys.actions.create_team_tag import create_team_tag_btn_callback
 from nephthys.actions.create_team_tag import create_team_tag_view_callback
 from nephthys.actions.resolve import resolve
-from nephthys.actions.settings import configure_stale_days_btn_callback
-from nephthys.actions.settings import configure_stale_days_view_callback
-from nephthys.actions.settings import toggle_stale_feature_callback
 from nephthys.actions.tag_subscribe import tag_subscribe_callback
 from nephthys.commands.dm_magic_link import dm_magic_link_cmd_callback
 from nephthys.events.app_home_opened import on_app_home_opened
@@ -149,24 +146,3 @@ async def dm_magic_link(
     command, ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
 ):
     await dm_magic_link_cmd_callback(command, ack, body, client)
-
-
-@app.action("configure-stale-days")
-async def configure_stale_days(
-    ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
-):
-    await configure_stale_days_btn_callback(ack, body, client)
-
-
-@app.view("configure_stale_days")
-async def configure_stale_days_view(
-    ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
-):
-    await configure_stale_days_view_callback(ack, body, client)
-
-
-@app.action("toggle-stale-feature")
-async def toggle_stale_feature(
-    ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
-):
-    await toggle_stale_feature_callback(ack, body, client)
