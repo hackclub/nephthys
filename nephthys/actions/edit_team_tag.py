@@ -8,9 +8,7 @@ from nephthys.utils.logging import send_heartbeat
 from nephthys.views.modals.edit_team_tag import get_edit_team_tag_modal
 
 
-async def edit_team_tag_btn_callback(
-    ack: AsyncAck, body: dict, client: AsyncWebClient
-):
+async def edit_team_tag_btn_callback(ack: AsyncAck, body: dict, client: AsyncWebClient):
     await ack()
     user_id = body["user"]["id"]
     trigger_id = body["trigger_id"]

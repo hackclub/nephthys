@@ -32,7 +32,7 @@ def get_create_team_tag_modal():
                 "optional": True,
                 "label": {
                     "type": "plain_text",
-                    "text": "Description (optional)",
+                    "text": "Description",
                     "emoji": True,
                 },
                 "element": {

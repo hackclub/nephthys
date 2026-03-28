@@ -45,10 +45,15 @@ async def edit_category_tag_view_callback(
     raw_name = values["category_tag_name"]["category_tag_name"]["value"]
     name = raw_name.strip() if raw_name else ""
 
-    raw_slug = values["category_tag_slug"]["category_tag_slug"]["value"]
+    # Slug field only exists if tag doesn't already have a slug
+    raw_slug = None
+    if "category_tag_slug" in values:
+        raw_slug = values["category_tag_slug"]["category_tag_slug"]["value"]
     slug = raw_slug.strip() if raw_slug else None
 
-    raw_description = values["category_tag_description"]["category_tag_description"]["value"]
+    raw_description = values["category_tag_description"]["category_tag_description"][
+        "value"
+    ]
     description = raw_description.strip() if raw_description else None
 
     errors = {}
@@ -73,14 +78,21 @@ async def edit_category_tag_view_callback(
         )
         return
 
+    # Build update data - only include slug if it's being newly set
+    update_data: dict = {"name": name, "description": description}
+    if slug:
+        update_data["slug"] = slug
+
     try:
         await env.db.categorytag.update(
             where={"id": tag_id},
-            data={"name": name, "slug": slug, "description": description},
+            data=update_data,
         )
     except UniqueViolationError as e:
         logging.warning(f"Duplicate category tag: {e}")
-        error_field = "category_tag_slug" if slug and "slug" in str(e) else "category_tag_name"
+        error_field = (
+            "category_tag_slug" if slug and "slug" in str(e) else "category_tag_name"
+        )
         error_msg = f"A category tag with this {'slug' if error_field == 'category_tag_slug' else 'name'} already exists."
         await ack(response_action="errors", errors={error_field: error_msg})
         return

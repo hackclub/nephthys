@@ -15,9 +15,8 @@ def get_create_category_tag_modal():
                 element=PlainTextInput(action_id="category_tag_name"),
             ),
             Input(
-                label="Slug (snake_case ID, optional)",
+                label="Slug (snake_case ID)",
                 block_id="category_tag_slug",
-                optional=True,
                 element=PlainTextInput(
                     action_id="category_tag_slug",
                     placeholder="e.g. payouts_issue or fulfillment_query",

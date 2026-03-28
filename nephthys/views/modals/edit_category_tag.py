@@ -1,6 +1,8 @@
+from blockkit import Context
 from blockkit import Input
 from blockkit import Modal
 from blockkit import PlainTextInput
+from blockkit import Text
 
 
 def get_edit_category_tag_modal(
@@ -9,39 +11,50 @@ def get_edit_category_tag_modal(
     slug: str | None,
     description: str | None,
 ):
-    return Modal(
-        title=":pencil2: edit category",
-        callback_id=f"edit_category_tag_{tag_id}",
-        submit=":rac_thumbs: save",
-        blocks=[
-            Input(
-                label="Category name",
-                block_id="category_tag_name",
-                element=PlainTextInput(
-                    action_id="category_tag_name",
-                    initial_value=name,
-                ),
+    blocks: list = [
+        Input(
+            label="Category name",
+            block_id="category_tag_name",
+            element=PlainTextInput(
+                action_id="category_tag_name",
+                initial_value=name,
             ),
+        ),
+    ]
+
+    # Slug: show read-only if present, editable input if not
+    if slug:
+        blocks.append(Context(elements=[Text(text=f"*Slug:* `{slug}`", type="mrkdwn")]))
+    else:
+        blocks.append(
             Input(
-                label="Slug (snake_case ID, optional)",
+                label="Slug (snake_case ID)",
                 block_id="category_tag_slug",
                 optional=True,
                 element=PlainTextInput(
                     action_id="category_tag_slug",
                     placeholder="e.g. payouts_issue or fulfillment_query",
-                    **({"initial_value": slug} if slug else {}),
                 ),
+            )
+        )
+
+    blocks.append(
+        Input(
+            label="Description (helps AI pick this category)",
+            block_id="category_tag_description",
+            optional=True,
+            element=PlainTextInput(
+                action_id="category_tag_description",
+                multiline=True,
+                placeholder="What kinds of questions should be tagged with this?",
+                initial_value=description if description else None,
             ),
-            Input(
-                label="Description (helps AI pick this category)",
-                block_id="category_tag_description",
-                optional=True,
-                element=PlainTextInput(
-                    action_id="category_tag_description",
-                    multiline=True,
-                    placeholder="What kinds of questions should be tagged with this?",
-                    **({"initial_value": description} if description else {}),
-                ),
-            ),
-        ],
+        )
+    )
+
+    return Modal(
+        title=":pencil2: edit category",
+        callback_id=f"edit_category_tag_{tag_id}",
+        submit=":rac_thumbs: save",
+        blocks=blocks,
     ).build()
