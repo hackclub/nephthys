@@ -139,7 +139,7 @@ async def create_category_tag_view(
     await create_category_tag_view_callback(ack, body, client)
 
 
-@app.action(re.compile(r"^edit-category-tag-\d+$"))
+@app.action("edit-category-tag")
 async def edit_category_tag(
     ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
 ):

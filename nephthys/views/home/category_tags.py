@@ -42,7 +42,7 @@ async def get_category_tags_view(user: User | None) -> dict:
                     text=text,
                     accessory=Button(
                         text=":pencil2: Edit",
-                        action_id=f"edit-category-tag-{tag.id}",
+                        action_id="edit-category-tag",
                         value=str(tag.id),
                     ),
                 )
