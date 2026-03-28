@@ -51,6 +51,7 @@ async def main(_app: Starlette):
             "cron",
             hour=14,
             minute=0,
+            day_of_week="mon-fri",
             timezone="Europe/London",
         )
 
