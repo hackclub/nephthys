@@ -46,8 +46,7 @@ class ReplyMacro(Macro):
         # Try pre-fetched relation first
         sender = getattr(ticket, "openedBy", None)
         if sender is None and getattr(ticket, "openedById", None) is not None:
-            sender = await env.db.user.find_first(
-                where={"id": ticket.openedById})
+            sender = await env.db.user.find_first(where={"id": ticket.openedById})
         if not sender:
             return
         user = await get_user_profile(sender.slackId)
