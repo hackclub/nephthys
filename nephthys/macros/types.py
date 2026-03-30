@@ -43,16 +43,20 @@ class ReplyMacro(Macro):
         from nephthys.utils.slack_user import get_user_profile
         from nephthys.utils.ticket_methods import reply_to_ticket
 
-        # Try pre-fetched relation first
-        sender = getattr(ticket, "openedBy", None)
-        if sender is None and getattr(ticket, "openedById", None) is not None:
-            sender = await env.db.user.find_first(where={"id": ticket.openedById})
-        if not sender:
-            return
-        user = await get_user_profile(sender.slackId)
+        # Save API calls by only fetching user if used by message
+        reply_text = self.message
+        if "(user)" in self.message:
+            # Try pre-fetched relation first
+            sender = getattr(ticket, "openedBy", None)
+            if sender is None and getattr(ticket, "openedById", None) is not None:
+                sender = await env.db.user.find_first(where={"id": ticket.openedById})
+            if not sender:
+                return
+            user = await get_user_profile(sender.slackId)
+            reply_text = self.message.replace("(user)", user.display_name())
 
         await reply_to_ticket(
-            text=self.message.replace("(user)", user.display_name()),
+            text=reply_text,
             ticket=ticket,
             client=env.slack_client,
         )
