@@ -18,10 +18,4 @@ if your question has been answered, please hit the button below to mark it as re
     ticket_create: str = f"someone should be along to help you soon, once your question is resolved please hit the button below to mark it as resolved :D"
     ticket_resolve: str = f"oh, oh! it looks like this post has been marked as resolved by <@{{user_id}}>! if you have any more questions, please make a new post in <#{help_channel}> and someone'll be happy to help you out! not me though, i'm just a silly bird ^-^"
 
-    home_unknown_user_title: str = (
-        ":upside-down_orpheus: woah, stop right there {name}!"
-    )
-  
-    home_unknown_user_text: str = f"heyyyy, quetzal here! it looks like i'm not allowed to show ya this. sorry! if you think this is a mistake, please reach out to <@{program_owner}> and she'll lmk what to do!"
-
     not_allowed_channel: str = f"heya, it looks like you're not supposed to be in that channel, pls talk to <@{program_owner}> if that's wrong"
