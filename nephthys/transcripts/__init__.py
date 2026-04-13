@@ -6,6 +6,7 @@ from nephthys.transcripts.transcripts.construct import Construct
 from nephthys.transcripts.transcripts.fallout import Fallout
 from nephthys.transcripts.transcripts.flavortown import Flavortown
 from nephthys.transcripts.transcripts.hctg import Hctg
+from nephthys.transcripts.transcripts.help import Help
 from nephthys.transcripts.transcripts.identity import Identity
 from nephthys.transcripts.transcripts.jumpstart import Jumpstart
 from nephthys.transcripts.transcripts.lynx import Lynx
@@ -26,4 +27,5 @@ transcripts: List[Type[Transcript]] = [
     Fallout,
     Lynx,
     Nest,
+    Help,
 ]
