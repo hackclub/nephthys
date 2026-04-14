@@ -51,16 +51,23 @@ async def main(_app: Starlette):
             "cron",
             hour=14,
             minute=0,
+            day_of_week="mon-fri",
             timezone="Europe/London",
         )
 
-        # scheduler.add_job(
-        #     close_stale_tickets,
-        #     "interval",
-        #     hours=1,
-        #     max_instances=1,
-        #     next_run_time=datetime.now(),
-        # )
+        from nephthys.tasks.close_stale import close_stale_tickets
+        from datetime import datetime
+
+        if env.stale_ticket_days:
+            scheduler.add_job(
+                close_stale_tickets,
+                "interval",
+                hours=1,
+                max_instances=1,
+                next_run_time=datetime.now(),
+            )
+        else:
+            logging.debug("Stale ticket closing has not been configured")
         scheduler.start()
 
         delete_msg_task = asyncio.create_task(process_queue())

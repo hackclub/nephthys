@@ -63,6 +63,25 @@ class Environment:
 
         self.slack_heartbeat_channel = os.environ.get("SLACK_HEARTBEAT_CHANNEL")
 
+        # Stale ticket auto-close: number of days of inactivity before closing
+        # Set to a positive integer to enable, leave unset to disable
+        stale_days_str = os.environ.get("STALE_TICKET_DAYS")
+        if stale_days_str:
+            try:
+                stale_days = int(stale_days_str)
+                self.stale_ticket_days = stale_days if stale_days > 0 else None
+                if stale_days <= 0:
+                    logging.warning(
+                        f"STALE_TICKET_DAYS must be positive, got {stale_days}. Disabling."
+                    )
+            except ValueError:
+                logging.warning(
+                    f"Invalid STALE_TICKET_DAYS value: {stale_days_str}. Disabling."
+                )
+                self.stale_ticket_days = None
+        else:
+            self.stale_ticket_days = None
+
         unset = [key for key, value in self.__dict__.items() if value == "unset"]
 
         if unset:

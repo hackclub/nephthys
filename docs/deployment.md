@@ -98,6 +98,11 @@ Note: These steps have to be done by a Workspace Admin (otherwise it will be una
    LOG_LEVEL_STDERR="WARNING"
    # Override the log level for OpenTelemetry output
    LOG_LEVEL_OTEL="WARNING"
+   
+   # Optional: Enable stale ticket auto-close
+   # Tickets inactive for this many days will be automatically closed
+   # Leave unset to disable
+   STALE_TICKET_DAYS="7"
    ```
 
 4. Don't forget to click **Save All Environment Variables**

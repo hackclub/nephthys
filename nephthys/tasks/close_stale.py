@@ -12,7 +12,7 @@ from nephthys.utils.logging import send_heartbeat
 from prisma.enums import TicketStatus
 
 
-async def get_is_stale(ts: str, max_retries: int = 3) -> bool:
+async def get_is_stale(ts: str, stale_ticket_days: int, max_retries: int = 3) -> bool:
     for attempt in range(max_retries):
         try:
             replies = await env.slack_client.conversations_replies(
@@ -28,7 +28,7 @@ async def get_is_stale(ts: str, max_retries: int = 3) -> bool:
             return (
                 datetime.now(tz=timezone.utc)
                 - datetime.fromtimestamp(float(last_reply["ts"]), tz=timezone.utc)
-            ) > timedelta(days=3)
+            ) > timedelta(days=stale_ticket_days)
         except SlackApiError as e:
             if e.response["error"] == "ratelimited":
                 retry_after = int(e.response.headers.get("Retry-After", 1))
@@ -82,12 +82,22 @@ async def get_is_stale(ts: str, max_retries: int = 3) -> bool:
 
 async def close_stale_tickets():
     """
-    Closes tickets that have been open for more than 3 days.
-    This task is intended to be run periodically.
+    Closes tickets that have been inactive for more than the configured number of days,
+    based on the timestamp of the last message in the ticket's Slack thread.
+
+    Configure via the STALE_TICKET_DAYS environment variable.
+    This task is intended to be run periodically (e.g., hourly).
     """
 
-    logging.info("Closing stale tickets...")
-    await send_heartbeat("Closing stale tickets...")
+    stale_ticket_days = env.stale_ticket_days
+    if not stale_ticket_days:
+        logging.warning("Skipping ticket auto-close (STALE_TICKET_DAYS not set)")
+        return
+
+    logging.info(f"Closing stale tickets, threshold_days={stale_ticket_days}")
+    await send_heartbeat(
+        f"Closing stale tickets (threshold: {stale_ticket_days} days)..."
+    )
 
     try:
         tickets = await env.db.ticket.find_many(
@@ -101,13 +111,13 @@ async def close_stale_tickets():
         for i in range(0, len(tickets), batch_size):
             batch = tickets[i : i + batch_size]
             logging.info(
-                f"Processing batch {i // batch_size + 1}/{(len(tickets) + batch_size - 1) // batch_size}"
+                f"Processing stale tickets batch={i // batch_size + 1} batches={(len(tickets) + batch_size - 1) // batch_size}"
             )
 
             for ticket in batch:
                 await asyncio.sleep(1.2)  # Rate limiting delay
 
-                if await get_is_stale(ticket.msgTs):
+                if await get_is_stale(ticket.msgTs, stale_ticket_days):
                     stale += 1
                     resolver_user = (
                         ticket.assignedTo if ticket.assignedTo else ticket.openedBy
@@ -130,7 +140,7 @@ async def close_stale_tickets():
 
         await send_heartbeat(f"Closed {stale} stale tickets.")
 
-        logging.info(f"Closed {stale} stale tickets.")
+        logging.info(f"Closed stale tickets. count={stale}")
     except Exception as e:
         logging.error(f"Error closing stale tickets: {e}")
         await send_heartbeat(f"Error closing stale tickets: {e}")
