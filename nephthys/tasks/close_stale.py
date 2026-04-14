@@ -91,10 +91,10 @@ async def close_stale_tickets():
 
     stale_ticket_days = env.stale_ticket_days
     if not stale_ticket_days:
-        logging.info("Stale ticket auto-close is disabled (STALE_TICKET_DAYS not set)")
+        logging.warning("Skipping ticket auto-close (STALE_TICKET_DAYS not set)")
         return
 
-    logging.info(f"Closing stale tickets (threshold: {stale_ticket_days} days)...")
+    logging.info(f"Closing stale tickets, threshold_days={stale_ticket_days}")
     await send_heartbeat(
         f"Closing stale tickets (threshold: {stale_ticket_days} days)..."
     )
@@ -111,7 +111,7 @@ async def close_stale_tickets():
         for i in range(0, len(tickets), batch_size):
             batch = tickets[i : i + batch_size]
             logging.info(
-                f"Processing batch {i // batch_size + 1}/{(len(tickets) + batch_size - 1) // batch_size}"
+                f"Processing stale tickets batch={i // batch_size + 1} batches={(len(tickets) + batch_size - 1) // batch_size}"
             )
 
             for ticket in batch:
@@ -140,7 +140,7 @@ async def close_stale_tickets():
 
         await send_heartbeat(f"Closed {stale} stale tickets.")
 
-        logging.info(f"Closed {stale} stale tickets.")
+        logging.info(f"Closed stale tickets. count={stale}")
     except Exception as e:
         logging.error(f"Error closing stale tickets: {e}")
         await send_heartbeat(f"Error closing stale tickets: {e}")
