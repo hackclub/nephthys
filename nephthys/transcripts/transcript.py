@@ -100,6 +100,11 @@ class Transcript(BaseModel):
         description="Message to be sent when the ship cert queue macro is used (only applies to Flavortown and SoM)",
     )
 
+    hackatime_macro: str = Field(
+        default="Hi (user), could you ask that question in <#C0AFG0XGGMP>? :rac_cute:\n\nYou'll get better help for this Hackatime-specific question there!\n\n_I've marked this thread as resolved_",
+        description="Message to be sent when the Hackatime macro is used",
+    )
+
     not_allowed_channel: str = Field(
         default="", description="Message for unauthorized channel access"
     )

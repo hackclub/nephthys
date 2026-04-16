@@ -32,9 +32,9 @@ model User {
   assignedTickets Ticket[] @relation("AssignedTickets")
   reopenedTickets Ticket[] @relation("ReopenedTickets")
 
-  tagSubscriptions UserTagSubscription[]
-  createdCategoryTags CategoryTag[] @relation("CreatedCategoryTags")
-  helper           Boolean               @default(false)
+  tagSubscriptions    UserTagSubscription[]
+  createdCategoryTags CategoryTag[]         @relation("CreatedCategoryTags")
+  helper              Boolean               @default(false)
 
   createdAt DateTime @default(now())
 }
@@ -75,7 +75,7 @@ model Ticket {
   questionTag   QuestionTag?    @relation("QuestionTagTickets", fields: [questionTagId], references: [id])
   questionTagId Int?
 
-  categoryTag   CategoryTag?    @relation("CategoryTagTickets", fields: [categoryTagId], references: [id])
+  categoryTag   CategoryTag? @relation("CategoryTagTickets", fields: [categoryTagId], references: [id])
   categoryTagId Int?
 
   createdAt DateTime @default(now())
@@ -134,12 +134,14 @@ model BotMessage {
 }
 
 model CategoryTag {
-  id        Int      @id @unique @default(autoincrement())
-  name      String   @unique
-  tickets   Ticket[] @relation("CategoryTagTickets")
+  id      Int      @id @unique @default(autoincrement())
+  name    String   @unique
+  tickets Ticket[] @relation("CategoryTagTickets")
 
-  createdBy   User?     @relation("CreatedCategoryTags", fields: [createdById], references: [id])
+  createdBy   User? @relation("CreatedCategoryTags", fields: [createdById], references: [id])
   createdById Int?
 
   createdAt DateTime @default(now())
 }
+
+

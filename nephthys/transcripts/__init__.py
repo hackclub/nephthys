@@ -6,10 +6,12 @@ from nephthys.transcripts.transcripts.construct import Construct
 from nephthys.transcripts.transcripts.fallout import Fallout
 from nephthys.transcripts.transcripts.flavortown import Flavortown
 from nephthys.transcripts.transcripts.hctg import Hctg
+from nephthys.transcripts.transcripts.help import Help
 from nephthys.transcripts.transcripts.identity import Identity
 from nephthys.transcripts.transcripts.jumpstart import Jumpstart
 from nephthys.transcripts.transcripts.lynx import Lynx
 from nephthys.transcripts.transcripts.midnight import Midnight
+from nephthys.transcripts.transcripts.nest import Nest
 from nephthys.transcripts.transcripts.stasis import Stasis
 from nephthys.transcripts.transcripts.summer_of_making import SummerOfMaking
 
@@ -24,4 +26,6 @@ transcripts: List[Type[Transcript]] = [
     Hctg,
     Fallout,
     Lynx,
+    Nest,
+    Help,
 ]
