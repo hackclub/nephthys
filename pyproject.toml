@@ -15,6 +15,7 @@ dependencies = [
     "opentelemetry-api>=1.38.0",
     "opentelemetry-exporter-otlp>=1.38.0",
     "opentelemetry-sdk>=1.38.0",
+    "piccolo[postgres,uvloop]>=1.33.0",
     "prisma>=0.15.0",
     "prometheus-client>=0.23.1",
     "pydantic>=2.11.5",
