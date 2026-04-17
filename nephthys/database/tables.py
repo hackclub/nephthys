@@ -96,6 +96,21 @@ class TeamTag(Table, tablename="Tag"):
     created_at = Timestamp(default=TimestampNow())
 
 
+class CategoryTag(Table):
+    name = Text(unique=True)
+    created_by = ForeignKey(references=User, db_column_name="createdById", null=True)
+    created_at = Timestamp(default=TimestampNow())
+
+
+class BotMessage(Table):
+    ts = Text()
+    channel_id = Text(db_column_name="channelId")
+    ticket = ForeignKey(
+        references=Ticket, db_column_name="ticketId", on_delete=OnDelete.cascade
+    )
+    # Unimplemented: ts + channel_id should be unique together
+
+
 class TagsOnTickets(Table):
     ticket = ForeignKey(
         references=Ticket,
@@ -126,18 +141,3 @@ class UserTagSubscription(Table):
         on_delete=OnDelete.cascade,
     )
     subscribed_at = Timestamp(default=TimestampNow())
-
-
-class BotMessage(Table):
-    ts = Text()
-    channel_id = Text(db_column_name="channelId")
-    ticket = ForeignKey(
-        references=Ticket, db_column_name="ticketId", on_delete=OnDelete.cascade
-    )
-    # Unimplemented: ts + channel_id should be unique together
-
-
-class CategoryTag(Table):
-    name = Text(unique=True)
-    created_by = ForeignKey(references=User, db_column_name="createdById", null=True)
-    created_at = Timestamp(default=TimestampNow())
