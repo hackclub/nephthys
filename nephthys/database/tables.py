@@ -1,10 +1,11 @@
-from datetime import datetime
-
 from piccolo.columns import Boolean
+from piccolo.columns import Column
 from piccolo.columns import ForeignKey
 from piccolo.columns import OnDelete
+from piccolo.columns import OnUpdate
 from piccolo.columns import Text
-from piccolo.columns import Timestamptz
+from piccolo.columns import Timestamp
+from piccolo.columns.defaults.timestamp import TimestampNow
 from piccolo.table import Table
 
 
@@ -20,48 +21,79 @@ class User(Table):
     reopened_tickets = ForeignKey(references="Ticket")
 
     created_category_tags = ForeignKey(references="CategoryTag")
-    # tag subscriptions
-    created_at = Timestamptz(auto_update=datetime.now)
+    created_at = Timestamp(default=TimestampNow())
 
 
 class Ticket(Table):
     title = Text()
     description = Text()
-    # status = None  # TODO: Enum
+    status = Column()  # TODO: Enum
 
     msg_ts = Text(db_column_name="msgTs", unique=True)
     ticket_ts = Text(db_column_name="ticketTs", unique=True)
     user_facing_msgs = ForeignKey(references="BotMessage")  # TODO
 
-    last_msg_at = Timestamptz(auto_update=datetime.now)
-    # last_msg_by = None  # TODO: Enum
+    last_msg_at = Timestamp(default=TimestampNow())
+    last_msg_by = Column()  # TODO: Enum
 
-    opened_by = ForeignKey(references=User, db_column_name="openedById")
-    reopened_by = ForeignKey(references=User, db_column_name="reopenedById", null=True)
-    closed_by = ForeignKey(references=User, db_column_name="closedById", null=True)
-    assigned_to = ForeignKey(references=User, db_column_name="assignedToId", null=True)
+    opened_by = ForeignKey(
+        references=User,
+        db_column_name="openedById",
+        on_delete=OnDelete.restrict,
+        on_update=OnUpdate.cascade,
+    )
+    reopened_by = ForeignKey(
+        references=User,
+        db_column_name="reopenedById",
+        null=True,
+        on_delete=OnDelete.set_null,
+        on_update=OnUpdate.cascade,
+    )
+    closed_by = ForeignKey(
+        references=User,
+        db_column_name="closedById",
+        null=True,
+        on_delete=OnDelete.set_null,
+        on_update=OnUpdate.cascade,
+    )
+    assigned_to = ForeignKey(
+        references=User,
+        db_column_name="assignedToId",
+        null=True,
+        on_delete=OnDelete.set_null,
+        on_update=OnUpdate.cascade,
+    )
+
+    assigned_at = Timestamp(null=True)
+    reopened_at = Timestamp(null=True)
 
     team_tags = ForeignKey(references="TeamTag", db_column_name="tagsOnTickets")
     question_tag = ForeignKey(
-        references="QuestionTag", db_column_name="questionTagId", null=True
+        references="QuestionTag",
+        db_column_name="questionTagId",
+        null=True,
+        on_delete=OnDelete.set_null,
+        on_update=OnUpdate.cascade,
     )
     category_tag = ForeignKey(
-        references="CategoryTag", db_column_name="categoryTagId", null=True
+        references="CategoryTag",
+        db_column_name="categoryTagId",
+        null=True,
+        on_delete=OnDelete.set_null,
+        on_update=OnUpdate.cascade,
     )
-    created_at = Timestamptz(auto_update=datetime.now)
+    created_at = Timestamp(default=TimestampNow())
 
 
 class QuestionTag(Table):
-    name = Text(unique=True)
-    created_at = Timestamptz(auto_update=datetime.now)
+    label = Text(unique=True)
+    tickets = ForeignKey(references=Ticket)
+    created_at = Timestamp(default=TimestampNow())
 
 
 class TeamTag(Table, tablename="Tag"):
     name = Text(unique=True)
-    user_subscriptions = ForeignKey(
-        references="UserTagSubscription", db_column_name="userSubscriptions"
-    )
-    created_at = Timestamptz(auto_update=datetime.now)
+    created_at = Timestamp(default=TimestampNow())
 
 
 class TagsOnTickets(Table):
@@ -77,7 +109,7 @@ class TagsOnTickets(Table):
         primary_key=True,
         on_delete=OnDelete.cascade,
     )
-    assigned_at = Timestamptz(auto_update=datetime.now)
+    assigned_at = Timestamp(default=TimestampNow())
 
 
 class UserTagSubscription(Table):
@@ -93,7 +125,7 @@ class UserTagSubscription(Table):
         primary_key=True,
         on_delete=OnDelete.cascade,
     )
-    subscribed_at = Timestamptz(auto_update=datetime.now)
+    subscribed_at = Timestamp(default=TimestampNow())
 
 
 class BotMessage(Table):
@@ -108,4 +140,4 @@ class BotMessage(Table):
 class CategoryTag(Table):
     name = Text(unique=True)
     created_by = ForeignKey(references=User, db_column_name="createdById", null=True)
-    created_at = Timestamptz(auto_update=datetime.now)
+    created_at = Timestamp(default=TimestampNow())
