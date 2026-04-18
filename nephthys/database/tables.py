@@ -24,12 +24,6 @@ class User(Table, tablename="User"):
     admin = Boolean(default=False)
     helper = Boolean(default=False)
 
-    opened_tickets = ForeignKey(references="Ticket")
-    closed_tickets = ForeignKey(references="Ticket")
-    assigned_tickets = ForeignKey(references="Ticket")
-    reopened_tickets = ForeignKey(references="Ticket")
-
-    created_category_tags = ForeignKey(references="CategoryTag")
     team_tag_subscriptions = M2M(table_ref("UserTagSubscription"))
 
     created_at = Timestamp(default=TimestampNow(), db_column_name="createdAt")
