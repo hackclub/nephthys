@@ -1,8 +1,8 @@
 from datetime import datetime
 
+from nephthys.database.enums import TicketStatus
+from nephthys.database.enums import UserType
 from nephthys.database.tables import Ticket
-from nephthys.database.tables import TicketStatus
-from nephthys.database.tables import UserType
 
 
 async def get_unanswered_tickets(since: datetime | None = None) -> list[Ticket]:

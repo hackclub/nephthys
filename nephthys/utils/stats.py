@@ -3,8 +3,8 @@ from datetime import datetime
 from statistics import fmean
 from typing import TypedDict
 
+from nephthys.database.enums import TicketStatus
 from nephthys.database.tables import Ticket
-from nephthys.database.tables import TicketStatus
 from nephthys.database.tables import User
 from nephthys.utils.old_tickets import get_unanswered_tickets
 from nephthys.utils.ticket_methods import get_question_message_link

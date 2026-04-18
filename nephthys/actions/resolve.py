@@ -4,8 +4,8 @@ from datetime import datetime
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
+from nephthys.database.enums import TicketStatus
 from nephthys.database.tables import Ticket
-from nephthys.database.tables import TicketStatus
 from nephthys.database.tables import User
 from nephthys.utils.delete_thread import add_thread_to_delete_queue
 from nephthys.utils.env import env
@@ -78,9 +78,11 @@ async def resolve(
         await reply_to_ticket(
             ticket=tkt,
             client=client,
-            text=env.transcript.ticket_resolve.format(user_id=resolver)
-            if not stale
-            else env.transcript.ticket_resolve_stale.format(user_id=resolver),
+            text=(
+                env.transcript.ticket_resolve.format(user_id=resolver)
+                if not stale
+                else env.transcript.ticket_resolve_stale.format(user_id=resolver)
+            ),
         )
     if add_reaction:
         await client.reactions_add(

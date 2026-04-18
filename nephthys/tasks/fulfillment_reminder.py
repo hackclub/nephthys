@@ -2,10 +2,10 @@ import logging
 from datetime import datetime
 from datetime import timedelta
 
+from nephthys.database.enums import TicketStatus
 from nephthys.database.tables import CategoryTag
 from nephthys.database.tables import TagsOnTickets
 from nephthys.database.tables import Ticket
-from nephthys.database.tables import TicketStatus
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.ticket_methods import get_question_message_link

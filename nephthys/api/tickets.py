@@ -4,9 +4,9 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from nephthys.api.ticket import ticket_to_json
+from nephthys.database.enums import TicketStatus
 from nephthys.database.tables import TagsOnTickets
 from nephthys.database.tables import Ticket
-from nephthys.database.tables import TicketStatus
 
 
 async def tickets_list(req: Request):

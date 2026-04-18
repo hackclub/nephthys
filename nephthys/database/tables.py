@@ -1,5 +1,3 @@
-from enum import StrEnum
-
 from piccolo.columns import Boolean
 from piccolo.columns import ForeignKey
 from piccolo.columns import LazyTableReference
@@ -12,19 +10,9 @@ from piccolo.columns import Timestamp
 from piccolo.columns.defaults.timestamp import TimestampNow
 from piccolo.table import Table
 
-from nephthys.database.postgres_enum import PostgresEnum
-
-
-class TicketStatus(StrEnum):
-    OPEN = "OPEN"
-    IN_PROGRESS = "IN_PROGRESS"
-    CLOSED = "CLOSED"
-
-
-class UserType(StrEnum):
-    AUTHOR = "AUTHOR"
-    HELPER = "HELPER"
-    OTHER = "OTHER"
+from nephthys.database.enums import TicketStatusColumn
+from nephthys.database.enums import UserType
+from nephthys.database.enums import UserTypeColumn
 
 
 def table_ref(table: str) -> LazyTableReference:
@@ -48,15 +36,13 @@ class Ticket(Table, tablename="Ticket"):
     id = Serial(primary_key=True, unique=True)
     title = Text()
     description = Text()
-    status = PostgresEnum("TicketStatus", TicketStatus)
+    status = TicketStatusColumn()
 
     msg_ts = Text(db_column_name="msgTs", unique=True)
     ticket_ts = Text(db_column_name="ticketTs", unique=True)
 
     last_msg_at = Timestamp(default=TimestampNow(), db_column_name="lastMsgAt")
-    last_msg_by = PostgresEnum(
-        "UserType", UserType, default=UserType.AUTHOR, db_column_name="lastMsgBy"
-    )
+    last_msg_by = UserTypeColumn(default=UserType.AUTHOR, db_column_name="lastMsgBy")
 
     opened_by = ForeignKey(
         references=User,
@@ -170,3 +156,17 @@ class UserTagSubscription(Table, tablename="user_tag_subscriptions"):
         on_delete=OnDelete.cascade,
     )
     subscribed_at = Timestamp(default=TimestampNow(), db_column_name="subscribedAt")
+
+
+# All tables must be listed here so that piccolo_app.py can find them.
+# This list is used for generating auto migrations.
+ALL_TABLES = [
+    User,
+    Ticket,
+    QuestionTag,
+    TeamTag,
+    CategoryTag,
+    BotMessage,
+    TagsOnTickets,
+    UserTagSubscription,
+]

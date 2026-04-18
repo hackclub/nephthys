@@ -1,7 +1,7 @@
 import pytz
 
+from nephthys.database.enums import TicketStatus
 from nephthys.database.tables import Ticket
-from nephthys.database.tables import TicketStatus
 from nephthys.database.tables import User
 from nephthys.utils.ticket_methods import get_question_message_link
 from nephthys.views.home.components.error_screen import error_screen

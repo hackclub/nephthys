@@ -6,8 +6,8 @@ from io import BytesIO
 import numpy as np
 from blockkit import Image
 
+from nephthys.database.enums import TicketStatus
 from nephthys.database.tables import Ticket
-from nephthys.database.tables import TicketStatus
 from nephthys.utils.bucky import upload_file
 from nephthys.utils.env import env
 from nephthys.utils.graphs.pie import generate_pie_chart

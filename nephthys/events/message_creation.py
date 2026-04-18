@@ -9,12 +9,12 @@ from prometheus_client import Histogram
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
+from nephthys.database.enums import TicketStatus
+from nephthys.database.enums import UserType
 from nephthys.database.tables import BotMessage
 from nephthys.database.tables import CategoryTag
 from nephthys.database.tables import Ticket
-from nephthys.database.tables import TicketStatus
 from nephthys.database.tables import User
-from nephthys.database.tables import UserType
 from nephthys.events.message.send_backend_message import backend_message_blocks
 from nephthys.events.message.send_backend_message import backend_message_fallback_text
 from nephthys.events.message.send_backend_message import send_backend_message

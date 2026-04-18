@@ -1,6 +1,6 @@
 from nephthys.actions.resolve import resolve
+from nephthys.database.enums import TicketStatus
 from nephthys.database.tables import Ticket
-from nephthys.database.tables import TicketStatus
 from nephthys.database.tables import User
 from nephthys.macros.types import Macro
 from nephthys.utils.env import env

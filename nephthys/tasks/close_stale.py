@@ -7,8 +7,8 @@ from datetime import timezone
 from slack_sdk.errors import SlackApiError
 
 from nephthys.actions.resolve import resolve
+from nephthys.database.enums import TicketStatus
 from nephthys.database.tables import Ticket
-from nephthys.database.tables import TicketStatus
 from nephthys.database.tables import User
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat

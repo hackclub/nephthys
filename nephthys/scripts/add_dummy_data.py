@@ -5,8 +5,8 @@ from datetime import timedelta
 from random import randint
 from sys import argv
 
+from nephthys.database.enums import TicketStatus
 from nephthys.database.tables import Ticket
-from nephthys.database.tables import TicketStatus
 from nephthys.utils.logging import send_heartbeat
 
 

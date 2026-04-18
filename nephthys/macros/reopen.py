@@ -3,8 +3,8 @@ from datetime import datetime
 
 from slack_sdk.errors import SlackApiError
 
+from nephthys.database.enums import TicketStatus
 from nephthys.database.tables import Ticket
-from nephthys.database.tables import TicketStatus
 from nephthys.events.message.send_backend_message import send_backend_message
 from nephthys.macros.types import Macro
 from nephthys.utils.env import env
