@@ -6,12 +6,13 @@ from io import BytesIO
 import numpy as np
 from blockkit import Image
 
+from nephthys.database.tables import Ticket
+from nephthys.database.tables import TicketStatus
 from nephthys.utils.bucky import upload_file
 from nephthys.utils.env import env
 from nephthys.utils.graphs.pie import generate_pie_chart
 from nephthys.utils.performance import perf_timer
 from nephthys.utils.time import is_day
-from prisma.enums import TicketStatus
 
 LAST_DAYS = 7
 
@@ -32,16 +33,14 @@ async def generate_ticket_status_pie_image(tz: timezone | None = None) -> bytes:
     one_week_ago = now - timedelta(days=LAST_DAYS)
 
     async with perf_timer("Fetching ticket counts from DB"):
-        recently_closed_tickets = await env.db.ticket.count(
-            where={
-                "status": TicketStatus.CLOSED,
-                "closedAt": {"gte": one_week_ago},
-            }
+        recently_closed_tickets = await Ticket.count().where(
+            Ticket.status == TicketStatus.CLOSED,
+            Ticket.closed_at >= one_week_ago,
         )
-        in_progress_tickets = await env.db.ticket.count(
-            where={"status": TicketStatus.IN_PROGRESS}
+        in_progress_tickets = await Ticket.count().where(
+            Ticket.status == TicketStatus.IN_PROGRESS
         )
-        open_tickets = await env.db.ticket.count(where={"status": TicketStatus.OPEN})
+        open_tickets = await Ticket.count().where(Ticket.status == TicketStatus.OPEN)
 
     y = [recently_closed_tickets, in_progress_tickets, open_tickets]
     labels = ["Closed", "In Progress", "Open"]

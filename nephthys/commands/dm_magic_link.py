@@ -5,6 +5,7 @@ from urllib.parse import quote
 from slack_bolt.async_app import AsyncAck
 from slack_sdk.web.async_client import AsyncWebClient
 
+from nephthys.database.tables import User
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 
@@ -15,7 +16,7 @@ async def dm_magic_link_cmd_callback(
     await ack()
     logging.info(f"Received command: {command}")
     user_id = body["user_id"]
-    user = await env.db.user.find_unique(where={"slackId": user_id})
+    user = await User.objects().get(User.slack_id == user_id)
     if not user or not user.helper:
         await client.chat_postEphemeral(
             channel=body["channel_id"],
