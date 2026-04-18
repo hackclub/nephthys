@@ -9,9 +9,9 @@ class Help(Transcript):
 
     help_channel: str = "C07TM4C0AQ5"  # help
     ticket_channel: str = "C0AS7CGTK8W"  # help-ticket
-    team_channel: str = "C0APKHZG495"  # owners-of-help-channel
+    team_channel: str = "C0APKHZG495"  # help-channel-bts
 
-    faq_link: str = "https://hackclub.enterprise.slack.com/docs/T0266FRGM/F0ARLNM3A1E"
+    faq_link: str = "https://hackclub.enterprise.slack.com/docs/T0266FRGM/F0AR3EQK621"
 
     first_ticket_create: str = f"""
 hi (user)! seems like it's your first time, welcome to the help channel! someone will be here soon to help answer your question! for now, feel free to look at the <{faq_link}|faq>, it answers some common questions and gives basic information. 
