@@ -30,7 +30,7 @@ class User(Table, tablename="User"):
     created_category_tags = ForeignKey(references="CategoryTag")
     team_tag_subscriptions = M2M(table_ref("UserTagSubscription"))
 
-    created_at = Timestamp(default=TimestampNow())
+    created_at = Timestamp(default=TimestampNow(), db_column_name="createdAt")
 
 
 class Ticket(Table, tablename="Ticket"):
@@ -90,18 +90,18 @@ class Ticket(Table, tablename="Ticket"):
         on_delete=OnDelete.set_null,
         on_update=OnUpdate.cascade,
     )
-    created_at = Timestamp(default=TimestampNow())
+    created_at = Timestamp(default=TimestampNow(), db_column_name="createdAt")
 
 
 class QuestionTag(Table, tablename="QuestionTag"):
     label = Text(unique=True)
     tickets = ForeignKey(references=Ticket)
-    created_at = Timestamp(default=TimestampNow())
+    created_at = Timestamp(default=TimestampNow(), db_column_name="createdAt")
 
 
 class TeamTag(Table, tablename="Tag"):
     name = Text(unique=True)
-    created_at = Timestamp(default=TimestampNow())
+    created_at = Timestamp(default=TimestampNow(), db_column_name="createdAt")
 
     tag_subscriptions = M2M(table_ref("UserTagSubscription"))
     tickets = M2M(table_ref("TagsOnTickets"))
@@ -110,7 +110,7 @@ class TeamTag(Table, tablename="Tag"):
 class CategoryTag(Table, tablename="CategoryTag"):
     name = Text(unique=True)
     created_by = ForeignKey(references=User, db_column_name="createdById", null=True)
-    created_at = Timestamp(default=TimestampNow())
+    created_at = Timestamp(default=TimestampNow(), db_column_name="createdAt")
 
 
 class BotMessage(Table, tablename="BotMessage"):
