@@ -9,7 +9,7 @@ from piccolo.columns.defaults.timestamp import TimestampNow
 from piccolo.table import Table
 
 
-class User(Table):
+class User(Table, tablename="User"):
     slack_id = Text(db_column_name="slackId")
     username = Text(null=True)
     admin = Boolean(default=False)
@@ -24,17 +24,16 @@ class User(Table):
     created_at = Timestamp(default=TimestampNow())
 
 
-class Ticket(Table):
+class Ticket(Table, tablename="Ticket"):
     title = Text()
     description = Text()
     status = Column()  # TODO: Enum
 
     msg_ts = Text(db_column_name="msgTs", unique=True)
     ticket_ts = Text(db_column_name="ticketTs", unique=True)
-    user_facing_msgs = ForeignKey(references="BotMessage")  # TODO
 
-    last_msg_at = Timestamp(default=TimestampNow())
-    last_msg_by = Column()  # TODO: Enum
+    last_msg_at = Timestamp(default=TimestampNow(), db_column_name="lastMsgAt")
+    last_msg_by = Column(db_column_name="lastMsgBy")  # TODO: Enum
 
     opened_by = ForeignKey(
         references=User,
@@ -64,10 +63,9 @@ class Ticket(Table):
         on_update=OnUpdate.cascade,
     )
 
-    assigned_at = Timestamp(null=True)
-    reopened_at = Timestamp(null=True)
+    assigned_at = Timestamp(null=True, db_column_name="assignedAt")
+    reopened_at = Timestamp(null=True, db_column_name="reopenedAt")
 
-    team_tags = ForeignKey(references="TeamTag", db_column_name="tagsOnTickets")
     question_tag = ForeignKey(
         references="QuestionTag",
         db_column_name="questionTagId",
@@ -85,7 +83,7 @@ class Ticket(Table):
     created_at = Timestamp(default=TimestampNow())
 
 
-class QuestionTag(Table):
+class QuestionTag(Table, tablename="QuestionTag"):
     label = Text(unique=True)
     tickets = ForeignKey(references=Ticket)
     created_at = Timestamp(default=TimestampNow())
@@ -96,13 +94,13 @@ class TeamTag(Table, tablename="Tag"):
     created_at = Timestamp(default=TimestampNow())
 
 
-class CategoryTag(Table):
+class CategoryTag(Table, tablename="CategoryTag"):
     name = Text(unique=True)
     created_by = ForeignKey(references=User, db_column_name="createdById", null=True)
     created_at = Timestamp(default=TimestampNow())
 
 
-class BotMessage(Table):
+class BotMessage(Table, tablename="BotMessage"):
     ts = Text()
     channel_id = Text(db_column_name="channelId")
     ticket = ForeignKey(
@@ -111,7 +109,7 @@ class BotMessage(Table):
     # Unimplemented: ts + channel_id should be unique together
 
 
-class TagsOnTickets(Table):
+class TagsOnTickets(Table, tablename="TagsOnTickets"):
     ticket = ForeignKey(
         references=Ticket,
         db_column_name="ticketId",
@@ -127,7 +125,7 @@ class TagsOnTickets(Table):
     assigned_at = Timestamp(default=TimestampNow())
 
 
-class UserTagSubscription(Table):
+class UserTagSubscription(Table, tablename="UserTagSubscription"):
     user = ForeignKey(
         references=User,
         db_column_name="userId",
