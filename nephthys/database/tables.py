@@ -5,6 +5,7 @@ from piccolo.columns import LazyTableReference
 from piccolo.columns import M2M
 from piccolo.columns import OnDelete
 from piccolo.columns import OnUpdate
+from piccolo.columns import Serial
 from piccolo.columns import Text
 from piccolo.columns import Timestamp
 from piccolo.columns.defaults.timestamp import TimestampNow
@@ -17,6 +18,7 @@ def table_ref(table: str) -> LazyTableReference:
 
 
 class User(Table, tablename="User"):
+    id = Serial(primary_key=True, unique=True)
     slack_id = Text(db_column_name="slackId")
     username = Text(null=True)
     admin = Boolean(default=False)
@@ -34,6 +36,7 @@ class User(Table, tablename="User"):
 
 
 class Ticket(Table, tablename="Ticket"):
+    id = Serial(primary_key=True, unique=True)
     title = Text()
     description = Text()
     status = Column()  # TODO: Enum
@@ -94,12 +97,14 @@ class Ticket(Table, tablename="Ticket"):
 
 
 class QuestionTag(Table, tablename="QuestionTag"):
+    id = Serial(primary_key=True, unique=True)
     label = Text(unique=True)
     tickets = ForeignKey(references=Ticket)
     created_at = Timestamp(default=TimestampNow(), db_column_name="createdAt")
 
 
 class TeamTag(Table, tablename="Tag"):
+    id = Serial(primary_key=True, unique=True)
     name = Text(unique=True)
     created_at = Timestamp(default=TimestampNow(), db_column_name="createdAt")
 
@@ -108,12 +113,14 @@ class TeamTag(Table, tablename="Tag"):
 
 
 class CategoryTag(Table, tablename="CategoryTag"):
+    id = Serial(primary_key=True, unique=True)
     name = Text(unique=True)
     created_by = ForeignKey(references=User, db_column_name="createdById", null=True)
     created_at = Timestamp(default=TimestampNow(), db_column_name="createdAt")
 
 
 class BotMessage(Table, tablename="BotMessage"):
+    id = Serial(primary_key=True, unique=True)
     ts = Text()
     channel_id = Text(db_column_name="channelId")
     ticket = ForeignKey(
