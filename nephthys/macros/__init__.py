@@ -1,5 +1,8 @@
 from typing import Any
 
+from nephthys.database.tables import Ticket
+from nephthys.database.tables import TicketStatus
+from nephthys.database.tables import User
 from nephthys.macros.faq import FAQ
 from nephthys.macros.fraud import Fraud
 from nephthys.macros.hackatime import Hackatime
@@ -16,9 +19,6 @@ from nephthys.macros.trigger_fulfillment_reminder import FulfillmentReminder
 from nephthys.macros.types import Macro
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
-from prisma.enums import TicketStatus
-from prisma.models import Ticket
-from prisma.models import User
 
 macro_list: list[type[Macro]] = [
     Resolve,
@@ -49,8 +49,8 @@ async def run_macro(
     async def error_msg(msg: str):
         return await env.slack_client.chat_postEphemeral(
             channel=env.slack_help_channel,
-            thread_ts=ticket.msgTs,
-            user=helper.slackId,
+            thread_ts=ticket.msg_ts,
+            user=helper.slack_id,
             text=msg,
         )
 
@@ -69,7 +69,7 @@ async def run_macro(
 
     await error_msg(f"`?{name}` is not a valid macro.")
     await send_heartbeat(
-        f"Macro {name} not found from <@{helper.slackId}>.",
+        f"Macro {name} not found from <@{helper.slack_id}>.",
         messages=[f"Ticket ID: {ticket.id}", f"Helper ID: {helper.id}"],
     )
     return False

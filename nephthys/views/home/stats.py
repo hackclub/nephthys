@@ -1,5 +1,5 @@
+from nephthys.database.tables import User
 from nephthys.views.home.components.header import get_header
-from prisma.models import User
 
 
 async def get_stats_view(user: User | None):

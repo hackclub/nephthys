@@ -7,9 +7,11 @@ from datetime import timezone
 from slack_sdk.errors import SlackApiError
 
 from nephthys.actions.resolve import resolve
+from nephthys.database.tables import Ticket
+from nephthys.database.tables import TicketStatus
+from nephthys.database.tables import User
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
-from prisma.enums import TicketStatus
 
 
 async def get_is_stale(ts: str, stale_ticket_days: int, max_retries: int = 3) -> bool:
@@ -48,26 +50,26 @@ async def get_is_stale(ts: str, stale_ticket_days: int, max_retries: int = 3) ->
                     f"Thread not found for ticket {ts}. This might be a deleted thread."
                 )
                 await send_heartbeat(f"Thread not found for ticket {ts}.")
-                maintainer_user = await env.db.user.find_unique(
-                    where={"slackId": env.slack_maintainer_id}
+                maintainer_user = (
+                    await User.objects()
+                    .where(User.slack_id == env.slack_maintainer_id)
+                    .first()
                 )
                 if maintainer_user:
-                    await env.db.ticket.update(
-                        where={"msgTs": ts},
-                        data={
-                            "status": TicketStatus.CLOSED,
-                            "closedAt": datetime.now(),
-                            "closedBy": {"connect": {"id": maintainer_user.id}},
-                        },
-                    )
+                    await Ticket.update(
+                        {
+                            Ticket.status: TicketStatus.CLOSED,
+                            Ticket.closed_at: datetime.now(),
+                            Ticket.closed_by: maintainer_user.id,
+                        }
+                    ).where(Ticket.msg_ts == ts)
                 else:
-                    await env.db.ticket.update(
-                        where={"msgTs": ts},
-                        data={
-                            "status": TicketStatus.CLOSED,
-                            "closedAt": datetime.now(),
-                        },
-                    )
+                    await Ticket.update(
+                        {
+                            Ticket.status: TicketStatus.CLOSED,
+                            Ticket.closed_at: datetime.now(),
+                        }
+                    ).where(Ticket.msg_ts == ts)
                 return False
             else:
                 logging.error(
@@ -100,9 +102,8 @@ async def close_stale_tickets():
     )
 
     try:
-        tickets = await env.db.ticket.find_many(
-            where={"NOT": [{"status": TicketStatus.CLOSED}]},
-            include={"openedBy": True, "assignedTo": True},
+        tickets = await Ticket.objects(Ticket.opened_by, Ticket.assigned_to).where(
+            Ticket.status != TicketStatus.CLOSED
         )
         stale = 0
 
@@ -117,19 +118,19 @@ async def close_stale_tickets():
             for ticket in batch:
                 await asyncio.sleep(1.2)  # Rate limiting delay
 
-                if await get_is_stale(ticket.msgTs, stale_ticket_days):
+                if await get_is_stale(ticket.msg_ts, stale_ticket_days):
                     stale += 1
                     resolver_user = (
-                        ticket.assignedTo if ticket.assignedTo else ticket.openedBy
+                        ticket.assigned_to if ticket.assigned_to else ticket.opened_by
                     )
                     if not resolver_user:
                         logging.warning(
-                            f"Skipping stale ticket {ticket.msgTs}: no assigned or opened user"
+                            f"Skipping stale ticket {ticket.msg_ts}: no assigned or opened user"
                         )
                         continue
                     await resolve(
-                        ticket.msgTs,
-                        resolver_user.slackId,
+                        ticket.msg_ts,
+                        resolver_user.slack_id,
                         env.slack_client,
                         stale=True,
                     )

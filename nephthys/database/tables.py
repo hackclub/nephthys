@@ -1,5 +1,6 @@
+from enum import StrEnum
+
 from piccolo.columns import Boolean
-from piccolo.columns import Column
 from piccolo.columns import ForeignKey
 from piccolo.columns import LazyTableReference
 from piccolo.columns import M2M
@@ -10,6 +11,20 @@ from piccolo.columns import Text
 from piccolo.columns import Timestamp
 from piccolo.columns.defaults.timestamp import TimestampNow
 from piccolo.table import Table
+
+from nephthys.database.postgres_enum import PostgresEnum
+
+
+class TicketStatus(StrEnum):
+    OPEN = "OPEN"
+    IN_PROGRESS = "IN_PROGRESS"
+    CLOSED = "CLOSED"
+
+
+class UserType(StrEnum):
+    AUTHOR = "AUTHOR"
+    HELPER = "HELPER"
+    OTHER = "OTHER"
 
 
 def table_ref(table: str) -> LazyTableReference:
@@ -33,13 +48,15 @@ class Ticket(Table, tablename="Ticket"):
     id = Serial(primary_key=True, unique=True)
     title = Text()
     description = Text()
-    status = Column()  # TODO: Enum
+    status = PostgresEnum("TicketStatus", TicketStatus)
 
     msg_ts = Text(db_column_name="msgTs", unique=True)
     ticket_ts = Text(db_column_name="ticketTs", unique=True)
 
     last_msg_at = Timestamp(default=TimestampNow(), db_column_name="lastMsgAt")
-    last_msg_by = Column(db_column_name="lastMsgBy")  # TODO: Enum
+    last_msg_by = PostgresEnum(
+        "UserType", UserType, default=UserType.AUTHOR, db_column_name="lastMsgBy"
+    )
 
     opened_by = ForeignKey(
         references=User,
@@ -70,6 +87,7 @@ class Ticket(Table, tablename="Ticket"):
     )
 
     assigned_at = Timestamp(null=True, db_column_name="assignedAt")
+    closed_at = Timestamp(null=True, db_column_name="closedAt")
     reopened_at = Timestamp(null=True, db_column_name="reopenedAt")
 
     team_tags = M2M(table_ref("TagsOnTickets"))

@@ -3,13 +3,14 @@ from datetime import datetime
 
 from slack_sdk.errors import SlackApiError
 
+from nephthys.database.tables import Ticket
+from nephthys.database.tables import TicketStatus
 from nephthys.events.message.send_backend_message import send_backend_message
 from nephthys.macros.types import Macro
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.slack_user import get_user_profile
 from nephthys.utils.ticket_methods import reply_to_ticket
-from prisma.enums import TicketStatus
 
 
 class Reopen(Macro):
@@ -24,44 +25,40 @@ class Reopen(Macro):
         if ticket.status != TicketStatus.CLOSED:
             return
 
-        await env.db.ticket.update(
-            where={"id": ticket.id},
-            data={
-                "status": TicketStatus.OPEN,
-                "closedBy": {"disconnect": True},
-                "reopenedBy": {"connect": {"id": helper.id}},
-                "reopenedAt": datetime.now(),
-                "closedAt": None,
-            },
-        )
+        await Ticket.update(
+            {
+                Ticket.status: TicketStatus.OPEN,
+                Ticket.closed_by: None,
+                Ticket.reopened_by: helper.id,
+                Ticket.reopened_at: datetime.now(),
+                Ticket.closed_at: None,
+            }
+        ).where(Ticket.id == ticket.id)
 
         await reply_to_ticket(
-            text=env.transcript.ticket_reopen.format(helper_slack_id=helper.slackId),
+            text=env.transcript.ticket_reopen.format(helper_slack_id=helper.slack_id),
             ticket=ticket,
             client=env.slack_client,
         )
 
-        if not ticket.openedBy:
+        if not ticket.opened_by:
             await send_heartbeat(
-                f"Attempted to reopen ticket (TS {ticket.msgTs}) but ticket author has not been recorded"
+                f"Attempted to reopen ticket (TS {ticket.msg_ts}) but ticket author has not been recorded"
             )
             return
-        author_id = ticket.openedBy.slackId
+        author_id = ticket.opened_by.slack_id
         author = await get_user_profile(author_id)
-        other_tickets = await env.db.ticket.count(
-            where={
-                "openedById": ticket.openedById,
-                "id": {"not": ticket.id},
-            }
+        other_tickets = await Ticket.count().where(
+            (Ticket.opened_by == ticket.opened_by) & (Ticket.id != ticket.id)
         )
 
         backend_message = await send_backend_message(
             author_user_id=author_id,
             description=ticket.description,
-            msg_ts=ticket.msgTs,
+            msg_ts=ticket.msg_ts,
             past_tickets=other_tickets,
             client=env.slack_client,
-            current_category_tag_id=ticket.categoryTagId,
+            current_category_tag_id=ticket.category_tag,
             reopened_by=helper,
             display_name=author.display_name(),
             profile_pic=author.profile_pic_512x(),
@@ -71,32 +68,33 @@ class Reopen(Macro):
         if not new_ticket_ts:
             logging.error(f"Invalid Slack message creation response: {backend_message}")
             raise ValueError("Invalid Slack message creation response: no ts")
-        await env.db.ticket.update(
-            where={"id": ticket.id},
-            data={"ticketTs": new_ticket_ts},
-        )
+        await Ticket.update(
+            {
+                Ticket.ticket_ts: new_ticket_ts,
+            }
+        ).where(Ticket.id == ticket.id)
 
         try:
             await env.slack_client.reactions_remove(
                 channel=env.slack_help_channel,
                 name="white_check_mark",
-                timestamp=ticket.msgTs,
+                timestamp=ticket.msg_ts,
             )
         except SlackApiError as e:
             logging.error(
-                f"Failed to remove check reaction from ticket with ts {ticket.msgTs}: {e.response['error']}"
+                f"Failed to remove check reaction from ticket with ts {ticket.msg_ts}: {e.response['error']}"
             )
         await env.slack_client.reactions_add(
             channel=env.slack_help_channel,
             name="thinking_face",
-            timestamp=ticket.msgTs,
+            timestamp=ticket.msg_ts,
         )
 
         await send_heartbeat(
-            f"Ticket {ticket.id} reopened by <@{helper.slackId}>",
+            f"Ticket {ticket.id} reopened by <@{helper.slack_id}>",
             messages=[
                 f"Ticket ID: {ticket.id}",
-                f"Original TS: {ticket.msgTs}",
+                f"Original TS: {ticket.msg_ts}",
                 f"New TS: {new_ticket_ts}",
             ],
         )

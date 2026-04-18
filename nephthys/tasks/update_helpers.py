@@ -1,5 +1,6 @@
 import logging
 
+from nephthys.database.tables import User
 from nephthys.utils.env import env
 
 
@@ -24,24 +25,18 @@ async def update_helpers():
         return
 
     # unset helpers not in the team
-    await env.db.user.update_many(
-        where={"helper": True, "slackId": {"not_in": team_ids}},
-        data={"helper": False},
+    await User.update({User.helper: False}).where(
+        (User.helper.eq(True)) & User.slack_id.not_in(team_ids)
     )
 
     # update existing users in the db
-    await env.db.user.update_many(
-        where={"slackId": {"in": team_ids}},
-        data={"helper": True},
-    )
+    await User.update({User.helper: True}).where(User.slack_id.is_in(team_ids))
 
     # create new users not in the db
-    existing_users_in_db = await env.db.user.find_many(
-        where={"slackId": {"in": team_ids}}
-    )
-    existing_user_ids_in_db = {user.slackId for user in existing_users_in_db}
+    existing_users_in_db = await User.objects().where(User.slack_id.is_in(team_ids))
+    existing_user_ids_in_db = {user.slack_id for user in existing_users_in_db}
 
-    new_member_data_to_create = []
+    new_users = []
     for member_id in team_ids:
         if member_id not in existing_user_ids_in_db:
             user_info = await env.slack_client.users_info(user=member_id)
@@ -49,21 +44,23 @@ async def update_helpers():
                 f"Creating new helper user {member_id} with info {user_info.get('name')}"
             )
             logging.info(f"User info for {member_id}: {user_info}")
-            new_member_data_to_create.append(
-                {
-                    "slackId": member_id,
-                    "helper": True,
-                    "username": user_info.get("user", {}).get("name"),
-                }
+            new_users.append(
+                User(
+                    slack_id=member_id,
+                    helper=True,
+                    username=user_info.get("user", {}).get("name"),
+                )
             )
 
-    if new_member_data_to_create:
-        await env.db.user.create_many(data=new_member_data_to_create)
+    if new_users:
+        await User.insert(*new_users)
 
     # ensure the bot maintainer is an admin
-    maintainer = await env.db.user.update(
-        where={"slackId": env.slack_maintainer_id},
-        data={"admin": True},
+    await User.update({User.admin: True}).where(
+        User.slack_id == env.slack_maintainer_id
+    )
+    maintainer = (
+        await User.objects().where(User.slack_id == env.slack_maintainer_id).first()
     )
     if not maintainer:
         logging.warning(

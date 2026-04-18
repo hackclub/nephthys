@@ -1,19 +1,20 @@
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from nephthys.utils.env import env
+from nephthys.database.tables import Ticket
+from nephthys.database.tables import User
 
 
 async def user_stats(req: Request):
     user_id = req.query_params["id"]
-    user = await env.db.user.find_unique(where={"slackId": user_id})
+    user = await User.objects().where(User.slack_id == user_id).first()
     if not user:
         return JSONResponse({"error": "user_not_found"}, status_code=404)
 
-    closed_tickets = await env.db.ticket.count(
-        where={"closedById": user.id, "NOT": [{"openedById": user.id}]}
+    closed_tickets = await Ticket.count().where(
+        (Ticket.closed_by == user.id) & (Ticket.opened_by != user.id)
     )
-    opened_tickets = await env.db.ticket.count(where={"openedById": user.id})
+    opened_tickets = await Ticket.count().where(Ticket.opened_by == user.id)
 
     return JSONResponse(
         {

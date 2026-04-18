@@ -5,6 +5,7 @@ from typing import Dict
 import slack_sdk.errors
 from slack_sdk.web.async_client import AsyncWebClient
 
+from nephthys.database.tables import Ticket
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.ticket_methods import delete_and_clean_up_ticket
@@ -51,7 +52,7 @@ async def handle_question_deletion(
         return
 
     # Delete ticket from DB and clean up bot messages
-    ticket = await env.db.ticket.find_first(where={"msgTs": deleted_msg["ts"]})
+    ticket = await Ticket.objects().where(Ticket.msg_ts == deleted_msg["ts"]).first()
     if not ticket:
         message = f"Deleted question doesn't have an associated ticket in DB, ts={deleted_msg['ts']}"
         logging.warning(message)
@@ -75,7 +76,7 @@ async def on_message_deletion(event: Dict[str, Any], client: AsyncWebClient) -> 
     if event.get("subtype") == "message_deleted":
         # This means the message has been completely deleted with out leaving a "tombstone"
         # No thread means no messages to delete, but we should delete any associated ticket from the DB
-        await env.db.ticket.delete(where={"msgTs": deleted_msg["ts"]})
+        await Ticket.delete().where(Ticket.msg_ts == deleted_msg["ts"])
     else:
         # A parent message (i.e. top-level message in help channel) has been deleted
         await handle_question_deletion(client, event["channel"], deleted_msg)

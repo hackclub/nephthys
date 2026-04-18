@@ -37,7 +37,13 @@ async def health(req: Request):
     except Exception:
         slack_healthy = False
 
-    db_healthy = env.db.is_connected()
+    try:
+        from nephthys.database.tables import User
+
+        await User.raw("SELECT 1")
+        db_healthy = True
+    except Exception:
+        db_healthy = False
 
     return JSONResponse(
         {
@@ -51,9 +57,7 @@ async def health(req: Request):
 async def metrics(req: Request):
     """Prometheus metrics endpoint"""
     main_metrics: bytes = generate_latest()
-    prisma_metrics = await env.db.get_metrics(format="prometheus")
-    all_metrics = main_metrics + prisma_metrics.encode("utf-8")
-    return Response(all_metrics, media_type=CONTENT_TYPE_LATEST)
+    return Response(main_metrics, media_type=CONTENT_TYPE_LATEST)
 
 
 async def root(req: Request):

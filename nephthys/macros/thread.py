@@ -1,10 +1,11 @@
 from slack_sdk.errors import SlackApiError
 
 from nephthys.actions.resolve import resolve
+from nephthys.database.tables import TicketStatus
+from nephthys.database.tables import User
 from nephthys.macros.types import Macro
 from nephthys.utils.env import env
 from nephthys.utils.ticket_methods import delete_bot_replies
-from prisma.enums import TicketStatus
 
 
 class Thread(Macro):
@@ -16,7 +17,7 @@ class Thread(Macro):
         A macro that deletes the Nephthys message and removes the
         reaction to avoid duplicate thread clutter
         """
-        sender = await env.db.user.find_first(where={"id": ticket.openedById})
+        sender = await User.objects().where(User.id == ticket.opened_by).first()
         if not sender:
             return
 
@@ -25,8 +26,8 @@ class Thread(Macro):
 
         if ticket.status != TicketStatus.CLOSED:
             await resolve(
-                ts=ticket.msgTs,
-                resolver=helper.slackId,
+                ts=ticket.msg_ts,
+                resolver=helper.slack_id,
                 client=env.slack_client,
                 add_reaction=False,
                 send_resolved_message=False,
@@ -39,7 +40,7 @@ class Thread(Macro):
             for reaction in reactions:
                 await env.slack_client.reactions_remove(
                     channel=env.slack_help_channel,
-                    timestamp=ticket.msgTs,
+                    timestamp=ticket.msg_ts,
                     name=reaction,
                 )
         except SlackApiError as e:

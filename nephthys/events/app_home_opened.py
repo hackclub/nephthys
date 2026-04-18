@@ -43,7 +43,9 @@ async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
     try:
         await client.views_publish(view=get_loading_view(home_type), user_id=user_id)
 
-        user = await env.db.user.find_unique(where={"slackId": user_id})
+        from nephthys.database.tables import User
+
+        user = await User.objects().where(User.slack_id == user_id).first()
         logging.info(f"Opening {home_type} for {user_id}")
         async with perf_timer(
             f"Rendering app home (type={home_type})",
