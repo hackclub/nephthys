@@ -93,7 +93,6 @@ class Ticket(Table, tablename="Ticket"):
 class QuestionTag(Table, tablename="QuestionTag"):
     id = Serial(primary_key=True, unique=True)
     label = Text(unique=True)
-    tickets = ForeignKey(references=Ticket)
     created_at = Timestamp(default=TimestampNow(), db_column_name="createdAt")
 
 
@@ -123,7 +122,7 @@ class BotMessage(Table, tablename="BotMessage"):
     # Unimplemented: ts + channel_id should be unique together
 
 
-class TagsOnTickets(Table, tablename="TagsOnTickets"):
+class TagsOnTickets(Table, tablename="tags_on_tickets"):
     ticket = ForeignKey(
         references=Ticket,
         db_column_name="ticketId",
@@ -136,10 +135,10 @@ class TagsOnTickets(Table, tablename="TagsOnTickets"):
         primary_key=True,
         on_delete=OnDelete.cascade,
     )
-    assigned_at = Timestamp(default=TimestampNow())
+    assigned_at = Timestamp(default=TimestampNow(), db_column_name="assignedAt")
 
 
-class UserTagSubscription(Table, tablename="UserTagSubscription"):
+class UserTagSubscription(Table, tablename="user_tag_subscriptions"):
     user = ForeignKey(
         references=User,
         db_column_name="userId",
@@ -152,4 +151,4 @@ class UserTagSubscription(Table, tablename="UserTagSubscription"):
         primary_key=True,
         on_delete=OnDelete.cascade,
     )
-    subscribed_at = Timestamp(default=TimestampNow())
+    subscribed_at = Timestamp(default=TimestampNow(), db_column_name="subscribedAt")
