@@ -1,12 +1,19 @@
 from piccolo.columns import Boolean
 from piccolo.columns import Column
 from piccolo.columns import ForeignKey
+from piccolo.columns import LazyTableReference
+from piccolo.columns import M2M
 from piccolo.columns import OnDelete
 from piccolo.columns import OnUpdate
 from piccolo.columns import Text
 from piccolo.columns import Timestamp
 from piccolo.columns.defaults.timestamp import TimestampNow
 from piccolo.table import Table
+
+
+def table_ref(table: str) -> LazyTableReference:
+    """Shorthand for the LazyTableReference constructor."""
+    return LazyTableReference(table, module_path=__name__)
 
 
 class User(Table, tablename="User"):
@@ -21,6 +28,8 @@ class User(Table, tablename="User"):
     reopened_tickets = ForeignKey(references="Ticket")
 
     created_category_tags = ForeignKey(references="CategoryTag")
+    team_tag_subscriptions = M2M(table_ref("UserTagSubscription"))
+
     created_at = Timestamp(default=TimestampNow())
 
 
@@ -66,6 +75,7 @@ class Ticket(Table, tablename="Ticket"):
     assigned_at = Timestamp(null=True, db_column_name="assignedAt")
     reopened_at = Timestamp(null=True, db_column_name="reopenedAt")
 
+    team_tags = M2M(table_ref("TagsOnTickets"))
     question_tag = ForeignKey(
         references="QuestionTag",
         db_column_name="questionTagId",
@@ -92,6 +102,9 @@ class QuestionTag(Table, tablename="QuestionTag"):
 class TeamTag(Table, tablename="Tag"):
     name = Text(unique=True)
     created_at = Timestamp(default=TimestampNow())
+
+    tag_subscriptions = M2M(table_ref("UserTagSubscription"))
+    tickets = M2M(table_ref("TagsOnTickets"))
 
 
 class CategoryTag(Table, tablename="CategoryTag"):
