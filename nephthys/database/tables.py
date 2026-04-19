@@ -10,6 +10,7 @@ from piccolo.columns import Timestamp
 from piccolo.columns.defaults.timestamp import TimestampNow
 from piccolo.table import Table
 
+from nephthys.database.enums import TicketStatus
 from nephthys.database.enums import TicketStatusColumn
 from nephthys.database.enums import UserType
 from nephthys.database.enums import UserTypeColumn
@@ -36,7 +37,7 @@ class Ticket(Table, tablename="Ticket"):
     id = Serial(primary_key=True, unique=True)
     title = Text()
     description = Text()
-    status = TicketStatusColumn()
+    status = TicketStatusColumn(default=TicketStatus.OPEN)
 
     msg_ts = Text(db_column_name="msgTs", unique=True)
     ticket_ts = Text(db_column_name="ticketTs", unique=True)
