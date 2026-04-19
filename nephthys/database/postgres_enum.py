@@ -16,7 +16,12 @@ def create_postgres_enum_type(db_type_name: str, enum: type[Enum]) -> type[Varch
 
         @property
         def column_type(self) -> str:
-            return self.db_type_name
+            # If we don't quote this value here, then Piccolo won't quote it
+            # when creating the column in an SQL auto-migration, which
+            # causes issues with case-sensitive type names (like our ones
+            # left over from Prisma).
+            # We should probably report this as a Piccolo bug!
+            return '"' + self.db_type_name + '"'
 
         def python_value(self, value):
             if self.enum and value is not None:
@@ -24,7 +29,6 @@ def create_postgres_enum_type(db_type_name: str, enum: type[Enum]) -> type[Varch
             return value
 
         def db_value(self, value):
-            print(f"Converting {value} to db value for enum {self.enum}")
             if self.enum and isinstance(value, self.enum):
                 return value.value
             return value
