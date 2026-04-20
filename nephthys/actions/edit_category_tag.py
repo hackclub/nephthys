@@ -6,38 +6,49 @@ from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
-from nephthys.views.modals.create_category_tag import get_create_category_tag_modal
+from nephthys.views.modals.edit_category_tag import get_edit_category_tag_modal
 from prisma.errors import UniqueViolationError
 
 
-async def create_category_tag_btn_callback(
+async def edit_category_tag_btn_callback(
     ack: AsyncAck, body: dict, client: AsyncWebClient
 ):
     await ack()
     user_id = body["user"]["id"]
     trigger_id = body["trigger_id"]
+    tag_id = int(body["actions"][0]["value"])
 
     user = await env.db.user.find_unique(where={"slackId": user_id})
     if not user or not user.admin:
         await send_heartbeat(
-            f"Attempted to open create category tag modal by non-admin user <@{user_id}>"
+            f"Attempted to open edit category tag modal by non-admin user <@{user_id}>"
         )
         return
 
-    view = get_create_category_tag_modal()
+    tag = await env.db.categorytag.find_unique(where={"id": tag_id})
+    if not tag:
+        logging.error(f"Category tag not found: id={tag_id}")
+        return
+
+    view = get_edit_category_tag_modal(tag.id, tag.name, tag.slug, tag.description)
     await client.views_open(trigger_id=trigger_id, view=view, user_id=user_id)
 
 
-async def create_category_tag_view_callback(
+async def edit_category_tag_view_callback(
     ack: AsyncAck, body: dict, client: AsyncWebClient
 ):
     user_id = body["user"]["id"]
+    callback_id = body["view"]["callback_id"]
+    tag_id = int(callback_id.replace("edit_category_tag_", ""))
     values = body["view"]["state"]["values"]
 
     raw_name = values["category_tag_name"]["category_tag_name"]["value"]
     name = raw_name.strip() if raw_name else ""
 
-    raw_slug = values["category_tag_slug"]["category_tag_slug"]["value"]
+    # Slug field only exists if tag doesn't already have a slug
+    raw_slug = None
+    if "category_tag_slug" in values:
+        raw_slug = values["category_tag_slug"]["category_tag_slug"]["value"]
     slug = raw_slug.strip() if raw_slug else None
 
     raw_description = values["category_tag_description"]["category_tag_description"][
@@ -63,18 +74,20 @@ async def create_category_tag_view_callback(
     if not user or not user.admin:
         await ack()
         await send_heartbeat(
-            f"Attempted to create category tag by non-admin user <@{user_id}>"
+            f"Attempted to edit category tag by non-admin user <@{user_id}>"
         )
         return
 
-    try:
-        data: dict = {"name": name, "createdBy": {"connect": {"id": user.id}}}
-        if slug:
-            data["slug"] = slug
-        if description:
-            data["description"] = description
+    # Build update data - only include slug if it's being newly set
+    update_data: dict = {"name": name, "description": description}
+    if slug:
+        update_data["slug"] = slug
 
-        await env.db.categorytag.create(data=data)
+    try:
+        await env.db.categorytag.update(
+            where={"id": tag_id},
+            data=update_data,
+        )
     except UniqueViolationError as e:
         logging.warning(f"Duplicate category tag: {e}")
         error_field = (

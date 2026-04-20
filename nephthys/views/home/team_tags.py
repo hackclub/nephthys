@@ -37,12 +37,18 @@ async def get_team_tags_view(user: User | None) -> dict:
         else:
             subs = []
         stringified_subs = [f"<@{user}>" for user in subs]
+
+        tag_text = f"*{tag.name}*"
+        if tag.description:
+            tag_text += f"\n_{tag.description}_"
+        tag_text += f"\n{''.join(stringified_subs) if stringified_subs else ':rac_nooo: no subscriptions'}"
+
         blocks.append(
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"*{tag.name}* - {''.join(stringified_subs) if stringified_subs else ':rac_nooo: no subscriptions'}",
+                    "text": tag_text,
                 },
                 "accessory": (
                     {
@@ -61,6 +67,25 @@ async def get_team_tags_view(user: User | None) -> dict:
                 ),
             }
         )
+
+        if is_admin:
+            blocks.append(
+                {
+                    "type": "actions",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": ":pencil2: Edit tag",
+                                "emoji": True,
+                            },
+                            "action_id": f"edit-team-tag-{tag.id}",
+                            "value": str(tag.id),
+                        }
+                    ],
+                }
+            )
 
     view = {
         "type": "home",

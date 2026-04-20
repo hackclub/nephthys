@@ -21,9 +21,17 @@ async def create_team_tag_view_callback(
         await send_heartbeat(f"Attempted to create tag by non-admin user <@{user_id}>")
         return
 
-    name = body["view"]["state"]["values"]["tag_name"]["tag_name"]["value"]
-    await env.db.tag.create(data={"name": name})
+    values = body["view"]["state"]["values"]
+    name = values["tag_name"]["tag_name"]["value"]
 
+    raw_description = values["tag_description"]["tag_description"]["value"]
+    description = raw_description.strip() if raw_description else None
+
+    data: dict = {"name": name}
+    if description:
+        data["description"] = description
+
+    await env.db.tag.create(data=data)
     await open_app_home("team-tags", client, user_id)
 
 

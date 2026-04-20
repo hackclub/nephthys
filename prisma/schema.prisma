@@ -90,8 +90,9 @@ model QuestionTag {
 
 // These tags are team tags
 model Tag {
-  id   Int    @id @unique @default(autoincrement())
-  name String @unique
+  id          Int     @id @unique @default(autoincrement())
+  name        String  @unique
+  description String?
 
   ticketsOnTags TagsOnTickets[]
 
@@ -134,9 +135,11 @@ model BotMessage {
 }
 
 model CategoryTag {
-  id      Int      @id @unique @default(autoincrement())
-  name    String   @unique
-  tickets Ticket[] @relation("CategoryTagTickets")
+  id          Int      @id @unique @default(autoincrement())
+  name        String   @unique
+  slug        String?  @unique
+  description String?
+  tickets     Ticket[] @relation("CategoryTagTickets")
 
   createdBy   User? @relation("CreatedCategoryTags", fields: [createdById], references: [id])
   createdById Int?
