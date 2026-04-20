@@ -15,5 +15,7 @@ class UserType(StrEnum):
     OTHER = "OTHER"
 
 
-TicketStatusColumn = create_postgres_enum_type("TicketStatus", TicketStatus)
-UserTypeColumn = create_postgres_enum_type("UserType", UserType)
+# Note: these database type names were PascalCase in the Prisma era,
+# but we have a migration to make them snake_case for consistency and Piccolo compatibility.
+TicketStatusColumn = create_postgres_enum_type("ticket_status", TicketStatus)
+UserTypeColumn = create_postgres_enum_type("user_type", UserType)
