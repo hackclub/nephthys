@@ -4,9 +4,9 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from nephthys.api.ticket import ticket_to_json
-from nephthys.utils.env import env
-from prisma.enums import TicketStatus
-from prisma.types import TicketWhereInput
+from nephthys.database.enums import TicketStatus
+from nephthys.database.tables import TagsOnTickets
+from nephthys.database.tables import Ticket
 
 
 async def tickets_list(req: Request):
@@ -49,25 +49,38 @@ async def tickets_list(req: Request):
         tip = "Please provide a ?since= or ?until= parameter, or filter by ?status=open or ?status=in_progress"
         return JSONResponse({"error": msg, "tip": tip}, status_code=400)
 
-    db_filter: TicketWhereInput = {}
-    if filter_status:
-        db_filter["status"] = filter_status
-    if filter_created_after or filter_created_before:
-        db_filter["createdAt"] = {}
-        if filter_created_after:
-            db_filter["createdAt"]["gte"] = filter_created_after
-        if filter_created_before:
-            db_filter["createdAt"]["lte"] = filter_created_before
-
-    tickets = await env.db.ticket.find_many(
-        where=db_filter,
-        include={
-            "openedBy": True,
-            "closedBy": True,
-            "assignedTo": True,
-            "reopenedBy": True,
-            "tagsOnTickets": {"include": {"tag": True}},
-        },
-        order={"createdAt": "asc"},
+    query = Ticket.objects(
+        Ticket.opened_by,
+        Ticket.closed_by,
+        Ticket.assigned_to,
+        Ticket.reopened_by,
     )
-    return JSONResponse([ticket_to_json(t) for t in tickets])
+
+    if filter_status:
+        query = query.where(Ticket.status == filter_status)
+    if filter_created_after:
+        query = query.where(Ticket.created_at >= filter_created_after)
+    if filter_created_before:
+        query = query.where(Ticket.created_at <= filter_created_before)
+
+    tickets = await query.order_by(Ticket.created_at)
+
+    # Fetch all tag links for returned tickets in one query
+    ticket_ids = [t.id for t in tickets]
+    all_tag_links = (
+        await TagsOnTickets.objects(TagsOnTickets.tag).where(
+            TagsOnTickets.ticket.is_in(ticket_ids)
+        )
+        if ticket_ids
+        else []
+    )
+
+    from collections import defaultdict
+
+    tags_by_ticket = defaultdict(list)
+    for link in all_tag_links:
+        tags_by_ticket[link.ticket].append(link)
+
+    return JSONResponse(
+        [ticket_to_json(t, tags_by_ticket.get(t.id, [])) for t in tickets]
+    )

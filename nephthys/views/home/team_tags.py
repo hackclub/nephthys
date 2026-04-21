@@ -1,15 +1,16 @@
 import logging
 
-from nephthys.utils.env import env
+from nephthys.database.tables import TeamTag
+from nephthys.database.tables import User
+from nephthys.database.tables import UserTagSubscription
 from nephthys.views.home.components.header import get_header
-from prisma.models import User
 
 
 async def get_team_tags_view(user: User | None) -> dict:
     header = get_header(user, "team-tags")
     is_admin = bool(user and user.admin)
     is_helper = bool(user and user.helper)
-    tags = await env.db.tag.find_many(include={"userSubscriptions": True})
+    tags = await TeamTag.objects()
     blocks = []
 
     if not tags:
@@ -25,18 +26,17 @@ async def get_team_tags_view(user: User | None) -> dict:
 
     for tag in tags:
         logging.info(f"Tag {tag.name} with id {tag.id} found in the database")
-        logging.info(
-            f"Tag {tag.name} has {len(tag.userSubscriptions) if tag.userSubscriptions else 0} subscriptions"
+        subscriptions = await UserTagSubscription.objects().where(
+            UserTagSubscription.tag == tag.id
         )
-        if tag.userSubscriptions:
-            subIds = [user.userId for user in tag.userSubscriptions]
-
-            subUsers = await env.db.user.find_many(where={"id": {"in": subIds}})
-
-            subs = [user.slackId for user in subUsers]
+        logging.info(f"Tag {tag.name} has {len(subscriptions)} subscriptions")
+        if subscriptions:
+            sub_user_ids = [sub.user for sub in subscriptions]
+            sub_users = await User.objects().where(User.id.is_in(sub_user_ids))
+            subs = [u.slack_id for u in sub_users]
         else:
             subs = []
-        stringified_subs = [f"<@{user}>" for user in subs]
+        stringified_subs = [f"<@{s}>" for s in subs]
         blocks.append(
             {
                 "type": "section",

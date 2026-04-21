@@ -1,11 +1,11 @@
 import pytz
 
-from nephthys.utils.env import env
+from nephthys.database.enums import TicketStatus
+from nephthys.database.tables import Ticket
+from nephthys.database.tables import User
 from nephthys.utils.ticket_methods import get_question_message_link
 from nephthys.views.home.components.error_screen import error_screen
 from nephthys.views.home.components.header import get_header
-from prisma.enums import TicketStatus
-from prisma.models import User
 
 
 async def get_assigned_tickets_view(user: User | None):
@@ -18,9 +18,8 @@ async def get_assigned_tickets_view(user: User | None):
             ":rac_believes_in_theory_about_green_lizards_and_space_lasers: only helpers can be assigned to tickets, so you have none - zero responsibility!",
         )
 
-    tickets = await env.db.ticket.find_many(
-        where={"assignedToId": user.id, "NOT": [{"status": TicketStatus.CLOSED}]},
-        include={"openedBy": True},
+    tickets = await Ticket.objects(Ticket.opened_by).where(
+        (Ticket.assigned_to == user.id) & (Ticket.status != TicketStatus.CLOSED)
     )
 
     if not tickets:
@@ -32,10 +31,10 @@ async def get_assigned_tickets_view(user: User | None):
 
     ticket_blocks = []
     for ticket in tickets:
-        unix_ts = int(ticket.createdAt.timestamp())
-        time_ago_str = f"<!date^{unix_ts}^opened {{ago}}|at {ticket.createdAt.astimezone(pytz.timezone('Europe/London')).strftime('%H:%M %Z')}>"
+        unix_ts = int(ticket.created_at.timestamp())
+        time_ago_str = f"<!date^{unix_ts}^opened {{ago}}|at {ticket.created_at.astimezone(pytz.timezone('Europe/London')).strftime('%H:%M %Z')}>"
         opened_by_str = (
-            f"<@{ticket.openedBy.slackId}>" if ticket.openedBy else "unknown user"
+            f"<@{ticket.opened_by.slack_id}>" if ticket.opened_by else "unknown user"
         )
         ticket_blocks.append(
             {
@@ -51,9 +50,9 @@ async def get_assigned_tickets_view(user: User | None):
                         "text": ":rac_info: view ticket",
                         "emoji": True,
                     },
-                    "action_id": f"view-ticket-{ticket.msgTs}",
+                    "action_id": f"view-ticket-{ticket.msg_ts}",
                     "url": get_question_message_link(ticket),
-                    "value": ticket.msgTs,
+                    "value": ticket.msg_ts,
                 },
             }
         )

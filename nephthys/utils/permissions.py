@@ -1,3 +1,4 @@
+from nephthys.database.tables import Ticket
 from nephthys.utils.env import env
 
 
@@ -18,9 +19,9 @@ async def can_resolve(slack_id: str, user_id: int, ts: str) -> bool:
     if slack_id in team:
         return True
 
-    tkt = await env.db.ticket.find_unique(where={"msgTs": ts})
+    tkt = await Ticket.objects().where(Ticket.msg_ts == ts).first()
 
-    if not tkt or tkt.openedById != user_id:
+    if not tkt or tkt.opened_by != user_id:
         return False
 
     return True

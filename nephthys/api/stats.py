@@ -23,7 +23,7 @@ async def stats(req: Request):
             "total_top_3_users_with_closed_tickets": [
                 {
                     "user_id": entry["user"].id,
-                    "slack_id": entry["user"].slackId,
+                    "slack_id": entry["user"].slack_id,
                     "closed_ticket_count": entry["count"],
                 }
                 for entry in total_stats.helpers_leaderboard[:3]
@@ -42,7 +42,7 @@ async def stats(req: Request):
             "prev_day_top_3_users_with_closed_tickets": [
                 {
                     "user_id": entry["user"].id,
-                    "slack_id": entry["user"].slackId,
+                    "slack_id": entry["user"].slack_id,
                     "closed_ticket_count": entry["count"],
                 }
                 for entry in prev_day_stats.helpers_leaderboard[:3]

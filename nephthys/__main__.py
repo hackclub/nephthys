@@ -37,10 +37,13 @@ if env.otel_logs_url:
 
 @contextlib.asynccontextmanager
 async def main(_app: Starlette):
+    from piccolo_conf import DB
+
     await send_heartbeat(":neodog_nom_verified: Bot is online!")
+
     async with ClientSession() as session:
         env.session = session
-        await env.db.connect()
+        await DB.start_connection_pool()
 
         scheduler = AsyncIOScheduler(timezone="Europe/London")
         if env.daily_summary:
@@ -90,6 +93,7 @@ async def main(_app: Starlette):
         logging.info(f"Starting Uvicorn on port {env.port}")
 
         yield
+        await DB.close_connection_pool()
         scheduler.shutdown()
         delete_msg_task.cancel()
 

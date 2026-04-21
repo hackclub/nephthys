@@ -5,9 +5,10 @@ from typing import Dict
 from slack_bolt.async_app import AsyncAck
 from slack_sdk.web.async_client import AsyncWebClient
 
+from nephthys.database.tables import Ticket
+from nephthys.database.tables import User
 from nephthys.events.message.send_backend_message import backend_message_blocks
 from nephthys.events.message.send_backend_message import backend_message_fallback_text
-from nephthys.utils.env import env
 
 
 async def assign_category_tag_callback(
@@ -27,7 +28,7 @@ async def assign_category_tag_callback(
     channel_id = body["channel"]["id"]
     ts = body["message"]["ts"]
 
-    user = await env.db.user.find_unique(where={"slackId": user_id})
+    user = await User.objects().where(User.slack_id == user_id).first()
     if not user or not user.helper:
         logging.warning(
             f"Unauthorized user attempted to assign category tag user_id={user_id}"
@@ -39,16 +40,16 @@ async def assign_category_tag_callback(
         )
         return
 
-    ticket = await env.db.ticket.update(
-        where={"ticketTs": ts},
-        data={
-            "categoryTag": (
-                {"connect": {"id": tag_id}}
-                if tag_id is not None
-                else {"disconnect": True}
-            )
-        },
-        include={"openedBy": True, "reopenedBy": True},
+    await Ticket.update(
+        {
+            Ticket.category_tag: tag_id,
+        }
+    ).where(Ticket.ticket_ts == ts)
+
+    ticket = (
+        await Ticket.objects(Ticket.opened_by, Ticket.reopened_by)
+        .where(Ticket.ticket_ts == ts)
+        .first()
     )
     if not ticket:
         logging.error(
@@ -56,13 +57,10 @@ async def assign_category_tag_callback(
         )
         return
 
-    other_tickets = await env.db.ticket.count(
-        where={
-            "openedById": ticket.openedById,
-            "id": {"not": ticket.id},
-        }
+    other_tickets = await Ticket.count().where(
+        (Ticket.opened_by == ticket.opened_by) & (Ticket.id != ticket.id)
     )
-    if not ticket.openedBy:
+    if not ticket.opened_by:
         logging.error(f"Cannot find who opened ticket ticket_id={ticket.id}")
         return
     # Update the backend message so it has the new tag selected
@@ -70,16 +68,16 @@ async def assign_category_tag_callback(
         channel=channel_id,
         ts=ts,
         text=backend_message_fallback_text(
-            author_user_id=ticket.openedBy.slackId,
+            author_user_id=ticket.opened_by.slack_id,
             description=ticket.description,
-            reopened_by=ticket.reopenedBy,
+            reopened_by=ticket.reopened_by,
         ),
         blocks=await backend_message_blocks(
-            author_user_id=ticket.openedBy.slackId,
-            msg_ts=ticket.msgTs,
+            author_user_id=ticket.opened_by.slack_id,
+            msg_ts=ticket.msg_ts,
             past_tickets=other_tickets,
             current_category_tag_id=tag_id,
-            reopened_by=ticket.reopenedBy,
+            reopened_by=ticket.reopened_by,
         ),
     )
 

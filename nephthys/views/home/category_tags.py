@@ -5,9 +5,9 @@ from blockkit import Header
 from blockkit import Home
 from blockkit import Section
 
-from nephthys.utils.env import env
+from nephthys.database.tables import CategoryTag
+from nephthys.database.tables import User
 from nephthys.views.home.components.header import get_header_components
-from prisma.models import User
 
 
 async def get_category_tags_view(user: User | None) -> dict:
@@ -24,7 +24,7 @@ async def get_category_tags_view(user: User | None) -> dict:
             ]
         ).build()
 
-    category_tags = await env.db.categorytag.find_many(order={"id": "asc"})
+    category_tags = await CategoryTag.objects().order_by(CategoryTag.id)
 
     tag_blocks = []
     if not category_tags:

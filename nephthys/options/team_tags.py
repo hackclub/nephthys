@@ -3,11 +3,11 @@ import logging
 from thefuzz import fuzz
 from thefuzz import process
 
-from nephthys.utils.env import env
+from nephthys.database.tables import TeamTag
 
 
 async def get_team_tags(payload: dict) -> list[dict[str, dict[str, str] | str]]:
-    tags = await env.db.tag.find_many()
+    tags = await TeamTag.objects()
     if not tags:
         return []
 

@@ -1,9 +1,8 @@
 from datetime import datetime
 
-from nephthys.utils.env import env
-from prisma.enums import TicketStatus
-from prisma.enums import UserType
-from prisma.models import Ticket
+from nephthys.database.enums import TicketStatus
+from nephthys.database.enums import UserType
+from nephthys.database.tables import Ticket
 
 
 async def get_unanswered_tickets(since: datetime | None = None) -> list[Ticket]:
@@ -13,13 +12,16 @@ async def get_unanswered_tickets(since: datetime | None = None) -> list[Ticket]:
     Returns a list of tickets, in order (most stale tickets first)
     """
 
-    unanswered_tickets = await env.db.ticket.find_many(
-        where={
-            "status": TicketStatus.OPEN,
-            "lastMsgAt": {"lt": since} if since else {},
-            "AND": [{"NOT": [{"lastMsgBy": UserType.HELPER}]}],
-        },
-        order={"lastMsgAt": "asc"},
+    query = (
+        Ticket.objects()
+        .where(
+            (Ticket.status == TicketStatus.OPEN)
+            & (Ticket.last_msg_by != UserType.HELPER)
+        )
+        .order_by(Ticket.last_msg_at)
     )
 
-    return unanswered_tickets
+    if since:
+        query = query.where(Ticket.last_msg_at < since)
+
+    return await query

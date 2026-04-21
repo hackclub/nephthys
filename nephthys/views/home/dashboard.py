@@ -4,6 +4,7 @@ import pytz
 from blockkit import Header
 from blockkit import Home
 
+from nephthys.database.tables import User
 from nephthys.utils.env import env
 from nephthys.utils.performance import perf_timer
 from nephthys.views.home.components.header import get_header_components
@@ -12,7 +13,6 @@ from nephthys.views.home.components.ticket_status_pie import (
     ticket_status_pie_chart_component,
 )
 from nephthys.views.home.error import get_error_view
-from prisma.models import User
 
 
 async def get_dashboard_view(slack_user: str, db_user: User | None):

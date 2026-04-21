@@ -12,7 +12,7 @@ from nephthys.utils.stats import calculate_overall_stats
 async def get_leaderboard_components():
     stats = await calculate_overall_stats()
     overall_leaderboard_lines = [
-        f"{i + 1}. <@{entry['user'].slackId}> - {entry['count']} closed"
+        f"{i + 1}. <@{entry['user'].slack_id}> - {entry['count']} closed"
         for i, entry in enumerate(stats.helpers_leaderboard)
     ]
     if not overall_leaderboard_lines:
@@ -25,7 +25,7 @@ async def get_leaderboard_components():
     prev_day = await calculate_daily_stats(prev_day_start, now)
 
     prev_day_leaderboard_lines = [
-        f"{i + 1}. <@{entry['user'].slackId}> - {entry['count']} closed"
+        f"{i + 1}. <@{entry['user'].slack_id}> - {entry['count']} closed"
         for i, entry in enumerate(prev_day.helpers_leaderboard)
     ]
     if not prev_day_leaderboard_lines:
