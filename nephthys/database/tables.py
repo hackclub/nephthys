@@ -6,8 +6,8 @@ from piccolo.columns import OnDelete
 from piccolo.columns import OnUpdate
 from piccolo.columns import Serial
 from piccolo.columns import Text
-from piccolo.columns import Timestamp
-from piccolo.columns.defaults.timestamp import TimestampNow
+from piccolo.columns import Timestamptz
+from piccolo.columns.defaults.timestamptz import TimestamptzNow
 from piccolo.table import Table
 
 from nephthys.database.enums import TicketStatus
@@ -30,7 +30,7 @@ class User(Table, tablename="User"):
 
     team_tag_subscriptions = M2M(table_ref("UserTagSubscription"))
 
-    created_at = Timestamp(default=TimestampNow(), db_column_name="createdAt")
+    created_at = Timestamptz(default=TimestamptzNow(), db_column_name="createdAt")
 
 
 class Ticket(Table, tablename="Ticket"):
@@ -42,7 +42,7 @@ class Ticket(Table, tablename="Ticket"):
     msg_ts = Text(db_column_name="msgTs", unique=True)
     ticket_ts = Text(db_column_name="ticketTs", unique=True)
 
-    last_msg_at = Timestamp(default=TimestampNow(), db_column_name="lastMsgAt")
+    last_msg_at = Timestamptz(default=TimestamptzNow(), db_column_name="lastMsgAt")
     last_msg_by = UserTypeColumn(default=UserType.AUTHOR, db_column_name="lastMsgBy")
 
     opened_by = ForeignKey(
@@ -73,9 +73,9 @@ class Ticket(Table, tablename="Ticket"):
         on_update=OnUpdate.cascade,
     )
 
-    assigned_at = Timestamp(null=True, db_column_name="assignedAt")
-    closed_at = Timestamp(null=True, db_column_name="closedAt")
-    reopened_at = Timestamp(null=True, db_column_name="reopenedAt")
+    assigned_at = Timestamptz(null=True, db_column_name="assignedAt")
+    closed_at = Timestamptz(null=True, db_column_name="closedAt")
+    reopened_at = Timestamptz(null=True, db_column_name="reopenedAt")
 
     team_tags = M2M(table_ref("TagsOnTickets"))
     question_tag = ForeignKey(
@@ -92,19 +92,19 @@ class Ticket(Table, tablename="Ticket"):
         on_delete=OnDelete.set_null,
         on_update=OnUpdate.cascade,
     )
-    created_at = Timestamp(default=TimestampNow(), db_column_name="createdAt")
+    created_at = Timestamptz(default=TimestamptzNow(), db_column_name="createdAt")
 
 
 class QuestionTag(Table, tablename="QuestionTag"):
     id = Serial(primary_key=True, unique=True)
     label = Text(unique=True)
-    created_at = Timestamp(default=TimestampNow(), db_column_name="createdAt")
+    created_at = Timestamptz(default=TimestamptzNow(), db_column_name="createdAt")
 
 
 class TeamTag(Table, tablename="Tag"):
     id = Serial(primary_key=True, unique=True)
     name = Text(unique=True)
-    created_at = Timestamp(default=TimestampNow(), db_column_name="createdAt")
+    created_at = Timestamptz(default=TimestamptzNow(), db_column_name="createdAt")
 
     tag_subscriptions = M2M(table_ref("UserTagSubscription"))
     tickets = M2M(table_ref("TagsOnTickets"))
@@ -114,7 +114,7 @@ class CategoryTag(Table, tablename="CategoryTag"):
     id = Serial(primary_key=True, unique=True)
     name = Text(unique=True)
     created_by = ForeignKey(references=User, db_column_name="createdById", null=True)
-    created_at = Timestamp(default=TimestampNow(), db_column_name="createdAt")
+    created_at = Timestamptz(default=TimestamptzNow(), db_column_name="createdAt")
 
 
 class BotMessage(Table, tablename="BotMessage"):
@@ -140,7 +140,7 @@ class TagsOnTickets(Table, tablename="tags_on_tickets"):
         primary_key=True,
         on_delete=OnDelete.cascade,
     )
-    assigned_at = Timestamp(default=TimestampNow(), db_column_name="assignedAt")
+    assigned_at = Timestamptz(default=TimestamptzNow(), db_column_name="assignedAt")
 
 
 class UserTagSubscription(Table, tablename="user_tag_subscriptions"):
@@ -156,7 +156,7 @@ class UserTagSubscription(Table, tablename="user_tag_subscriptions"):
         primary_key=True,
         on_delete=OnDelete.cascade,
     )
-    subscribed_at = Timestamp(default=TimestampNow(), db_column_name="subscribedAt")
+    subscribed_at = Timestamptz(default=TimestamptzNow(), db_column_name="subscribedAt")
 
 
 # All tables must be listed here so that piccolo_app.py can find them.
