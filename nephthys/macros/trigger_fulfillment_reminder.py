@@ -12,8 +12,8 @@ class FulfillmentReminder(Macro):
         if not env.environment == "development":
             await env.slack_client.chat_postEphemeral(
                 channel=env.slack_help_channel,
-                thread_ts=ticket.msgTs,
-                user=helper.slackId,
+                thread_ts=ticket.msg_ts,
+                user=helper.slack_id,
                 text="The `fulfillment_reminder` macro can only be run in development environments.",
             )
             return
