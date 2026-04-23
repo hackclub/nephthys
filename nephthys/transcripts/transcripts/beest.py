@@ -16,7 +16,7 @@ class Beest(Transcript):
 Heya! I'm an automation that assigns helpers to your question! First off, have you read the <{faq_link}|faq>, it answers a lot of common questions!
 if your question has been answered, please hit the button below to mark it as resolved
 """
-    ticket_create: str = f"someone should be along to help you soon but in the mean time i suggest you read the faq <{faq_link}|here> to make sure your question hasn't already been answered. if it has been, please hit the button below to mark it as resolved :D"
+    ticket_create: str = f"someone should be along to help you soon but in the meantime i suggest you read the faq <{faq_link}|here> to make sure your question hasn't already been answered. if it has been, please hit the button below to mark it as resolved :D"
     resolve_ticket_button: str = "i get it now"
     ticket_resolve: str = f"<@{{user_id}}> Has marked this as resolved - make a new post in <#{help_channel}> if this was a mistake"
 
