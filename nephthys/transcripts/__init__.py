@@ -2,6 +2,7 @@ from typing import List
 from typing import Type
 
 from nephthys.transcripts.transcript import Transcript
+from nephthys.transcripts.transcripts.beest import Beest
 from nephthys.transcripts.transcripts.construct import Construct
 from nephthys.transcripts.transcripts.fallout import Fallout
 from nephthys.transcripts.transcripts.flavortown import Flavortown
@@ -14,7 +15,6 @@ from nephthys.transcripts.transcripts.midnight import Midnight
 from nephthys.transcripts.transcripts.nest import Nest
 from nephthys.transcripts.transcripts.stasis import Stasis
 from nephthys.transcripts.transcripts.summer_of_making import SummerOfMaking
-from nephthys.transcripts.transcripts.beest import Beest
 
 transcripts: List[Type[Transcript]] = [
     Identity,

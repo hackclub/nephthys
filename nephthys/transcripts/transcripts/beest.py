@@ -2,9 +2,9 @@ from nephthys.transcripts.transcript import Transcript
 
 
 class Beest(Transcript):
-    """Transcript for beest-help"""
+    """Transcript for Beest"""
 
-    program_name: str = "beest"
+    program_name: str = "Beest"
     program_owner: str = "U06T30DNB3L"
 
     help_channel: str = "C0AQ4T1CWH2"
@@ -18,6 +18,6 @@ if your question has been answered, please hit the button below to mark it as re
 """
     ticket_create: str = f"someone should be along to help you soon but in the meantime i suggest you read the faq <{faq_link}|here> to make sure your question hasn't already been answered. if it has been, please hit the button below to mark it as resolved :D"
     resolve_ticket_button: str = "i get it now"
-    ticket_resolve: str = f"<@{{user_id}}> Has marked this as resolved - make a new post in <#{help_channel}> if this was a mistake"
+    ticket_resolve: str = f"<@{{user_id}}> has marked this as resolved - make a new post in <#{help_channel}> if this was a mistake"
 
     not_allowed_channel: str = f"heya, it looks like you're not supposed to be in that channel, pls talk to <@{program_owner}> if that's wrong"
