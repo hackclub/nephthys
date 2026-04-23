@@ -12,7 +12,6 @@ class Beest(Transcript):
     team_channel: str = "C0APP5ZMWUQ"
 
     faq_link: str = "https://beest.hackclub.com/FAQ"
- 
     first_ticket_create: str = f"""
 Heya! I'm an automation that assigns helpers to your question! First off, have you read the <{faq_link}|faq>, it answers a lot of common questions!
 if your question has been answered, please hit the button below to mark it as resolved
