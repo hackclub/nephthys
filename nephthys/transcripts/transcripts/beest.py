@@ -14,7 +14,7 @@ class Beest(Transcript):
     faq_link: str = "https://beest.hackclub.com/FAQ"
  
     first_ticket_create: str = f"""
-Heya! Im an automation that assigns helpers to your question! First off, have you read the <{faq_link}|faq>, it answers a lot of common questions!
+Heya! I'm an automation that assigns helpers to your question! First off, have you read the <{faq_link}|faq>, it answers a lot of common questions!
 if your question has been answered, please hit the button below to mark it as resolved
 """
     ticket_create: str = f"someone should be along to help you soon but in the mean time i suggest you read the faq <{faq_link}|here> to make sure your question hasn't already been answered. if it has been, please hit the button below to mark it as resolved :D"
