@@ -2,6 +2,7 @@ from typing import List
 from typing import Type
 
 from nephthys.transcripts.transcript import Transcript
+from nephthys.transcripts.transcripts.beest import Beest
 from nephthys.transcripts.transcripts.construct import Construct
 from nephthys.transcripts.transcripts.fallout import Fallout
 from nephthys.transcripts.transcripts.flavortown import Flavortown
@@ -28,4 +29,5 @@ transcripts: List[Type[Transcript]] = [
     Lynx,
     Nest,
     Help,
+    Beest,
 ]
