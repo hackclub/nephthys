@@ -105,6 +105,16 @@ class Transcript(BaseModel):
         description="Message to be sent when the Hackatime macro is used",
     )
 
+    vote_queue_macro: str | None = Field(
+        default=None,
+        description="Message to inform users that there's a large voting backlog",
+    )
+
+    vote_quality_macro: str | None = Field(
+        default=None,
+        description="Message to inform users that low-quality votes will get rejected",
+    )
+
     not_allowed_channel: str = Field(
         default="", description="Message for unauthorized channel access"
     )
