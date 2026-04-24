@@ -15,8 +15,8 @@ EXPOSE 3000
 
 ENV PATH="/app/.venv/bin:$PATH"
 
-RUN prisma db push
+RUN prisma generate
 
-CMD ["nephthys"]
+CMD ["bash", "-c", "prisma db push && nephthys"]
 
 HEALTHCHECK --start-period=5s CMD curl --fail http://localhost:3000/health | grep -E '"healthy":\s*true' || exit 1
