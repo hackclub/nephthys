@@ -109,7 +109,8 @@ interface Ticket {
 interface User {
   id: number
   slack_id: string
-  username: string
+  // Internal Slack username. (Prefer dynamically fetching display name from slack_id if showing to users)
+  username: string | null
 }
 ```
 
