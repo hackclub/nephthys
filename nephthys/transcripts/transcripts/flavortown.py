@@ -55,7 +55,7 @@ _I've marked this thread as resolved_
         "Hey (user), we currently have a backlog of projects waiting to be certified. Please be patient.\n\n*You can keep track of the queue <https://us.review.hackclub.com/queue | here>!*"
     )
     vote_queue_macro: str | None = """
-With the end of Flavortown near, there's currently a lot of projects in the queue to be voted on, so don't worry if your projects is taking longer than usual.
+With the end of Flavortown near, there's currently a lot of projects in the queue to be voted on, so don't worry if your project is taking longer than usual.
 
 We're working on reducing the backlog, but for now, please be patient while waiting for your project to receive votes!
 """
