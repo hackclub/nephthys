@@ -26,12 +26,17 @@ Sometimes it’s nice to be able to do things quickly... Here’s where macros c
 - `?identity` - redirect to #identity-help
 - `?faq` - redirect to the FAQ
 - `?hii` - silly message :3
-- `?shipcertqueue` - tell them to wait and vote because there's a backlog of ships
 - `?fraud` - redirect to Fraud Squad
 - `?thread` - remove the reaction and all Nephthys replies to unclutter duplicates
 - `?shipwrights` - redirect to #ask-the-shipwrights
 - `?hackatime` - redirect to #hackatime-help
 - more to come?? feel free to PR your own into hackclub/nephthys or tell me what you want
+
+#### Flavortown-specific macros
+
+- `?shipcertqueue` - tell them to wait and vote because there's a backlog of ships
+- `?votequeue` - there's a large voting backlog, please be patient
+- `?votequality` - low-quality votes get discarded by the platform; please vote well!
 
 ### Stale
 
