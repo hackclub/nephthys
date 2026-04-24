@@ -98,14 +98,18 @@ interface Ticket {
   closed_by: User | null
   assigned_to: User | null
   reopened_by: User | null
-  tags: Array<string>
+  team_tags: Array<string>
+  // Timestamps in ISO 8601 format
   created_at: string
+  closed_at: string | null
+  // Slack message ts, e.g. 1775942657.605349
   message_ts: string
 }
 
 interface User {
   id: number
   slack_id: string
+  username: string
 }
 ```
 

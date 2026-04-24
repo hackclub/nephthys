@@ -8,7 +8,11 @@ from prisma.models import User
 
 
 def user_to_json(user: User | None) -> dict | None:
-    return {"slack_id": user.slackId, "id": user.id} if user else None
+    return (
+        {"slack_id": user.slackId, "id": user.id, "username": user.username}
+        if user
+        else None
+    )
 
 
 def tag_to_json(tag: Tag | None) -> str:
@@ -31,8 +35,9 @@ def ticket_to_json(ticket: Ticket) -> dict:
         "closed_by": user_to_json(ticket.closedBy),
         "assigned_to": user_to_json(ticket.assignedTo),
         "reopened_by": user_to_json(ticket.reopenedBy),
-        "tags": [tag_to_json(t.tag) for t in ticket.tagsOnTickets],
+        "team_tags": [tag_to_json(t.tag) for t in ticket.tagsOnTickets],
         "created_at": ticket.createdAt.isoformat(),
+        "closed_at": ticket.closedAt.isoformat() if ticket.closedAt else None,
         "message_ts": ticket.msgTs,
     }
 
