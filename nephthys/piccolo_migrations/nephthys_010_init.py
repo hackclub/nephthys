@@ -4,7 +4,7 @@ from piccolo.table import Table
 
 ID = "2026-04-18T14:12:56:828491"
 VERSION = "1.33.0"
-DESCRIPTION = "Initial database state before we adopted Piccolo"
+DESCRIPTION = "Initial database state (nearly matching the old Prisma schema)"
 
 
 # Dummy table we use to execute raw SQL with:
@@ -18,19 +18,36 @@ async def forwards():
     )
 
     async def run():
+        # Create the enums, unless they exist in either their modern snake_case
+        # or legacy PascalCase form.
         await RawTable.raw(
-            """
-CREATE TYPE ticket_status AS ENUM ('OPEN', 'IN_PROGRESS', 'CLOSED');
-"""
+            """DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_type
+        WHERE typname IN ('ticket_status', 'TicketStatus')
+    ) THEN
+        CREATE TYPE ticket_status AS ENUM ('OPEN', 'IN_PROGRESS', 'CLOSED');
+    END IF;
+END
+$$;"""
         )
         await RawTable.raw(
-            """
-CREATE TYPE user_type AS ENUM ('AUTHOR', 'HELPER', 'OTHER');
-"""
+            """DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_type
+        WHERE typname IN ('user_type', 'UserType')
+    ) THEN
+        CREATE TYPE user_type AS ENUM ('AUTHOR', 'HELPER', 'OTHER');
+    END IF;
+END
+$$;"""
         )
+        # Tables!
         await RawTable.raw(
             """
-CREATE TABLE "User" (
+CREATE TABLE IF NOT EXISTS "User" (
   "id" SERIAL PRIMARY KEY, 
   "slackId" TEXT NOT NULL, 
   "username" TEXT,
@@ -42,7 +59,7 @@ CREATE TABLE "User" (
         )
         await RawTable.raw(
             """
-CREATE TABLE "QuestionTag" (
+CREATE TABLE IF NOT EXISTS "QuestionTag" (
   "id" SERIAL PRIMARY KEY, 
   "label" TEXT UNIQUE NOT NULL, 
   "createdAt" TIMESTAMP NOT NULL DEFAULT current_timestamp
@@ -51,7 +68,7 @@ CREATE TABLE "QuestionTag" (
         )
         await RawTable.raw(
             """
-CREATE TABLE "Tag" (
+CREATE TABLE IF NOT EXISTS "Tag" (
   "id" SERIAL PRIMARY KEY, 
   "name" TEXT UNIQUE NOT NULL, 
   "createdAt" TIMESTAMP NOT NULL DEFAULT current_timestamp
@@ -60,7 +77,7 @@ CREATE TABLE "Tag" (
         )
         await RawTable.raw(
             """
-CREATE TABLE "CategoryTag" (
+CREATE TABLE IF NOT EXISTS "CategoryTag" (
   "id" SERIAL PRIMARY KEY, 
   "name" TEXT UNIQUE NOT NULL, 
   "createdById" INTEGER REFERENCES "User" (id) ON DELETE CASCADE ON UPDATE CASCADE DEFAULT null, 
@@ -70,7 +87,7 @@ CREATE TABLE "CategoryTag" (
         )
         await RawTable.raw(
             """
-CREATE TABLE "Ticket" (
+CREATE TABLE IF NOT EXISTS "Ticket" (
   "id" SERIAL PRIMARY KEY, 
   "title" TEXT NOT NULL, 
   "description" TEXT NOT NULL, 
@@ -104,7 +121,7 @@ CREATE TABLE "Ticket" (
         )
         await RawTable.raw(
             """
-CREATE TABLE "BotMessage" (
+CREATE TABLE IF NOT EXISTS "BotMessage" (
   "id" SERIAL PRIMARY KEY, 
   "ts" TEXT NOT NULL, 
   "channelId" TEXT NOT NULL, 
@@ -114,7 +131,7 @@ CREATE TABLE "BotMessage" (
         )
         await RawTable.raw(
             """
-CREATE TABLE "tags_on_tickets" (
+CREATE TABLE IF NOT EXISTS "tags_on_tickets" (
   "ticketId" INTEGER NOT NULL REFERENCES "Ticket" (id) ON DELETE CASCADE ON UPDATE CASCADE, 
   "tagId" INTEGER NOT NULL REFERENCES "Tag" (id) ON DELETE CASCADE ON UPDATE CASCADE, 
   "assignedAt" TIMESTAMP NOT NULL DEFAULT current_timestamp,
@@ -124,7 +141,7 @@ CREATE TABLE "tags_on_tickets" (
         )
         await RawTable.raw(
             """
-CREATE TABLE "user_tag_subscriptions" (
+CREATE TABLE IF NOT EXISTS "user_tag_subscriptions" (
     "userId" INTEGER NOT NULL REFERENCES "User" (id) ON DELETE CASCADE ON UPDATE CASCADE,
     "tagId" INTEGER NOT NULL REFERENCES "Tag" (id) ON DELETE CASCADE ON UPDATE CASCADE,
     "subscribedAt" TIMESTAMP NOT NULL DEFAULT current_timestamp,
@@ -132,9 +149,10 @@ CREATE TABLE "user_tag_subscriptions" (
 );
 """
         )
+        # Other bits!
         await RawTable.raw(
             """
-CREATE UNIQUE INDEX "BotMessage_ts_channelId_key" ON "BotMessage"("ts", "channelId");
+CREATE UNIQUE INDEX IF NOT EXISTS "BotMessage_ts_channelId_key" ON "BotMessage"("ts", "channelId");
 """
         )
 
