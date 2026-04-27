@@ -13,11 +13,11 @@ class RawTable(Table):
 async def forwards():
     manager = MigrationManager(migration_id=ID, app_name="", description=DESCRIPTION)
 
-    def run():
+    async def run():
         # For fresh databases created after the Piccolo migration, this won't do anything.
         # For databases that had the Prisma data structure, this renames the types to match
         # the new snake_case naming convention.
-        RawTable.raw("""
+        await RawTable.raw("""
             DO $$
             BEGIN
                 IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'TicketStatus') THEN
