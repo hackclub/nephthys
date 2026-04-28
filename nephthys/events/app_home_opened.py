@@ -6,6 +6,7 @@ from prometheus_client import Histogram
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
+from nephthys.database.tables import User
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.performance import perf_timer
@@ -42,8 +43,6 @@ async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
     last_requested_views[user_id] = home_type
     try:
         await client.views_publish(view=get_loading_view(home_type), user_id=user_id)
-
-        from nephthys.database.tables import User
 
         user = await User.objects().where(User.slack_id == user_id).first()
         logging.info(f"Opening {home_type} for {user_id}")

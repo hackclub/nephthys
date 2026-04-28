@@ -2,6 +2,8 @@
 
 This is not a full guide by any means, but it documents some bits about the codebase that are useful to know.
 
+Further guidance and help can be found in #nephthys-dev on the Slack <3
+
 ## Getting started
 
 See the [README](../README.md#prerequisites) for instructions on setting up a development environment for the bot!
@@ -31,6 +33,15 @@ All the Python code lives in `nephthys/`. Take a look around to get a feel for w
 Tip: You can ignore a lot of of the subfolders most of the time, and just look at the ones relevant to your feature/change.
 
 We prefer splitting code up into many Python files over having large files with a lot of code.
+
+## Code style
+
+- Normal Python best practices - PEP 8, descriptive variable names, etc
+- Recommend running Pylance to spot type errors, and adding type annotations where required
+- When programming, if you've made a decision that someone else might not immediately understand, add a comment
+- Please try to be consistent with how things are done elsewhere in the file you're working on, and in the codebase too. If we do the same thing two different ways, it becomes confusing
+- If there's no precedent in the codebase, do what you think is best!
+- PRs should be minimal and avoid additional changes that aren't required for the main feature, especially if said changes are big!
 
 ## Slack Block Kit
 

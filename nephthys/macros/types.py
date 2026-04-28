@@ -1,5 +1,9 @@
+from nephthys.actions.resolve import resolve
 from nephthys.database.tables import Ticket
 from nephthys.database.tables import User
+from nephthys.utils.env import env
+from nephthys.utils.slack_user import get_user_profile
+from nephthys.utils.ticket_methods import reply_to_ticket
 
 
 class Macro:
@@ -38,11 +42,6 @@ class ReplyMacro(Macro):
     can_run_on_closed = False
 
     async def run(self, ticket: Ticket, helper: User, **kwargs) -> None:
-        from nephthys.actions.resolve import resolve
-        from nephthys.utils.env import env
-        from nephthys.utils.slack_user import get_user_profile
-        from nephthys.utils.ticket_methods import reply_to_ticket
-
         # Save API calls by only fetching user if used by message
         reply_text = self.message
         if "(user)" in self.message:

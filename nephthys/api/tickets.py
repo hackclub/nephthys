@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import datetime
 
 from starlette.requests import Request
@@ -74,8 +75,6 @@ async def tickets_list(req: Request):
         if ticket_ids
         else []
     )
-
-    from collections import defaultdict
 
     tags_by_ticket = defaultdict(list)
     for link in all_tag_links:

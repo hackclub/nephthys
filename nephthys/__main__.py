@@ -1,13 +1,16 @@
 import asyncio
 import contextlib
 import logging
+from datetime import datetime
 
 import uvicorn
 from aiohttp import ClientSession
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
+from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 from starlette.applications import Starlette
 
+from nephthys.tasks.close_stale import close_stale_tickets
 from nephthys.tasks.daily_stats import send_daily_stats
 from nephthys.tasks.fulfillment_reminder import send_fulfillment_reminder
 from nephthys.tasks.update_helpers import update_helpers
@@ -16,6 +19,8 @@ from nephthys.utils.env import env
 from nephthys.utils.logging import parse_level_name
 from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.logging import setup_otel_logging
+from nephthys.utils.slack import app as slack_app
+from piccolo_conf import DB
 
 load_dotenv()
 
@@ -37,8 +42,6 @@ if env.otel_logs_url:
 
 @contextlib.asynccontextmanager
 async def main(_app: Starlette):
-    from piccolo_conf import DB
-
     await send_heartbeat(":neodog_nom_verified: Bot is online!")
 
     async with ClientSession() as session:
@@ -57,9 +60,6 @@ async def main(_app: Starlette):
             day_of_week="mon-fri",
             timezone="Europe/London",
         )
-
-        from nephthys.tasks.close_stale import close_stale_tickets
-        from datetime import datetime
 
         if env.stale_ticket_days:
             scheduler.add_job(
@@ -81,10 +81,6 @@ async def main(_app: Starlette):
                 logging.warning(
                     "You are currently running Socket mode in production. This is NOT RECOMMENDED - you should set up a proper HTTP server with a request URL."
                 )
-            from slack_bolt.adapter.socket_mode.async_handler import (
-                AsyncSocketModeHandler,
-            )
-            from nephthys.utils.slack import app as slack_app
 
             handler = AsyncSocketModeHandler(slack_app, env.slack_app_token)
             logging.info("Starting Socket Mode handler")

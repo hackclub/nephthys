@@ -5,6 +5,7 @@ from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.database.tables import CategoryTag
 from nephthys.database.tables import User
+from nephthys.events.app_home_opened import open_app_home
 from nephthys.utils.logging import send_heartbeat
 from nephthys.views.modals.create_category_tag import get_create_category_tag_modal
 
@@ -68,7 +69,5 @@ async def create_category_tag_view_callback(
         raise
 
     await ack()
-
-    from nephthys.events.app_home_opened import open_app_home
 
     await open_app_home("category-tags", client, user_id)
