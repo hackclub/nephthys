@@ -37,11 +37,21 @@ class ReplyMacro(Macro):
     Macros that have complex logic should be based on ``Macro``.
     """
 
-    message: str
+    message: str | None
     resolve_ticket: bool = True
     can_run_on_closed = False
 
     async def run(self, ticket: Ticket, helper: User, **kwargs) -> None:
+        # Handle macros that may only be configured for certain events
+        if not self.message:
+            await env.slack_client.chat_postEphemeral(
+                channel=env.slack_help_channel,
+                thread_ts=ticket.msgTs,
+                user=helper.slackId,
+                text=f"Invalid macro: The `{self.name}` macro is not configured for this channel.",
+            )
+            return
+
         # Save API calls by only fetching user if used by message
         reply_text = self.message
         if "(user)" in self.message:

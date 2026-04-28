@@ -17,6 +17,8 @@ from nephthys.macros.thread import Thread
 from nephthys.macros.trigger_daily_stats import DailyStats
 from nephthys.macros.trigger_fulfillment_reminder import FulfillmentReminder
 from nephthys.macros.types import Macro
+from nephthys.macros.vote_quality import VoteQuality
+from nephthys.macros.vote_queue import VoteQueue
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 
@@ -34,6 +36,8 @@ macro_list: list[type[Macro]] = [
     Shipwrights,
     TeamTag,
     Hackatime,
+    VoteQuality,
+    VoteQueue,
 ]
 
 macros = [macro() for macro in macro_list]

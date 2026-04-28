@@ -8,7 +8,11 @@ from nephthys.database.tables import User
 
 
 def user_to_json(user: User | None) -> dict | None:
-    return {"slack_id": user.slack_id, "id": user.id} if user else None
+    return (
+        {"slack_id": user.slackId, "id": user.id, "username": user.username}
+        if user
+        else None
+    )
 
 
 def tag_to_json(tag: TeamTag | None) -> str:
@@ -27,13 +31,14 @@ def ticket_to_json(
         "title": ticket.title,
         "description": ticket.description,
         "status": ticket.status,
-        "opened_by": user_to_json(ticket.opened_by),
-        "closed_by": user_to_json(ticket.closed_by),
-        "assigned_to": user_to_json(ticket.assigned_to),
-        "reopened_by": user_to_json(ticket.reopened_by),
-        "tags": [tag_to_json(t.tag) for t in tag_links],
-        "created_at": ticket.created_at.isoformat(),
-        "message_ts": ticket.msg_ts,
+        "opened_by": user_to_json(ticket.openedBy),
+        "closed_by": user_to_json(ticket.closedBy),
+        "assigned_to": user_to_json(ticket.assignedTo),
+        "reopened_by": user_to_json(ticket.reopenedBy),
+        "team_tags": [tag_to_json(t.tag) for t in ticket.tagsOnTickets],
+        "created_at": ticket.createdAt.isoformat(),
+        "closed_at": ticket.closedAt.isoformat() if ticket.closedAt else None,
+        "message_ts": ticket.msgTs,
     }
 
 
