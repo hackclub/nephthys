@@ -1,4 +1,3 @@
-from collections import defaultdict
 from datetime import datetime
 
 from starlette.requests import Request
@@ -6,7 +5,6 @@ from starlette.responses import JSONResponse
 
 from nephthys.api.ticket import ticket_to_json
 from nephthys.database.enums import TicketStatus
-from nephthys.database.tables import TagsOnTickets
 from nephthys.database.tables import Ticket
 
 
@@ -66,20 +64,6 @@ async def tickets_list(req: Request):
 
     tickets = await query.order_by(Ticket.created_at)
 
-    # Fetch all tag links for returned tickets in one query
-    ticket_ids = [t.id for t in tickets]
-    all_tag_links = (
-        await TagsOnTickets.objects(TagsOnTickets.tag).where(
-            TagsOnTickets.ticket.is_in(ticket_ids)
-        )
-        if ticket_ids
-        else []
-    )
-
-    tags_by_ticket = defaultdict(list)
-    for link in all_tag_links:
-        tags_by_ticket[link.ticket].append(link)
-
     return JSONResponse(
-        [ticket_to_json(t, tags_by_ticket.get(t.id, [])) for t in tickets]
+        [ticket_to_json(t, await t.get_m2m(Ticket.team_tags)) for t in tickets]  # type: ignore we have an list of TeamTags, but typechecker sees an array of Tables
     )
