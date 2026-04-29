@@ -62,5 +62,4 @@ async def ticket_info(req: Request):
 
     if not ticket:
         return JSONResponse({"error": "ticket_not_found"}, status_code=404)
-    print(ticket)
     return JSONResponse(ticket_to_json(ticket))

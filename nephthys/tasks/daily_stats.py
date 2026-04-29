@@ -44,6 +44,7 @@ async def tickets_awaiting_response_message(tickets: list[Ticket]) -> str:
             else "unknown"
         )
         created_date = slack_timestamp(ticket.created_at, format="date_short")
+        # FIXME: This is an n+1 query
         tag_links = await TagsOnTickets.objects(TagsOnTickets.tag).where(
             TagsOnTickets.ticket == ticket.id
         )

@@ -69,6 +69,7 @@ async def send_fulfillment_reminder():
                 link = get_question_message_link(ticket)
                 created_ts = slack_timestamp(ticket.created_at, format="date_short")
 
+                # FIXME: This is an n+1 query
                 tag_links = await TagsOnTickets.objects(TagsOnTickets.tag).where(
                     TagsOnTickets.ticket == ticket.id
                 )
