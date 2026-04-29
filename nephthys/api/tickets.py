@@ -5,6 +5,7 @@ from starlette.responses import JSONResponse
 
 from nephthys.api.ticket import ticket_to_json
 from nephthys.database.enums import TicketStatus
+from nephthys.database.tables import TeamTag
 from nephthys.database.tables import Ticket
 
 
@@ -48,12 +49,14 @@ async def tickets_list(req: Request):
         tip = "Please provide a ?since= or ?until= parameter, or filter by ?status=open or ?status=in_progress"
         return JSONResponse({"error": msg, "tip": tip}, status_code=400)
 
-    query = Ticket.objects(
-        Ticket.opened_by,
-        Ticket.closed_by,
-        Ticket.assigned_to,
-        Ticket.reopened_by,
-    )
+    query = Ticket.select(
+        *Ticket.all_columns(),
+        *Ticket.opened_by._.all_columns(),
+        *Ticket.closed_by._.all_columns(),
+        *Ticket.assigned_to._.all_columns(),
+        *Ticket.reopened_by._.all_columns(),
+        Ticket.team_tags(TeamTag.name),
+    ).output(nested=True)
 
     if filter_status:
         query = query.where(Ticket.status == filter_status)
@@ -64,6 +67,4 @@ async def tickets_list(req: Request):
 
     tickets = await query.order_by(Ticket.created_at)
 
-    return JSONResponse(
-        [ticket_to_json(t, await t.get_m2m(Ticket.team_tags)) for t in tickets]  # type: ignore we have an list of TeamTags, but typechecker sees an array of Tables
-    )
+    return JSONResponse([ticket_to_json(t) for t in tickets])
