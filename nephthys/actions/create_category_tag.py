@@ -1,5 +1,6 @@
 import logging
 
+from asyncpg.exceptions import UniqueViolationError
 from slack_bolt.async_app import AsyncAck
 from slack_sdk.web.async_client import AsyncWebClient
 
@@ -56,17 +57,15 @@ async def create_category_tag_view_callback(
     try:
         tag = CategoryTag(name=name, created_by=user.id)
         await tag.save()
-    except Exception as e:
-        if "unique" in str(e).lower() or "duplicate" in str(e).lower():
-            logging.warning(f"Duplicate category tag name: {name}")
-            await ack(
-                response_action="errors",
-                errors={
-                    "category_tag_name": f"A category tag named '{name}' already exists."
-                },
-            )
-            return
-        raise
+    except UniqueViolationError:
+        logging.warning(f"Duplicate category tag name: {name}")
+        await ack(
+            response_action="errors",
+            errors={
+                "category_tag_name": f"A category tag named '{name}' already exists."
+            },
+        )
+        return
 
     await ack()
 
