@@ -32,6 +32,7 @@ async def get_team_tags_view(user: User | None) -> dict:
         logging.info(f"Tag {tag.name} has {len(subscriptions)} subscriptions")
         if subscriptions:
             sub_user_ids = [sub.user for sub in subscriptions]
+            # FIXME: Get rid of this n+1 query here
             sub_users = await User.objects().where(User.id.is_in(sub_user_ids))
             subs = [u.slack_id for u in sub_users]
         else:

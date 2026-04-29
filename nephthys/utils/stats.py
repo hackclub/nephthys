@@ -85,6 +85,7 @@ async def calculate_overall_stats() -> OverallStatsResult:
     helpers = await User.objects().where(User.helper.eq(True))
     helpers_leaderboard: list[LeaderboardEntry] = []
     for user in helpers:
+        # FIXME: This is an n+1 query that we should get rid of at some point
         closed_count = await Ticket.count().where(Ticket.closed_by == user.id)
         if closed_count > 0:
             helpers_leaderboard.append({"user": user, "count": closed_count})
@@ -191,6 +192,7 @@ async def calculate_daily_stats(
     helpers = await User.objects().where(User.helper.eq(True))
     leaderboard_data = []
     for user in helpers:
+        # FIXME: We should move this query outside of the loop for performance!
         closed_tickets = await Ticket.objects().where(
             (Ticket.closed_by == user.id)
             & (Ticket.closed_at >= start_time)
