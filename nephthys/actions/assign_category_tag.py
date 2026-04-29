@@ -46,7 +46,7 @@ async def assign_category_tag_callback(
         }
     ).where(Ticket.ticket_ts == ts)
 
-    ticket = (
+    ticket: Ticket | None = (
         await Ticket.objects(Ticket.opened_by, Ticket.reopened_by)
         .where(Ticket.ticket_ts == ts)
         .first()
