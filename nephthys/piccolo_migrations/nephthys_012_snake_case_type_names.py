@@ -11,7 +11,9 @@ class RawTable(Table):
 
 
 async def forwards():
-    manager = MigrationManager(migration_id=ID, app_name="", description=DESCRIPTION)
+    manager = MigrationManager(
+        migration_id=ID, app_name="nephthys", description=DESCRIPTION
+    )
 
     async def run():
         # For fresh databases created after the Piccolo migration, this won't do anything.
