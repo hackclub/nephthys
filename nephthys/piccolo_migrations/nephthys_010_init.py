@@ -106,9 +106,9 @@ CREATE TABLE IF NOT EXISTS "Ticket" (
     "assignedToId" INTEGER REFERENCES "User" (id) ON DELETE 
   SET 
     NULL ON UPDATE CASCADE DEFAULT null, 
-    "assignedAt" TIMESTAMP DEFAULT current_timestamp, 
-    "closedAt" TIMESTAMP DEFAULT current_timestamp, 
-    "reopenedAt" TIMESTAMP DEFAULT current_timestamp, 
+    "assignedAt" TIMESTAMP, 
+    "closedAt" TIMESTAMP, 
+    "reopenedAt" TIMESTAMP, 
     "questionTagId" INTEGER REFERENCES "QuestionTag" (id) ON DELETE 
   SET 
     NULL ON UPDATE CASCADE DEFAULT null, 
