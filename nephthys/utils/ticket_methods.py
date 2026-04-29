@@ -3,8 +3,9 @@ import logging
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
+from nephthys.database.tables import BotMessage
+from nephthys.database.tables import Ticket
 from nephthys.utils.env import env
-from prisma.models import Ticket
 
 
 async def delete_message(channel_id: str, message_ts: str):
@@ -22,7 +23,7 @@ async def delete_message(channel_id: str, message_ts: str):
 async def reply_to_ticket(ticket: Ticket, client: AsyncWebClient, text: str) -> None:
     """Sends a user-facing message in the help thread and records it in the database"""
     channel = env.slack_help_channel
-    thread_ts = ticket.msgTs
+    thread_ts = ticket.msg_ts
     msg = await client.chat_postMessage(
         channel=channel,
         text=text,
@@ -32,43 +33,37 @@ async def reply_to_ticket(ticket: Ticket, client: AsyncWebClient, text: str) -> 
     if not msg_ts:
         logging.error(f"Bot message has no ts: {msg}")
         return
-    await env.db.botmessage.create(
-        data={
-            "ts": msg_ts,
-            "channelId": channel,
-            "ticket": {"connect": {"id": ticket.id}},
-        }
-    )
+    bot_msg = BotMessage(ts=msg_ts, channel_id=channel, ticket=ticket.id)
+    await bot_msg.save()
 
 
 async def delete_bot_replies(ticket_ref: int):
     """Deletes all bot replies sent in a ticket thread"""
-    ticket = await env.db.ticket.find_unique(
-        where={"id": ticket_ref}, include={"userFacingMsgs": True}
-    )
+    ticket = await Ticket.objects().where(Ticket.id == ticket_ref).first()
     if not ticket:
         raise ValueError(f"Ticket with ID {ticket_ref} does not exist")
-    if not ticket.userFacingMsgs:
+    bot_msgs = await BotMessage.objects().where(BotMessage.ticket == ticket_ref)
+    if not bot_msgs:
         raise ValueError(f"userFacingMsgs is not present on Ticket ID {ticket_ref}")
-    for bot_msg in ticket.userFacingMsgs:
-        await delete_message(bot_msg.channelId, bot_msg.ts)
-        await env.db.botmessage.delete(where={"id": bot_msg.id})
+    for bot_msg in bot_msgs:
+        await delete_message(bot_msg.channel_id, bot_msg.ts)
+        await bot_msg.remove()
 
 
 async def delete_and_clean_up_ticket(ticket: Ticket):
     """Removes a ticket from the DB and deletes all Slack messages associated with it"""
     await delete_bot_replies(ticket.id)
     # Delete the backend message in the "tickets" channel
-    await delete_message(env.slack_ticket_channel, ticket.ticketTs)
+    await delete_message(env.slack_ticket_channel, ticket.ticket_ts)
     # TODO deal with DMs to tag subscribers?
-    await env.db.ticket.delete(where={"id": ticket.id})
+    await Ticket.delete().where(Ticket.id == ticket.id)
 
 
 def get_question_message_link(ticket: Ticket) -> str:
     """Get the Slack message link to the original help message for the provided ticket"""
-    return f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{ticket.msgTs.replace('.', '')}"
+    return f"https://hackclub.slack.com/archives/{env.slack_help_channel}/p{ticket.msg_ts.replace('.', '')}"
 
 
 def get_backend_message_link(ticket: Ticket) -> str:
     """Get the Slack message link to the backend ticket message for the provided ticket"""
-    return f"https://hackclub.slack.com/archives/{env.slack_ticket_channel}/p{ticket.ticketTs.replace('.', '')}"
+    return f"https://hackclub.slack.com/archives/{env.slack_ticket_channel}/p{ticket.ticket_ts.replace('.', '')}"

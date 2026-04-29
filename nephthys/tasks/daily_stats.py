@@ -4,6 +4,8 @@ from datetime import timedelta
 from datetime import timezone
 from zoneinfo import ZoneInfo
 
+from nephthys.database.tables import TagsOnTickets
+from nephthys.database.tables import Ticket
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.old_tickets import get_unanswered_tickets
@@ -12,7 +14,6 @@ from nephthys.utils.ticket_methods import get_question_message_link
 from nephthys.views.home.components.ticket_status_pie import (
     generate_ticket_status_pie_image,
 )
-from prisma.models import Ticket
 
 
 def slack_timestamp(dt: datetime, format: str = "date_short") -> str:
@@ -38,17 +39,18 @@ async def tickets_awaiting_response_message(tickets: list[Ticket]) -> str:
             or f"Ticket #{ticket.id} (no description)"
         )
         last_reply = (
-            slack_timestamp(ticket.lastMsgAt, format="date_short")
-            if ticket.lastMsgAt
+            slack_timestamp(ticket.last_msg_at, format="date_short")
+            if ticket.last_msg_at
             else "unknown"
         )
-        created_date = slack_timestamp(ticket.createdAt, format="date_short")
-        tags = await env.db.tagsontickets.find_many(
-            where={"ticketId": ticket.id}, include={"tag": True}
+        created_date = slack_timestamp(ticket.created_at, format="date_short")
+        # FIXME: This is an n+1 query
+        tag_links = await TagsOnTickets.objects(TagsOnTickets.tag).where(
+            TagsOnTickets.ticket == ticket.id
         )
         tags_string = (
-            " (" + ", ".join(f"*{t.tag.name}*" for t in tags if t.tag) + ")"
-            if tags
+            " (" + ", ".join(f"*{t.tag.name}*" for t in tag_links if t.tag) + ")"
+            if tag_links
             else ""
         )
         msg_lines.append(
@@ -83,7 +85,7 @@ async def send_daily_stats():
         stats = await calculate_daily_stats(start_of_yesterday, end_of_yesterday)
 
         daily_leaderboard_lines = [
-            f"{i + 1}. <@{entry['user'].slackId}> - {entry['count']} closed tickets"
+            f"{i + 1}. <@{entry['user'].slack_id}> - {entry['count']} closed tickets"
             for i, entry in enumerate(stats.helpers_leaderboard[:3])
         ]
         if not daily_leaderboard_lines:

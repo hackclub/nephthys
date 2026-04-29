@@ -10,7 +10,7 @@ class HelloWorld(Macro):
         """
         A simple hello world macro that does nothing.
         """
-        user_info = await env.slack_client.users_info(user=helper.slackId)
+        user_info = await env.slack_client.users_info(user=helper.slack_id)
         name = (
             user_info["user"]["profile"].get("display_name")
             or user_info["user"]["profile"].get("real_name")

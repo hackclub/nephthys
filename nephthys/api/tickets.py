@@ -4,9 +4,9 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from nephthys.api.ticket import ticket_to_json
-from nephthys.utils.env import env
-from prisma.enums import TicketStatus
-from prisma.types import TicketWhereInput
+from nephthys.database.enums import TicketStatus
+from nephthys.database.tables import TeamTag
+from nephthys.database.tables import Ticket
 
 
 async def tickets_list(req: Request):
@@ -49,25 +49,22 @@ async def tickets_list(req: Request):
         tip = "Please provide a ?since= or ?until= parameter, or filter by ?status=open or ?status=in_progress"
         return JSONResponse({"error": msg, "tip": tip}, status_code=400)
 
-    db_filter: TicketWhereInput = {}
-    if filter_status:
-        db_filter["status"] = filter_status
-    if filter_created_after or filter_created_before:
-        db_filter["createdAt"] = {}
-        if filter_created_after:
-            db_filter["createdAt"]["gte"] = filter_created_after
-        if filter_created_before:
-            db_filter["createdAt"]["lte"] = filter_created_before
+    query = Ticket.select(
+        *Ticket.all_columns(),
+        *Ticket.opened_by._.all_columns(),
+        *Ticket.closed_by._.all_columns(),
+        *Ticket.assigned_to._.all_columns(),
+        *Ticket.reopened_by._.all_columns(),
+        Ticket.team_tags(TeamTag.name),
+    ).output(nested=True)
 
-    tickets = await env.db.ticket.find_many(
-        where=db_filter,
-        include={
-            "openedBy": True,
-            "closedBy": True,
-            "assignedTo": True,
-            "reopenedBy": True,
-            "tagsOnTickets": {"include": {"tag": True}},
-        },
-        order={"createdAt": "asc"},
-    )
+    if filter_status:
+        query = query.where(Ticket.status == filter_status)
+    if filter_created_after:
+        query = query.where(Ticket.created_at >= filter_created_after)
+    if filter_created_before:
+        query = query.where(Ticket.created_at <= filter_created_before)
+
+    tickets = await query.order_by(Ticket.created_at)
+
     return JSONResponse([ticket_to_json(t) for t in tickets])

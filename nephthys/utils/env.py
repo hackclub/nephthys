@@ -9,7 +9,6 @@ from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.transcripts import transcripts
 from nephthys.transcripts.transcript import Transcript
-from prisma import Prisma
 
 load_dotenv(override=True)
 
@@ -98,7 +97,6 @@ class Environment:
             )
 
         self.session: ClientSession
-        self.db = Prisma()
         self.transcript = next(
             (
                 program

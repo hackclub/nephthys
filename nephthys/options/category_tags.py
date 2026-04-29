@@ -3,11 +3,11 @@ import logging
 from thefuzz import fuzz
 from thefuzz import process
 
-from nephthys.utils.env import env
+from nephthys.database.tables import CategoryTag
 
 
 async def get_category_tags(payload: dict) -> list[dict[str, dict[str, str] | str]]:
-    tags = await env.db.categorytag.find_many()
+    tags = await CategoryTag.objects()
     if not tags:
         return []
 

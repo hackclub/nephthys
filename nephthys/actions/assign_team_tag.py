@@ -5,7 +5,10 @@ from typing import Dict
 from slack_bolt.async_app import AsyncAck
 from slack_sdk.web.async_client import AsyncWebClient
 
-from nephthys.utils.env import env
+from nephthys.database.tables import TagsOnTickets
+from nephthys.database.tables import Ticket
+from nephthys.database.tables import User
+from nephthys.database.tables import UserTagSubscription
 from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.ticket_methods import get_backend_message_link
 from nephthys.utils.ticket_methods import get_question_message_link
@@ -26,7 +29,7 @@ async def assign_team_tag_callback(
     channel_id = body["channel"]["id"]
     ts = body["message"]["ts"]
 
-    user = await env.db.user.find_unique(where={"slackId": user_id})
+    user = await User.objects().where(User.slack_id == user_id).first()
     if not user or not user.helper:
         await client.chat_postEphemeral(
             channel=channel_id,
@@ -35,54 +38,46 @@ async def assign_team_tag_callback(
         )
         return
 
-    ticket = await env.db.ticket.find_unique(
-        where={"ticketTs": ts}, include={"tagsOnTickets": True}
-    )
+    ticket = await Ticket.objects().where(Ticket.ticket_ts == ts).first()
     if not ticket:
         await send_heartbeat(
             f"Failed to find ticket with ts {ts} in channel {channel_id}."
         )
         return
-    if ticket.tagsOnTickets:
-        new_tags = [
-            tag
-            for tag in tags
-            if tag["value"] not in [t.tagId for t in ticket.tagsOnTickets]
-        ]
-        old_tags = [
-            tag
-            for tag in ticket.tagsOnTickets
-            if tag.tagId not in [t["value"] for t in tags]
-        ]
-    else:
-        new_tags = tags
-        old_tags = []
+
+    existing_tags = await TagsOnTickets.objects().where(
+        TagsOnTickets.ticket == ticket.id
+    )
+
+    existing_tag_ids = [t.tag for t in existing_tags]
+    new_tags = [tag for tag in tags if tag["value"] not in existing_tag_ids]
+    old_tags = [t for t in existing_tags if t.tag not in [tag["value"] for tag in tags]]
+
     logging.info(f"New: {new_tags}, Old: {old_tags}")
 
-    await env.db.tagsontickets.create_many(
-        data=[{"tagId": tag["value"], "ticketId": ticket.id} for tag in new_tags]
+    for tag in new_tags:
+        link = TagsOnTickets(tag=tag["value"], ticket=ticket.id)
+        await link.save()
+
+    for old_tag in old_tags:
+        await old_tag.remove()
+
+    subs = await UserTagSubscription.objects().where(
+        UserTagSubscription.tag.is_in([tag["value"] for tag in new_tags])
     )
 
-    await env.db.tagsontickets.delete_many(
-        where={"tagId": {"in": [tag.tagId for tag in old_tags]}, "ticketId": ticket.id}
-    )
+    sub_user_ids = [s.user for s in subs]
+    if user.id in sub_user_ids:
+        sub_user_ids.remove(user.id)
 
-    tags = await env.db.usertagsubscription.find_many(
-        where={"tagId": {"in": [tag["value"] for tag in new_tags]}}
-    )
-
-    user_ids = [tag.userId for tag in tags]
-    if user_id in user_ids:
-        user_ids.remove(user_id)
-
-    db_users = await env.db.user.find_many(where={"id": {"in": user_ids}})
+    db_users = await User.objects().where(User.id.is_in(sub_user_ids))
 
     users = []
-    for user in db_users:
-        tag_ids = [tag.tagId for tag in tags if tag.userId == user.id]
+    for db_user in db_users:
+        tag_ids = [s.tag for s in subs if s.user == db_user.id]
         users.append(
             {
-                "id": user.slackId,
+                "id": db_user.slack_id,
                 "tags": tag_ids,
             }
         )
@@ -90,12 +85,12 @@ async def assign_team_tag_callback(
     url = get_question_message_link(ticket)
     ticket_url = get_backend_message_link(ticket)
 
-    for user in users:
+    for u in users:
         formatted_tags = ", ".join(
-            [tag["name"] for tag in new_tags if tag["value"] in user["tags"]]
+            [tag["name"] for tag in new_tags if tag["value"] in u["tags"]]
         )
         await client.chat_postMessage(
-            channel=user["id"],
+            channel=u["id"],
             text=(
                 f"New ticket for {formatted_tags}! *{ticket.title}*\n"
                 f"<{url}|ticket> <{ticket_url}|bts ticket>"

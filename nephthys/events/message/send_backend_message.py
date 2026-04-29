@@ -1,7 +1,8 @@
 from slack_sdk.web.async_client import AsyncWebClient
 
+from nephthys.database.tables import CategoryTag
+from nephthys.database.tables import User
 from nephthys.utils.env import env
-from prisma.models import User
 
 
 async def backend_message_blocks(
@@ -21,7 +22,7 @@ async def backend_message_blocks(
                 },
                 "value": f"{tag.id}",
             }
-            for tag in await env.db.categorytag.find_many()
+            for tag in await CategoryTag.objects()
         ]
         initial_option = [
             option
@@ -64,7 +65,7 @@ async def backend_message_blocks(
                 {
                     "type": "mrkdwn",
                     "text": (
-                        f"Reopened by <@{reopened_by.slackId}>. Originally submitted by <@{author_user_id}>. <{thread_url}|View thread>."
+                        f"Reopened by <@{reopened_by.slack_id}>. Originally submitted by <@{author_user_id}>. <{thread_url}|View thread>."
                         if reopened_by
                         else f"Submitted by <@{author_user_id}>. They have {past_tickets} past tickets. <{thread_url}|View thread>."
                     ),

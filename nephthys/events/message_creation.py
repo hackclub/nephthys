@@ -9,6 +9,12 @@ from prometheus_client import Histogram
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
+from nephthys.database.enums import TicketStatus
+from nephthys.database.enums import UserType
+from nephthys.database.tables import BotMessage
+from nephthys.database.tables import CategoryTag
+from nephthys.database.tables import Ticket
+from nephthys.database.tables import User
 from nephthys.events.message.send_backend_message import backend_message_blocks
 from nephthys.events.message.send_backend_message import backend_message_fallback_text
 from nephthys.events.message.send_backend_message import send_backend_message
@@ -18,10 +24,6 @@ from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.performance import perf_timer
 from nephthys.utils.slack_user import get_user_profile
 from nephthys.utils.ticket_methods import delete_and_clean_up_ticket
-from prisma.enums import TicketStatus
-from prisma.enums import UserType
-from prisma.models import User
-from prisma.types import TicketCreateInput
 
 # Message subtypes that should be handled by on_message (messages with no subtype are always handled)
 ALLOWED_SUBTYPES = ["file_share", "me_message", "thread_broadcast"]
@@ -61,9 +63,10 @@ async def handle_message_in_thread(event: Dict[str, Any], db_user: User | None):
     - If the message starts with "?" (and is from a helper), run the corresponding macro.
     - Otherwise, update the assigned helper, ticket status, and lastMsg fields.
     """
-    ticket_message = await env.db.ticket.find_first(
-        where={"msgTs": event["thread_ts"]},
-        include={"openedBy": True, "tagsOnTickets": True},
+    ticket_message = (
+        await Ticket.objects(Ticket.opened_by)
+        .where(Ticket.msg_ts == event["thread_ts"])
+        .first()
     )
     if not ticket_message:
         return
@@ -82,37 +85,35 @@ async def handle_message_in_thread(event: Dict[str, Any], db_user: User | None):
 
     # Update lastMsg fields in DB
     is_author = bool(
-        ticket_message.openedBy and event["user"] == ticket_message.openedBy.slackId
+        ticket_message.opened_by and event["user"] == ticket_message.opened_by.slack_id
     )
     is_helper = bool(db_user and db_user.helper)
-    await env.db.ticket.update(
-        where={"msgTs": event["thread_ts"]},
-        data={
-            "lastMsgAt": datetime.now(),
-            "lastMsgBy": (
+    await Ticket.update(
+        {
+            Ticket.last_msg_at: datetime.now(),
+            Ticket.last_msg_by: (
                 UserType.AUTHOR
                 if is_author
                 else UserType.HELPER
                 if is_helper
                 else UserType.OTHER
             ),
-        },
-    )
+        }
+    ).where(Ticket.msg_ts == event["thread_ts"])
 
     # Ensure the ticket is assigned to the helper who last sent a message
     if db_user and db_user.helper and ticket_message.status != TicketStatus.CLOSED:
-        await env.db.ticket.update(
-            where={"msgTs": event["thread_ts"]},
-            data={
-                "assignedTo": {"connect": {"id": db_user.id}},
-                "status": TicketStatus.IN_PROGRESS,
-                "assignedAt": (
+        await Ticket.update(
+            {
+                Ticket.assigned_to: db_user.id,
+                Ticket.status: TicketStatus.IN_PROGRESS,
+                Ticket.assigned_at: (
                     datetime.now()
-                    if not ticket_message.assignedAt
-                    else ticket_message.assignedAt
+                    if not ticket_message.assigned_at
+                    else ticket_message.assigned_at
                 ),
-            },
-        )
+            }
+        ).where(Ticket.msg_ts == event["thread_ts"])
 
 
 async def handle_new_question(
@@ -135,20 +136,26 @@ async def handle_new_question(
 
     if db_user:
         async with perf_timer("Getting ticket count from DB"):
-            past_tickets = await env.db.ticket.count(where={"openedById": db_user.id})
+            past_tickets = await Ticket.count().where(Ticket.opened_by == db_user.id)
+        db_user_id = db_user.id
     else:
         past_tickets = 0
         username = author.display_name()
         async with perf_timer("Creating user in DB"):
-            db_user = await env.db.user.upsert(
-                where={
-                    "slackId": author_id,
-                },
-                data={
-                    "create": {"slackId": author_id, "username": username},
-                    "update": {"slackId": author_id, "username": username},
-                },
+            updated_records = (
+                await User.insert(User(slack_id=author_id, username=username))
+                .on_conflict(
+                    target=User.slack_id,
+                    action="DO UPDATE",
+                    values=[User.username],
+                )
+                .returning(User.id)
             )
+            if not updated_records or not updated_records[0].get("id"):
+                raise ValueError(
+                    f"Failed to upsert user in DB for slack_id={author_id}"
+                )
+            db_user_id = updated_records[0]["id"]
 
     async with perf_timer("Sending backend ticket message"):
         ticket_message = await send_backend_message(
@@ -209,24 +216,24 @@ async def handle_new_question(
         return
 
     async with perf_timer("Creating ticket in DB"):
-        ticket_data: TicketCreateInput = {
-            "title": title,
-            "description": text,
-            "msgTs": event["ts"],
-            "ticketTs": ticket_message_ts,
-            "openedBy": {"connect": {"id": db_user.id}},
-            "userFacingMsgs": {
-                "create": {
-                    "channelId": event["channel"],
-                    "ts": user_facing_message_ts,
-                }
-            },
-        }
-
+        ticket = Ticket(
+            title=title,
+            description=text,
+            status=TicketStatus.OPEN,
+            msg_ts=event["ts"],
+            ticket_ts=ticket_message_ts,
+            opened_by=db_user_id,
+        )
         if category_tag_id:
-            ticket_data["categoryTag"] = {"connect": {"id": category_tag_id}}
+            ticket.category_tag = category_tag_id
+        await ticket.save()
 
-        ticket = await env.db.ticket.create(ticket_data)
+        bot_msg = BotMessage(
+            channel_id=event["channel"],
+            ts=user_facing_message_ts,
+            ticket=ticket.id,
+        )
+        await bot_msg.save()
 
         if not category_tag_id:
             logging.warning(
@@ -281,15 +288,6 @@ async def send_user_facing_message(
                         "action_id": "mark_resolved",
                         "value": f"{event['ts']}",
                     },
-                    # {
-                    #     "type": "button",
-                    #     "text": {
-                    #         "type": "plain_text",
-                    #         "text": "Manage tags (helpers only)",
-                    #     },
-                    #     "action_id": "manage_tags_from_thread",
-                    #     "value": f"{event['ts']}",
-                    # },
                 ],
             },
             {
@@ -319,8 +317,10 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
         return
 
     async with perf_timer("DB user lookup"):
-        db_user = await env.db.user.find_first(
-            where={"slackId": event.get("user", "unknown")}
+        db_user = (
+            await User.objects()
+            .where(User.slack_id == event.get("user", "unknown"))
+            .first()
         )
 
     # Messages sent in a thread with the "send to channel" checkbox checked
@@ -385,7 +385,7 @@ async def generate_ticket_title(text: str):
 
 
 async def generate_category_tag(text: str) -> int | None:
-    category_tags = await env.db.categorytag.find_many()
+    category_tags = await CategoryTag.objects()
 
     if not category_tags:
         return None

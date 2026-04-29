@@ -1,9 +1,9 @@
 from nephthys.actions.resolve import resolve
+from nephthys.database.tables import Ticket
+from nephthys.database.tables import User
 from nephthys.utils.env import env
 from nephthys.utils.slack_user import get_user_profile
 from nephthys.utils.ticket_methods import reply_to_ticket
-from prisma.models import Ticket
-from prisma.models import User
 
 
 class Macro:
@@ -55,13 +55,13 @@ class ReplyMacro(Macro):
         # Save API calls by only fetching user if used by message
         reply_text = self.message
         if "(user)" in self.message:
-            # Try pre-fetched relation first
-            sender = getattr(ticket, "openedBy", None)
-            if sender is None and getattr(ticket, "openedById", None) is not None:
-                sender = await env.db.user.find_first(where={"id": ticket.openedById})
+            # opened_by may be a prefetched User object or a raw FK int
+            sender = ticket.opened_by
+            if isinstance(sender, int):
+                sender = await User.objects().where(User.id == sender).first()
             if not sender:
                 return
-            user = await get_user_profile(sender.slackId)
+            user = await get_user_profile(sender.slack_id)
             reply_text = self.message.replace("(user)", user.display_name())
 
         await reply_to_ticket(
@@ -72,8 +72,8 @@ class ReplyMacro(Macro):
 
         if self.resolve_ticket:
             await resolve(
-                ts=ticket.msgTs,
-                resolver=helper.slackId,
+                ts=ticket.msg_ts,
+                resolver=helper.slack_id,
                 client=env.slack_client,
                 send_resolved_message=False,
             )

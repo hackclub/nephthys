@@ -4,9 +4,9 @@ from blockkit import Divider
 from blockkit import Header
 from blockkit.core import ModalBlock
 
+from nephthys.database.tables import User
 from nephthys.utils.env import env
 from nephthys.views.home import APP_HOME_VIEWS
-from prisma.models import User
 
 
 def header_buttons(current_view: str):

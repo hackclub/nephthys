@@ -3,12 +3,11 @@ from datetime import datetime
 from statistics import fmean
 from typing import TypedDict
 
-from nephthys.utils.env import env
+from nephthys.database.enums import TicketStatus
+from nephthys.database.tables import Ticket
+from nephthys.database.tables import User
 from nephthys.utils.old_tickets import get_unanswered_tickets
 from nephthys.utils.ticket_methods import get_question_message_link
-from prisma.enums import TicketStatus
-from prisma.models import Ticket
-from prisma.models import User
 
 
 class LeaderboardEntry(TypedDict):
@@ -46,7 +45,7 @@ class OverallStatsResult:
             "helpers_leaderboard": [
                 {
                     "id": entry["user"].id,
-                    "slack_id": entry["user"].slackId,
+                    "slack_id": entry["user"].slack_id,
                     "count": entry["count"],
                 }
                 for entry in self.helpers_leaderboard
@@ -65,42 +64,39 @@ def calculate_hang_times(
     for tkt in tickets:
         if not include_closed_tickets and tkt.status == TicketStatus.CLOSED:
             continue
-        if not tkt.assignedAt:
+        if not tkt.assigned_at:
             continue
-        hang_times.append((tkt.assignedAt - tkt.createdAt).total_seconds() / 60)
+        hang_times.append((tkt.assigned_at - tkt.created_at).total_seconds() / 60)
     return hang_times
 
 
 def calculate_resolution_times(tickets: list[Ticket]) -> list[float]:
     resolution_times = []
     for tkt in tickets:
-        if not tkt.closedAt:
+        if not tkt.closed_at:
             continue
-        resolution_times.append((tkt.closedAt - tkt.createdAt).total_seconds() / 60)
+        resolution_times.append((tkt.closed_at - tkt.created_at).total_seconds() / 60)
     return resolution_times
 
 
 async def calculate_overall_stats() -> OverallStatsResult:
-    tickets = await env.db.ticket.find_many() or []
-    users_with_closed_tickets = await env.db.user.find_many(
-        include={"closedTickets": True, "assignedTickets": True}, where={"helper": True}
-    )
+    tickets = await Ticket.objects() or []
+
+    helpers = await User.objects().where(User.helper.eq(True))
+    helpers_leaderboard: list[LeaderboardEntry] = []
+    for user in helpers:
+        # FIXME: This is an n+1 query that we should get rid of at some point
+        closed_count = await Ticket.count().where(Ticket.closed_by == user.id)
+        if closed_count > 0:
+            helpers_leaderboard.append({"user": user, "count": closed_count})
+    helpers_leaderboard.sort(key=lambda entry: entry["count"], reverse=True)
+
     total_open = len([t for t in tickets if t.status == TicketStatus.OPEN])
     total_in_progress = len(
         [t for t in tickets if t.status == TicketStatus.IN_PROGRESS]
     )
     total_closed = len([t for t in tickets if t.status == TicketStatus.CLOSED])
     total = len(tickets)
-    helpers_closed_tickets_counts: list[LeaderboardEntry] = [
-        {"user": user, "count": len(user.closedTickets)}
-        for user in users_with_closed_tickets
-        if user.closedTickets
-    ]
-    helpers_leaderboard = sorted(
-        helpers_closed_tickets_counts,
-        key=lambda entry: entry["count"],
-        reverse=True,
-    )
 
     hang_times_unresolved = calculate_hang_times(tickets, include_closed_tickets=False)
     hang_times_all = calculate_hang_times(tickets, include_closed_tickets=True)
@@ -114,8 +110,9 @@ async def calculate_overall_stats() -> OverallStatsResult:
     oldest_unanswered_ticket_info = (
         OldestUnansweredTicket(
             id=oldest_unanswered_ticket.id,
-            created_at=oldest_unanswered_ticket.createdAt.isoformat(),
-            age_minutes=(now - oldest_unanswered_ticket.createdAt).total_seconds() / 60,
+            created_at=oldest_unanswered_ticket.created_at.isoformat(),
+            age_minutes=(now - oldest_unanswered_ticket.created_at).total_seconds()
+            / 60,
             link=get_question_message_link(oldest_unanswered_ticket),
         )
         if oldest_unanswered_ticket
@@ -128,13 +125,13 @@ async def calculate_overall_stats() -> OverallStatsResult:
         tickets_closed=total_closed,
         tickets_in_progress=total_in_progress,
         helpers_leaderboard=helpers_leaderboard,
-        mean_hang_time_minutes_unresolved=fmean(hang_times_unresolved)
-        if hang_times_unresolved
-        else None,
+        mean_hang_time_minutes_unresolved=(
+            fmean(hang_times_unresolved) if hang_times_unresolved else None
+        ),
         mean_hang_time_minutes_all=fmean(hang_times_all) if hang_times_all else None,
-        mean_resolution_time_minutes=fmean(resolution_times)
-        if resolution_times
-        else None,
+        mean_resolution_time_minutes=(
+            fmean(resolution_times) if resolution_times else None
+        ),
         oldest_unanswered_ticket=oldest_unanswered_ticket_info,
     )
 
@@ -173,7 +170,7 @@ class DailyStatsResult:
             "helpers_leaderboard": [
                 {
                     "id": entry["user"].id,
-                    "slack_id": entry["user"].slackId,
+                    "slack_id": entry["user"].slack_id,
                     "count": entry["count"],
                 }
                 for entry in self.helpers_leaderboard
@@ -187,11 +184,27 @@ class DailyStatsResult:
 async def calculate_daily_stats(
     start_time: datetime, end_time: datetime
 ) -> DailyStatsResult:
-    tickets = await env.db.ticket.find_many() or []
-    tickets_created_today = [t for t in tickets if start_time <= t.createdAt < end_time]
-    users_with_closed_tickets = await env.db.user.find_many(
-        include={"closedTickets": True},
-        where={"helper": True, "closedTickets": {"some": {}}},
+    tickets = await Ticket.objects() or []
+    tickets_created_today = [
+        t for t in tickets if start_time <= t.created_at < end_time
+    ]
+
+    helpers = await User.objects().where(User.helper.eq(True))
+    leaderboard_data = []
+    for user in helpers:
+        # FIXME: We should move this query outside of the loop for performance!
+        closed_tickets = await Ticket.objects().where(
+            (Ticket.closed_by == user.id)
+            & (Ticket.closed_at >= start_time)
+            & (Ticket.closed_at < end_time)
+        )
+        daily_closed_count = len(closed_tickets)
+        if daily_closed_count > 0:
+            leaderboard_data.append({"user": user, "count": daily_closed_count})
+    helpers_leaderboard = sorted(
+        leaderboard_data,
+        key=lambda data: data["count"],
+        reverse=True,
     )
 
     new_tickets_total = len(tickets_created_today)
@@ -208,36 +221,21 @@ async def calculate_daily_stats(
         t
         for t in tickets
         if t.status == TicketStatus.CLOSED
-        and t.closedAt
-        and start_time <= t.closedAt < end_time
+        and t.closed_at
+        and start_time <= t.closed_at < end_time
     ]
     closed_today = len(tickets_closed_today)
     closed_today_from_today = len(
-        [t for t in tickets_closed_today if start_time <= t.createdAt < end_time]
+        [t for t in tickets_closed_today if start_time <= t.created_at < end_time]
     )
     assigned_today_in_progress = len(
         [
             t
             for t in tickets
-            if t.assignedAt
-            and start_time <= t.assignedAt < end_time
+            if t.assigned_at
+            and start_time <= t.assigned_at < end_time
             and t.status == TicketStatus.IN_PROGRESS
         ]
-    )
-
-    leaderboard_data = []
-    for user in users_with_closed_tickets:
-        daily_closed_count = sum(
-            1
-            for ticket in (user.closedTickets or [])
-            if ticket.closedAt and start_time <= ticket.closedAt < end_time
-        )
-        if daily_closed_count > 0:
-            leaderboard_data.append({"user": user, "count": daily_closed_count})
-    helpers_leaderboard = sorted(
-        leaderboard_data,
-        key=lambda data: data["count"],
-        reverse=True,
     )
 
     hang_times_current = calculate_hang_times(

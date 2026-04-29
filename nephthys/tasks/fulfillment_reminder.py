@@ -2,10 +2,13 @@ import logging
 from datetime import datetime
 from datetime import timedelta
 
+from nephthys.database.enums import TicketStatus
+from nephthys.database.tables import CategoryTag
+from nephthys.database.tables import TagsOnTickets
+from nephthys.database.tables import Ticket
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.ticket_methods import get_question_message_link
-from prisma.enums import TicketStatus
 
 
 def slack_timestamp(dt: datetime, format: str = "date_short") -> str:
@@ -25,7 +28,11 @@ async def send_fulfillment_reminder():
     logging.info("Running fulfillment team reminder task")
 
     try:
-        tag = await env.db.categorytag.find_unique(where={"name": target_tag_name})
+        tag = (
+            await CategoryTag.objects()
+            .where(CategoryTag.name == target_tag_name)
+            .first()
+        )
 
         if not tag:
             logging.info(
@@ -36,13 +43,10 @@ async def send_fulfillment_reminder():
         now = datetime.now()
         twenty_four_hours_ago = now - timedelta(hours=24)
 
-        tickets = await env.db.ticket.find_many(
-            where={
-                "categoryTagId": tag.id,
-                "status": {"in": [TicketStatus.OPEN, TicketStatus.IN_PROGRESS]},
-                "createdAt": {"gte": twenty_four_hours_ago},
-            },
-            include={"openedBy": True, "tagsOnTickets": {"include": {"tag": True}}},
+        tickets = await Ticket.objects(Ticket.opened_by).where(
+            (Ticket.category_tag == tag.id)
+            & (Ticket.status.is_in([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]))
+            & (Ticket.created_at >= twenty_four_hours_ago)
         )
 
         msg_header = f"oh hi <@{target_slack_id}>! i found some fulfillment tickets for you! :rac_cute:"
@@ -63,12 +67,17 @@ async def send_fulfillment_reminder():
                 )
 
                 link = get_question_message_link(ticket)
-                created_ts = slack_timestamp(ticket.createdAt, format="date_short")
+                created_ts = slack_timestamp(ticket.created_at, format="date_short")
 
-                tags = ticket.tagsOnTickets
+                # FIXME: This is an n+1 query
+                tag_links = await TagsOnTickets.objects(TagsOnTickets.tag).where(
+                    TagsOnTickets.ticket == ticket.id
+                )
                 tags_string = (
-                    " (" + ", ".join(f"*{t.tag.name}*" for t in tags if t.tag) + ")"
-                    if tags
+                    " ("
+                    + ", ".join(f"*{t.tag.name}*" for t in tag_links if t.tag)
+                    + ")"
+                    if tag_links
                     else ""
                 )
 
