@@ -155,7 +155,7 @@ async def reopen_ticket(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebCli
         raise ValueError(f"Failed to find ticket ticket_id={ticket_id}")
     if not (reopened_by := await User.objects().get(User.slack_id == slack_id)):
         logging.warning(
-            f"User slack_id={ticket.opened_by} not in database tried to reopen ticket_id={ticket_id}"
+            f"User slack_id={slack_id} not in database tried to reopen ticket_id={ticket_id}"
         )
         return
     try:
