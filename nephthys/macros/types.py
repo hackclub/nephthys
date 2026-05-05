@@ -46,8 +46,8 @@ class ReplyMacro(Macro):
         if not self.message:
             await env.slack_client.chat_postEphemeral(
                 channel=env.slack_help_channel,
-                thread_ts=ticket.msgTs,
-                user=helper.slackId,
+                thread_ts=ticket.msg_ts,
+                user=helper.slack_id,
                 text=f"Invalid macro: The `{self.name}` macro is not configured for this channel.",
             )
             return
