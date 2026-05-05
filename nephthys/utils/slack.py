@@ -12,9 +12,13 @@ from nephthys.actions.create_category_tag import create_category_tag_btn_callbac
 from nephthys.actions.create_category_tag import create_category_tag_view_callback
 from nephthys.actions.create_team_tag import create_team_tag_btn_callback
 from nephthys.actions.create_team_tag import create_team_tag_view_callback
+from nephthys.actions.reopen import reopen
 from nephthys.actions.resolve import resolve
 from nephthys.actions.tag_subscribe import tag_subscribe_callback
 from nephthys.commands.dm_magic_link import dm_magic_link_cmd_callback
+from nephthys.database.tables import Ticket
+from nephthys.database.tables import User
+from nephthys.errors.errors import TicketNotClosedError
 from nephthys.events.app_home_opened import on_app_home_opened
 from nephthys.events.app_home_opened import open_app_home
 from nephthys.events.channel_join import channel_join
@@ -138,6 +142,27 @@ async def assign_category_tag(
     ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
 ):
     await assign_category_tag_callback(ack, body, client)
+
+
+# Action buttons on the "resolved ticket" message
+@app.action("reopen-button")
+async def reopen_ticket(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient):
+    await ack()
+    ticket_id = int(body["actions"][0]["value"])
+    slack_id = body["user"]["id"]
+    if not (ticket := await Ticket.objects().get(Ticket.id == ticket_id)):
+        raise ValueError(f"Failed to find ticket ticket_id={ticket_id}")
+    if not (reopened_by := await User.objects().get(User.slack_id == slack_id)):
+        raise ValueError(f"Failed to find user with slack_id={slack_id}")
+    try:
+        await reopen(ticket, reopened_by, client)
+    except TicketNotClosedError:
+        await client.chat_postEphemeral(
+            channel=env.slack_help_channel,
+            thread_ts=ticket.msg_ts,
+            user=slack_id,
+            text="This thread has already been re-opened!",
+        )
 
 
 @app.command("/dm-magic-link")

@@ -7,6 +7,7 @@ from slack_sdk.web.async_client import AsyncWebClient
 from nephthys.database.enums import TicketStatus
 from nephthys.database.tables import Ticket
 from nephthys.database.tables import User
+from nephthys.errors.errors import TicketNotClosedError
 from nephthys.events.message.send_backend_message import send_backend_message
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
@@ -17,7 +18,7 @@ from nephthys.utils.ticket_methods import reply_to_ticket
 async def reopen(ticket: Ticket, reopened_by: User, client: AsyncWebClient):
     """The opposite of resolving! Makes a resolved ticket open again"""
     if ticket.status != TicketStatus.CLOSED:
-        raise ValueError("Cannot reopen non-closed ticket")
+        raise TicketNotClosedError(ticket.id)
 
     await Ticket.update(
         {
@@ -35,24 +36,23 @@ async def reopen(ticket: Ticket, reopened_by: User, client: AsyncWebClient):
         client=env.slack_client,
     )
 
-    if not ticket.opened_by:
+    if not (author := await User.objects().get(User.id == ticket.opened_by)):
         raise ValueError("Cannot reopen ticket with no recorded author")
-    author_id = ticket.opened_by.slack_id
-    author = await get_user_profile(author_id)
+    author_profile = await get_user_profile(author.slack_id)
     other_tickets = await Ticket.count().where(
         (Ticket.opened_by == ticket.opened_by) & (Ticket.id != ticket.id)
     )
 
     backend_message = await send_backend_message(
-        author_user_id=author_id,
+        author_user_id=author.slack_id,
         description=ticket.description,
         msg_ts=ticket.msg_ts,
         past_tickets=other_tickets,
         client=env.slack_client,
         current_category_tag_id=ticket.category_tag,
         reopened_by=reopened_by,
-        display_name=author.display_name(),
-        profile_pic=author.profile_pic_512x(),
+        display_name=author_profile.display_name(),
+        profile_pic=author_profile.profile_pic_512x(),
     )
 
     new_ticket_ts = backend_message["ts"]

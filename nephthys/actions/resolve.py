@@ -1,6 +1,9 @@
 import logging
 from datetime import datetime
 
+from blockkit import Actions
+from blockkit import Button
+from blockkit import Section
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
@@ -74,15 +77,35 @@ async def resolve(
         )
         return
 
+    # Build the "ticket resolved!" message
+    text = (
+        env.transcript.ticket_resolve.format(user_id=resolver)
+        if not stale
+        else env.transcript.ticket_resolve_stale.format(user_id=resolver)
+    )
+    actions = Actions()
+    if env.enable_feedback:
+        actions.add_element(
+            Button(
+                text="Give feedback",
+                action_id="feedback-button",
+                value=f"{tkt.id}",
+            )
+        )
+    actions.add_element(
+        Button(
+            text="Re-open thread",
+            action_id="reopen-button",
+            value=f"{tkt.id}",
+        )
+    )
+
     if send_resolved_message:
         await reply_to_ticket(
             ticket=tkt,
             client=client,
-            text=(
-                env.transcript.ticket_resolve.format(user_id=resolver)
-                if not stale
-                else env.transcript.ticket_resolve_stale.format(user_id=resolver)
-            ),
+            text=text,
+            blocks=[Section(text), actions],
         )
     if add_reaction:
         await client.reactions_add(

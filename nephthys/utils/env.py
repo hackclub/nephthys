@@ -13,6 +13,18 @@ from nephthys.transcripts.transcript import Transcript
 load_dotenv(override=True)
 
 
+def get_environ_bool(name: str, default: bool) -> bool:
+    value = os.environ.get(name, None)
+    if value is None:
+        return default
+    value = value.strip().lower()
+    if value in {"1", "true", "t", "yes", "y", "on"}:
+        return True
+    if value in {"0", "false", "f", "no", "n", "off"}:
+        return False
+    raise ValueError(f"Invalid boolean env var {name}={value!r}")
+
+
 class Environment:
     def __init__(self):
         self.slack_bot_token = os.environ.get("SLACK_BOT_TOKEN", "unset")
@@ -56,6 +68,7 @@ class Environment:
         self.slack_maintainer_id = os.environ.get("SLACK_MAINTAINER_ID", "unset")
         self.program = os.environ.get("PROGRAM", "summer_of_making")
         self.daily_summary = True if not os.environ.get("DAILY_SUMMARY") else False
+        self.enable_feedback = get_environ_bool("ENABLE_FEEDBACK", False)
         self.app_title = os.environ.get("APP_TITLE", "helper heidi")
 
         self.port = int(os.environ.get("PORT", 3000))
