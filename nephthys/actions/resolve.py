@@ -41,14 +41,15 @@ async def resolve(
             messages=[f"Ticket TS: {ts}", f"Resolver ID: {resolver}"],
         )
         return
-    ticket = (
-        await Ticket.objects(Ticket.assigned_to)
-        .where((Ticket.msg_ts == ts) & (Ticket.status != TicketStatus.CLOSED))
-        .first()
-    )
+    ticket = await Ticket.objects(Ticket.assigned_to).get((Ticket.msg_ts == ts))
     if not ticket:
-        logging.warning(
-            f"Failed to resolve ticket ts={ts} because it's already closed or doesn't exist."
+        raise ValueError(f"Failed to find ticket with ts {ts}")
+    if ticket.status == TicketStatus.CLOSED:
+        await client.chat_postEphemeral(
+            channel=env.slack_help_channel,
+            thread_ts=ticket.msg_ts,
+            user=resolver,
+            text="Cannot mark as resolved — this ticket is already resolved!",
         )
         return
 
