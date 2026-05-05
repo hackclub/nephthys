@@ -18,6 +18,7 @@ from nephthys.actions.tag_subscribe import tag_subscribe_callback
 from nephthys.commands.dm_magic_link import dm_magic_link_cmd_callback
 from nephthys.database.tables import Ticket
 from nephthys.database.tables import User
+from nephthys.errors.errors import PermissionDenied
 from nephthys.errors.errors import TicketNotClosedError
 from nephthys.events.app_home_opened import on_app_home_opened
 from nephthys.events.app_home_opened import open_app_home
@@ -153,7 +154,10 @@ async def reopen_ticket(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebCli
     if not (ticket := await Ticket.objects().get(Ticket.id == ticket_id)):
         raise ValueError(f"Failed to find ticket ticket_id={ticket_id}")
     if not (reopened_by := await User.objects().get(User.slack_id == slack_id)):
-        raise ValueError(f"Failed to find user with slack_id={slack_id}")
+        logging.warning(
+            f"User slack_id={ticket.opened_by} not in database tried to reopen ticket_id={ticket_id}"
+        )
+        return
     try:
         await reopen(ticket, reopened_by, client)
     except TicketNotClosedError:
@@ -162,6 +166,13 @@ async def reopen_ticket(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebCli
             thread_ts=ticket.msg_ts,
             user=slack_id,
             text="This thread has already been re-opened!",
+        )
+    except PermissionDenied:
+        await client.chat_postEphemeral(
+            channel=env.slack_help_channel,
+            thread_ts=ticket.msg_ts,
+            user=slack_id,
+            text="Only helpers or the original poster can reopen their thread.",
         )
 
 

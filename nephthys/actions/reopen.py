@@ -7,18 +7,29 @@ from slack_sdk.web.async_client import AsyncWebClient
 from nephthys.database.enums import TicketStatus
 from nephthys.database.tables import Ticket
 from nephthys.database.tables import User
+from nephthys.errors.errors import PermissionDenied
 from nephthys.errors.errors import TicketNotClosedError
 from nephthys.events.message.send_backend_message import send_backend_message
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
+from nephthys.utils.permissions import can_resolve
 from nephthys.utils.slack_user import get_user_profile
 from nephthys.utils.ticket_methods import reply_to_ticket
 
 
 async def reopen(ticket: Ticket, reopened_by: User, client: AsyncWebClient):
-    """The opposite of resolving! Makes a resolved ticket open again"""
+    """The opposite of resolving! Makes a resolved ticket open again
+
+    Checks if the user user is allowed to reopen the ticket, raising a
+    `PermissionDenied` error if not.
+    """
     if ticket.status != TicketStatus.CLOSED:
         raise TicketNotClosedError(ticket.id)
+    if not await can_resolve(reopened_by.slack_id, reopened_by.id, ticket.msg_ts):
+        raise PermissionDenied(
+            "Only helpers or the original author can reopen a ticket",
+            user_id=reopened_by.id,
+        )
 
     await Ticket.update(
         {

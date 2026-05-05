@@ -40,7 +40,14 @@ async def resolve(
             f"User {resolver} attempted to resolve ticket with ts {ts} without permission.",
             messages=[f"Ticket TS: {ts}", f"Resolver ID: {resolver}"],
         )
+        await client.chat_postEphemeral(
+            channel=env.slack_help_channel,
+            thread_ts=ts,
+            user=resolver,
+            text="Only helpers or the original poster can mark this thread as resolved.",
+        )
         return
+
     ticket = await Ticket.objects(Ticket.assigned_to).get((Ticket.msg_ts == ts))
     if not ticket:
         raise ValueError(f"Failed to find ticket with ts {ts}")
