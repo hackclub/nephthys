@@ -1,6 +1,9 @@
 import logging
 from datetime import datetime
 
+from blockkit import Actions
+from blockkit import Button
+from blockkit import Section
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
@@ -37,15 +40,23 @@ async def resolve(
             f"User {resolver} attempted to resolve ticket with ts {ts} without permission.",
             messages=[f"Ticket TS: {ts}", f"Resolver ID: {resolver}"],
         )
+        await client.chat_postEphemeral(
+            channel=env.slack_help_channel,
+            thread_ts=ts,
+            user=resolver,
+            text="Only helpers or the original poster can mark this thread as resolved.",
+        )
         return
-    ticket = (
-        await Ticket.objects(Ticket.assigned_to)
-        .where((Ticket.msg_ts == ts) & (Ticket.status != TicketStatus.CLOSED))
-        .first()
-    )
+
+    ticket = await Ticket.objects(Ticket.assigned_to).get((Ticket.msg_ts == ts))
     if not ticket:
-        logging.warning(
-            f"Failed to resolve ticket ts={ts} because it's already closed or doesn't exist."
+        raise ValueError(f"Failed to find ticket with ts {ts}")
+    if ticket.status == TicketStatus.CLOSED:
+        await client.chat_postEphemeral(
+            channel=env.slack_help_channel,
+            thread_ts=ticket.msg_ts,
+            user=resolver,
+            text="Cannot mark as resolved — this ticket is already resolved!",
         )
         return
 
@@ -74,15 +85,35 @@ async def resolve(
         )
         return
 
+    # Build the "ticket resolved!" message
+    text = (
+        env.transcript.ticket_resolve.format(user_id=resolver)
+        if not stale
+        else env.transcript.ticket_resolve_stale.format(user_id=resolver)
+    )
+    actions = Actions()
+    if env.enable_feedback:
+        actions.add_element(
+            Button(
+                text="Give feedback",
+                action_id="feedback-button",
+                value=f"{tkt.id}",
+            )
+        )
+    actions.add_element(
+        Button(
+            text="Re-open thread",
+            action_id="reopen-button",
+            value=f"{tkt.id}",
+        )
+    )
+
     if send_resolved_message:
         await reply_to_ticket(
             ticket=tkt,
             client=client,
-            text=(
-                env.transcript.ticket_resolve.format(user_id=resolver)
-                if not stale
-                else env.transcript.ticket_resolve_stale.format(user_id=resolver)
-            ),
+            text=text,
+            blocks=[Section(text), actions],
         )
     if add_reaction:
         await client.reactions_add(

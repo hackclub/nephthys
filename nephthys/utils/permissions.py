@@ -13,7 +13,7 @@ async def can_resolve(slack_id: str, user_id: int, ts: str) -> bool:
     Returns:
         bool: True if the user can resolve tickets, False otherwise.
     """
-    res = await env.slack_client.conversations_members(channel=env.slack_ticket_channel)
+    res = await env.slack_client.conversations_members(channel=env.slack_bts_channel)
     team = res.get("members", [])
 
     if slack_id in team:

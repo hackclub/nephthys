@@ -1,5 +1,6 @@
 import logging
 
+from blockkit.core import MessageBlock
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
@@ -20,7 +21,12 @@ async def delete_message(channel_id: str, message_ts: str):
         )
 
 
-async def reply_to_ticket(ticket: Ticket, client: AsyncWebClient, text: str) -> None:
+async def reply_to_ticket(
+    ticket: Ticket,
+    client: AsyncWebClient,
+    text: str,
+    blocks: list[MessageBlock] | None = None,
+) -> None:
     """Sends a user-facing message in the help thread and records it in the database"""
     channel = env.slack_help_channel
     thread_ts = ticket.msg_ts
@@ -28,6 +34,7 @@ async def reply_to_ticket(ticket: Ticket, client: AsyncWebClient, text: str) -> 
         channel=channel,
         text=text,
         thread_ts=thread_ts,
+        blocks=[block.build() for block in blocks] if blocks else None,
     )
     msg_ts = msg["ts"]
     if not msg_ts:
