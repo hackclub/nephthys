@@ -1,8 +1,8 @@
-# Dummy table we use to execute raw SQL with
 from piccolo.apps.migrations.auto.migration_manager import MigrationManager
 from piccolo.table import Table
 
 
+# Dummy table we use to execute raw SQL with
 class RawTable(Table):
     pass
 
