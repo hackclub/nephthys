@@ -140,7 +140,7 @@ async def handle_new_question(
         db_user_id = db_user.id
     else:
         past_tickets = 0
-        username = author.display_name()
+        username = author.username()
         async with perf_timer("Creating user in DB"):
             updated_records = (
                 await User.insert(User(slack_id=author_id, username=username))
