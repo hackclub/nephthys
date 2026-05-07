@@ -21,7 +21,7 @@ async def forwards():
         # UNIQUE constraint on the username field.
         # This could fail if two users "swap" usernames, so let's
         # just remove it.
-        await RawTable.raw("DROP INDEX IF EXISTS User_username_key")
+        await RawTable.raw('''DROP INDEX IF EXISTS "User_username_key"''')
 
     manager.add_raw(run)
 
