@@ -23,7 +23,7 @@ def table_ref(table: str) -> LazyTableReference:
 
 class User(Table, tablename="User"):
     id = Serial(primary_key=True, unique=True)
-    slack_id = Text(db_column_name="slackId")
+    slack_id = Text(db_column_name="slackId", unique=True)
     username = Text(null=True)
     admin = Boolean(default=False)
     helper = Boolean(default=False)
