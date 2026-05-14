@@ -15,12 +15,12 @@ class StardanceAmbassadors(Transcript):
     identity_help_channel: str = "C092833JXKK"  # #identity-help
 
     first_ticket_create: str = f"""
-:ambassador: Hey there ()! While we wait for someone to help you, please:
+:ambassador: Hey there (user)! While we wait for someone to help you, please:
 • take a look through <{faq_link}|*the handbook*> - you may find the answer to your question there
 • once your question has been answered, hit that green button below!
 """
     ticket_create: str = f"""
-:ambassador: Hey there {user}! While we wait for someone to help you, please:
+:ambassador: Hey there (user)! While we wait for someone to help you, please:
 • take a look through <{faq_link}|*the handbook*> - you may find the answer to your question there
 • once your question has been answered, hit that green button below!
 """
