@@ -7,9 +7,9 @@ class StardanceAmbassadors(Transcript):
     program_name: str = "Stardance Ambassadors"
     program_owner: str = "U093AJCBP0C"  # @Alfie
 
-    help_channel: str = "C0AS0FD28RE"  
-    ticket_channel: str = "C0ATNQYMRJS"  
-    team_channel: str = "C0AQC0W6BQS" 
+    help_channel: str = "C0AS0FD28RE"
+    ticket_channel: str = "C0ATNQYMRJS"
+    team_channel: str = "C0AQC0W6BQS"
 
     faq_link: str = "https://hackclub.enterprise.slack.com/docs/T0266FRGM/F0AR6B599NW"
     identity_help_channel: str = "C092833JXKK"  # #identity-help
