@@ -62,8 +62,6 @@ Note: These steps have to be done by a Workspace Admin (otherwise it will be una
    SLACK_TICKET_CHANNEL="C..."
    SLACK_BTS_CHANNEL="C..."
    SLACK_HELP_CHANNEL="C..."
-   # Slack user group for the support team
-   SLACK_USER_GROUP="S..."
    # Copy this from the PostgreSQL resource you created earlier
    DATABASE_URL="postgres://postgres:blahblah@somewhere:5432/postgres"
    # Pick a transcript from the transcripts/ folder (your event will probably have its own)
