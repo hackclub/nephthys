@@ -15,7 +15,6 @@ from nephthys.actions.create_team_tag import create_team_tag_view_callback
 from nephthys.actions.reopen import reopen
 from nephthys.actions.resolve import resolve
 from nephthys.actions.tag_subscribe import tag_subscribe_callback
-from nephthys.commands.dm_magic_link import dm_magic_link_cmd_callback
 from nephthys.database.tables import Ticket
 from nephthys.database.tables import User
 from nephthys.errors.errors import PermissionDenied
@@ -174,11 +173,3 @@ async def reopen_ticket(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebCli
             user=slack_id,
             text="Only helpers or the original poster can reopen their thread.",
         )
-
-
-@app.command("/dm-magic-link")
-@app.command("/dm-magic-link-dev")
-async def dm_magic_link(
-    command, ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
-):
-    await dm_magic_link_cmd_callback(command, ack, body, client)
