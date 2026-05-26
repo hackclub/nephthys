@@ -119,30 +119,6 @@ class Transcript(BaseModel):
         default="", description="Message for unauthorized channel access"
     )
 
-    # this stuff is only required for summer of making, but it's easier to keep it here :p
-    dm_magic_link_no_user: str = Field(
-        default=":rac_cute: heya, please provide the user you want me to dm",
-        description="Message when no user provided for magic link DM",
-    )
-
-    dm_magic_link_error: str = Field(
-        default="", description="Error message for magic link generation"
-    )
-
-    dm_magic_link_success: str = Field(
-        default=":rac_cute: magic link sent! tell em to check their dms with me :D",
-        description="Success message for magic link DM",
-    )
-
-    dm_magic_link_message: str = Field(
-        default=":rac_cute: hey there! i got told that you got a bit stuck so here's a magic link for ya :D\n{magic_link}",
-        description="Magic link DM message",
-    )
-
-    dm_magic_link_no_permission: str = Field(
-        default="", description="No permission message for magic link command"
-    )
-
     @model_validator(mode="after")
     def set_default_messages(self):
         """Set default values for messages that reference other fields"""
@@ -171,12 +147,6 @@ if your question has been answered, please hit the button below to mark it as re
 
         if not self.not_allowed_channel:
             self.not_allowed_channel = f"heya, it looks like you're not supposed to be in that channel, pls talk to <@{self.program_owner}> if that's wrong"
-
-        if not self.dm_magic_link_error:
-            self.dm_magic_link_error = f":rac_nooo: something went wrong while generating the magic link, please bug <@{self.program_owner}> (status: {{status}})"
-
-        if not self.dm_magic_link_no_permission:
-            self.dm_magic_link_no_permission = f":rac_nooo: you don't have permission to use this command, please bug <@{self.program_owner}> if you think this is a mistake"
 
         if not self.ticket_reopen:
             self.ticket_reopen = "hey hey! it looks like <@{helper_slack_id}> has reopened this post! someone'll be with you shortly, ty!"

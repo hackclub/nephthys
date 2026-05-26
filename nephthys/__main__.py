@@ -3,6 +3,7 @@ import contextlib
 import logging
 from datetime import datetime
 
+import matplotlib
 import uvicorn
 from aiohttp import ClientSession
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -38,6 +39,9 @@ stderr_logger.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
 logging.getLogger().handlers = [stderr_logger]
 if env.otel_logs_url:
     setup_otel_logging()
+
+# Prevent matplotlib from trying to open a window when generating graphs
+matplotlib.use("agg")
 
 
 @contextlib.asynccontextmanager
