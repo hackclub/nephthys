@@ -173,3 +173,10 @@ async def reopen_ticket(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebCli
             user=slack_id,
             text="Only helpers or the original poster can reopen their thread.",
         )
+
+
+@app.action("feedback-button")
+async def feedback_button(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient):
+    await ack()
+    # ticket_id = int(body["actions"][0]["value"])
+    # TODO

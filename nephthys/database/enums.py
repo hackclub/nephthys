@@ -15,6 +15,13 @@ class UserType(StrEnum):
     OTHER = "OTHER"
 
 
+class FeedbackRating(StrEnum):
+    GREAT = "GREAT"
+    OKAY = "OKAY"
+    NOT_GOOD = "NOT_GOOD"
+
+
+FeedbackRatingColumn = create_postgres_enum_type("feedback_rating", FeedbackRating)
 # Note: these database type names were PascalCase in the Prisma era,
 # but we have a migration to make them snake_case for consistency and Piccolo compatibility.
 TicketStatusColumn = create_postgres_enum_type("ticket_status", TicketStatus)
