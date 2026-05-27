@@ -13,6 +13,7 @@ from nephthys.transcripts.transcripts.jumpstart import Jumpstart
 from nephthys.transcripts.transcripts.lynx import Lynx
 from nephthys.transcripts.transcripts.midnight import Midnight
 from nephthys.transcripts.transcripts.nest import Nest
+from nephthys.transcripts.transcripts.stardance import Stardance
 from nephthys.transcripts.transcripts.stardance_ambassadors import StardanceAmbassadors
 from nephthys.transcripts.transcripts.stasis import Stasis
 from nephthys.transcripts.transcripts.summer_of_making import SummerOfMaking
@@ -32,4 +33,5 @@ transcripts: List[Type[Transcript]] = [
     Help,
     Beest,
     StardanceAmbassadors,
+    Stardance,
 ]
