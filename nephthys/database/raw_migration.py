@@ -7,6 +7,18 @@ class RawTable(Table):
     pass
 
 
+def postgresql_code_block(sql: str) -> str:
+    """Wraps the given SQL in a DO block, to allow multiple SQL statements
+    to be executed with one call to `RawTable.raw()`"""
+    return f"""
+    DO $nephthys_migration_block$ 
+        BEGIN
+        {sql}
+        END
+    $nephthys_migration_block$;
+    """
+
+
 def raw_migration(
     migration_id: str,
     app_name: str,
@@ -19,14 +31,14 @@ def raw_migration(
     )
 
     async def run():
-        await RawTable.raw(forwards)
+        await RawTable.raw(postgresql_code_block(forwards))
 
     manager.add_raw(run)
 
     if backwards:
 
         async def run_backwards():
-            await RawTable.raw(backwards)
+            await RawTable.raw(postgresql_code_block(backwards))
 
         manager.add_raw_backwards(run_backwards)
 
