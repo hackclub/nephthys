@@ -96,12 +96,12 @@ Note: These steps have to be done by a Workspace Admin (otherwise it will be una
 
    # Allow the poster of a question to give feedback after their ticket is resolved
    # Feedback is stored in the "Feedback" table. Disabled by default.
-   ENABLE_FEEDBACK=true
+   ENABLE_FEEDBACK=false
 
    # Optional: Enable stale ticket auto-close
    # Tickets inactive for this many days will be automatically closed
    # Leave unset to disable
-   STALE_TICKET_DAYS="7"
+   STALE_TICKET_DAYS="" # e.g. 7
    ```
 
 4. Don't forget to click **Save All Environment Variables**
