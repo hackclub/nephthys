@@ -59,8 +59,8 @@ class Environment:
         self.slack_bts_channel = os.environ.get("SLACK_BTS_CHANNEL", "unset")
         self.slack_maintainer_id = os.environ.get("SLACK_MAINTAINER_ID", "unset")
         self.program = os.environ.get("PROGRAM", "summer_of_making")
-        self.daily_summary = True if not os.environ.get("DAILY_SUMMARY") else False
-        self.enable_feedback = get_environ_bool("ENABLE_FEEDBACK", False)
+        self.daily_summary = get_environ_bool("DAILY_SUMMARY", default=True)
+        self.enable_feedback = get_environ_bool("ENABLE_FEEDBACK", default=False)
         self.app_title = os.environ.get("APP_TITLE", "helper heidi")
 
         self.port = int(os.environ.get("PORT", 3000))
