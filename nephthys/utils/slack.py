@@ -243,4 +243,23 @@ async def submit_feedback(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebC
     await Feedback.objects().create(
         ticket=ticket, created_by=submitted_by, rating=rating, text=text
     )
-    await ack()
+
+    # Show a success dialog (customised to the user's feeling and if they gave textual feedback)
+    thank_you_text = "Feedback submitted successfully!"
+    if text:
+        thank_you_text += "\n\nThis goes a long way in helping us make the channel even better, thank you!"
+        if rating == FeedbackRating.GREAT:
+            thank_you_text += " :yay:"
+    if rating is FeedbackRating.NOT_GOOD:
+        thank_you_text += "\n\nIf your issue still hasn't been resolved, feel free to re-open the thread and we'll help you further."
+
+    success_modal = Modal(
+        title="Feedback",
+        close="Close",
+        blocks=[Section(text=thank_you_text)],
+    )
+
+    await ack(
+        response_action="update",
+        view=success_modal.build(),
+    )
