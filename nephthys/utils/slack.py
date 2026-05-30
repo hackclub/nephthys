@@ -2,6 +2,12 @@ import logging
 from typing import Any
 from typing import Dict
 
+from blockkit import Input
+from blockkit import Modal
+from blockkit import Option
+from blockkit import PlainTextInput
+from blockkit import Section
+from blockkit import StaticSelect
 from slack_bolt.async_app import AsyncApp
 from slack_bolt.context.ack.async_ack import AsyncAck
 from slack_sdk.web.async_client import AsyncWebClient
@@ -15,6 +21,8 @@ from nephthys.actions.create_team_tag import create_team_tag_view_callback
 from nephthys.actions.reopen import reopen
 from nephthys.actions.resolve import resolve
 from nephthys.actions.tag_subscribe import tag_subscribe_callback
+from nephthys.database.enums import FeedbackRating
+from nephthys.database.tables import Feedback
 from nephthys.database.tables import Ticket
 from nephthys.database.tables import User
 from nephthys.errors.errors import PermissionDenied
@@ -178,5 +186,61 @@ async def reopen_ticket(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebCli
 @app.action("feedback-button")
 async def feedback_button(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient):
     await ack()
-    # ticket_id = int(body["actions"][0]["value"])
-    # TODO
+    ticket_id = int(body["actions"][0]["value"])
+    modal = Modal(
+        title="Feedback",
+        private_metadata=f"{ticket_id}",
+        submit="Submit",
+        callback_id="submit-feedback",
+        blocks=[
+            Input(
+                "How well was your question answered?",
+                block_id="rating",
+                element=StaticSelect(
+                    action_id="rating",
+                    placeholder="Not well/Okay/Great",
+                    options=[
+                        Option("👎 Not well", FeedbackRating.NOT_GOOD),
+                        Option("🤷 Okay", FeedbackRating.OKAY),
+                        Option("🔥 Great", FeedbackRating.GREAT),
+                    ],
+                ),
+            ),
+            Input(
+                "Any additional comments?",
+                block_id="text",
+                optional=True,
+                hint="Optionally, give any praise, complaints, or suggestions you have for the help channel",
+                element=PlainTextInput(
+                    action_id="text",
+                    multiline=True,
+                    # placeholder="Your feedback here...",
+                ),
+            ),
+            Section(text=env.transcript.ticket_feedback_text),
+        ],
+    )
+    await client.views_open(view=modal.build(), trigger_id=body["trigger_id"])
+
+
+@app.view("submit-feedback")
+async def submit_feedback(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient):
+    slack_id = body["user"]["id"]
+    ticket_id = int(body["view"]["private_metadata"])
+    form_data = body["view"]["state"]["values"]
+    rating_value = form_data["rating"]["rating"]["selected_option"]["value"]
+    text = form_data["text"]["text"]["value"]
+    logging.info(
+        f"Ticket feedback submission ticket_id={ticket_id} slack_id={slack_id}"
+    )
+
+    if not (ticket := await Ticket.objects().get(Ticket.id == ticket_id)):
+        raise ValueError(f"Failed to find ticket ticket_id={ticket_id}")
+    if not (submitted_by := await User.objects().get(User.slack_id == slack_id)):
+        raise ValueError(f"Failed to find user with slack_id={slack_id}")
+    rating = FeedbackRating(rating_value)
+
+    await Feedback.objects().create(
+        ticket=ticket, created_by=submitted_by, rating=rating, text=text
+    )
+    await ack()

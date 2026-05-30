@@ -77,6 +77,10 @@ class Transcript(BaseModel):
         default="hey! please keep your messages *all in one thread* to make it easier to read! i've gone ahead and removed that message from the channel for ya :D",
     )
 
+    ticket_feedback_text: str = Field(default="Feedback really helps us! Thanks <3")
+
+    ## MACROS ##
+
     faq_macro: str = Field(
         default="", description="Message to be sent when the FAQ macro is used"
     )
