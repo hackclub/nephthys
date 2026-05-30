@@ -94,6 +94,10 @@ Note: These steps have to be done by a Workspace Admin (otherwise it will be una
    # Override the log level for OpenTelemetry output
    LOG_LEVEL_OTEL="WARNING"
 
+   # Allow the poster of a question to give feedback after their ticket is resolved
+   # Feedback is stored in the "Feedback" table. Disabled by default.
+   ENABLE_FEEDBACK=true
+
    # Optional: Enable stale ticket auto-close
    # Tickets inactive for this many days will be automatically closed
    # Leave unset to disable
