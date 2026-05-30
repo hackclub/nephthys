@@ -185,8 +185,28 @@ async def reopen_ticket(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebCli
 
 @app.action("feedback-button")
 async def feedback_button(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient):
-    await ack()
+    slack_id = body["user"]["id"]
     ticket_id = int(body["actions"][0]["value"])
+    if not (ticket := await Ticket.objects().get(Ticket.id == ticket_id)):
+        raise ValueError(f"Failed to find ticket ticket_id={ticket_id}")
+    user = await User.objects().get(User.slack_id == slack_id)
+    if not user or ticket.opened_by != user.id:
+        await client.chat_postEphemeral(
+            channel=env.slack_help_channel,
+            thread_ts=ticket.msg_ts,
+            user=slack_id,
+            text="Only the original poster can give feedback on this ticket.",
+        )
+        logging.info(
+            f"Ignoring feedback attempt by non-OP. slack_id={slack_id} user_id={user.id if user else None} ticket_id={ticket_id}"
+        )
+        await ack()
+        return
+
+    logging.info(
+        f"Opening feedback dialog slack_id={slack_id} user_id={user.id} ticket_id={ticket_id}"
+    )
+    await ack()
     modal = Modal(
         title="Feedback",
         private_metadata=f"{ticket_id}",
@@ -214,7 +234,6 @@ async def feedback_button(ack: AsyncAck, body: Dict[str, Any], client: AsyncWebC
                 element=PlainTextInput(
                     action_id="text",
                     multiline=True,
-                    # placeholder="Your feedback here...",
                 ),
             ),
             Section(text=env.transcript.ticket_feedback_text),
