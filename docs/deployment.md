@@ -85,8 +85,8 @@ Note: These steps have to be done by a Workspace Admin (otherwise it will be una
    OTEL_EXPORTER_OTLP_LOGS_BASIC_AUTH="username:password"
    # You can change the OTel service name if you want, but you don't have to
    OTEL_SERVICE_NAME="nephthys"
-   # Setting this to any value disables daily summary messages (yes, this is counter-intuitive and will be changed soon)
-   DAILY_SUMMARY=""
+   # Set this to false to disable daily summary messages in the BTS channel
+   DAILY_SUMMARY=true
    # Set the log level (defaults to "WARNING" in production)
    LOG_LEVEL="WARNING"
    # Override the log level for console output
