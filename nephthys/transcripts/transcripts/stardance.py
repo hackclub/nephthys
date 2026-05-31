@@ -11,29 +11,35 @@ class Stardance(Transcript):
     ticket_channel: str = "C0B2KKWCMRN"  # #stardance-tickets
     team_channel: str = "C0B1K0L1327"  # #stardance-support-scouts
 
-    # faq_link: str = "https://hackclub.slack.com/docs/T0266FRGM/F09NKF58FL5"
+    faq_link: str = "https://hackclub.enterprise.slack.com/docs/T0266FRGM/F0B75EET78W"
     identity_help_channel: str = "C092833JXKK"  # #identity-help
 
     first_ticket_create: str = """
 :rac_info: Hey (user), welcome to the Stardance Challenge support channel! Someone from the community will be here to help you out soon.
 
+If you haven't already, have a read through <{faq_link}|*the FAQ*> – it will likely contain the answer you're looking for!
+
 _Please press "mark as resolved" once your question has been answered_
 """
     ticket_create: str = """
 :rac_info: Hi (user), welcome back to the Stardance support channel! Someone should be here to help you out soon.
+
+As a reminder, you can take a look at <{faq_link}|*the FAQ*> while you wait – it might contain the answer to your question!
 """
     ticket_resolve: str = f"""
 This thread has been marked as resolved by <@{{user_id}}>!
 
-• If you have another question, send another message in <#{help_channel}> and someone will help you out! (Not me though - I'm just a silly raccoon)
-• If this thread was resolved by mistake, just hit "Reopen" below!
+More questions? Send another message in <#{help_channel}> and we'll be there to help too!
 """
 
-    #     faq_macro: str = f"""
-    # Hi (user), this question is already answered in our FAQ! Here's the link again: <{faq_link}|*Flavortown FAQ*>.
+    faq_macro: str = f"""
+Hi (user), this question is already answered in our FAQ!
 
-    # _I've marked this question as resolved, so please start a new thread if you need more help_
-    # """
+Here's the link again: <{faq_link}|*Flavortown FAQ*>.
+
+_I've marked this question as resolved, so please start a new thread if you need more help_
+    """
+
     identity_macro: str = f"""
 Hi (user), please could you ask questions about identity verification in <#{identity_help_channel}>? :rac_cute:
 
