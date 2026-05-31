@@ -14,14 +14,14 @@ class Stardance(Transcript):
     faq_link: str = "https://hackclub.enterprise.slack.com/docs/T0266FRGM/F0B75EET78W"
     identity_help_channel: str = "C092833JXKK"  # #identity-help
 
-    first_ticket_create: str = """
+    first_ticket_create: str = f"""
 :rac_info: Hey (user), welcome to the Stardance Challenge support channel! Someone from the community will be here to help you out soon.
 
 If you haven't already, have a read through <{faq_link}|*the FAQ*> – it will likely contain the answer you're looking for!
 
 _Please press "mark as resolved" once your question has been answered_
 """
-    ticket_create: str = """
+    ticket_create: str = f"""
 :rac_info: Hi (user), welcome back to the Stardance support channel! Someone should be here to help you out soon.
 
 As a reminder, you can take a look at <{faq_link}|*the FAQ*> while you wait – it might contain the answer to your question!
