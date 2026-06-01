@@ -77,14 +77,14 @@ docker run --name hh-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d post
 
 1. Clone the repository:
 
-   ```
+   ```sh
    git clone https://github.com/hackclub/nephthys
    cd nephthys
    ```
 
 2. Install dependencies:
 
-   ```
+   ```sh
    uv sync
    source .venv/bin/activate # for bash/zsh
    source .venv/bin/activate.fish # for fish
@@ -94,7 +94,7 @@ docker run --name hh-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d post
 
 3. Copy the `.env.sample` file to `.env`:
 
-   ```
+   ```sh
    cp .env.sample .env
    ```
 
@@ -115,19 +115,19 @@ docker run --name hh-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d post
 3. MAKE SURE YOU CHANGE THE COMMAND - DO NOT USE THE SAME COMMAND
 4. Install pre-commit hooks:
 
-   ```
+   ```sh
    uv run pre-commit install
    ```
 
-5. Start your database and update the database schema:
+5. Start your database and update the database schema: (change the DB URL if needed)
 
-   ```
-   uv run prisma db push
-   uv run prisma generate
+   ```sh
+   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/nephthys" piccolo migrations forwards nephthys
    ```
 
 6. Start the application:
-   ```
+
+   ```sh
    nephthys
    ```
 
