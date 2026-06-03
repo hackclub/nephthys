@@ -91,7 +91,13 @@ async def manage_home_switcher(ack: AsyncAck, body, client: AsyncWebClient):
     user_id = body["user"]["id"]
     action_id = body["actions"][0]["action_id"]
 
-    await open_app_home(action_id, client, user_id)
+    try:
+        view = AppHomeView(action_id)
+        await open_app_home(view, client, user_id)
+    except ValueError:
+        logging.error(
+            f"Invalid app home view requested user_id={user_id} action_id={action_id}"
+        )
 
 
 for view in AppHomeView:
