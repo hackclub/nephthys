@@ -1,4 +1,5 @@
 from nephthys.database.tables import User
+from nephthys.views.home import AppHomeView
 from nephthys.views.home.components.header import get_header
 
 
@@ -6,7 +7,7 @@ async def get_stats_view(user: User | None):
     return {
         "type": "home",
         "blocks": [
-            *get_header(user, "my-stats"),
+            *get_header(user, AppHomeView.MY_STATS),
             {
                 "type": "header",
                 "text": {

@@ -37,7 +37,7 @@ from nephthys.options.category_tags import get_category_tags
 from nephthys.options.team_tags import get_team_tags
 from nephthys.utils.env import env
 from nephthys.utils.performance import perf_timer
-from nephthys.views.home import APP_HOME_VIEWS
+from nephthys.views.home import AppHomeView
 
 app = AsyncApp(token=env.slack_bot_token, signing_secret=env.slack_signing_secret)
 
@@ -94,7 +94,7 @@ async def manage_home_switcher(ack: AsyncAck, body, client: AsyncWebClient):
     await open_app_home(action_id, client, user_id)
 
 
-for view in APP_HOME_VIEWS:
+for view in AppHomeView:
     app.action(view.id)(manage_home_switcher)
 
 

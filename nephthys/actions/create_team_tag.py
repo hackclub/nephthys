@@ -5,6 +5,7 @@ from nephthys.database.tables import TeamTag
 from nephthys.database.tables import User
 from nephthys.events.app_home_opened import open_app_home
 from nephthys.utils.logging import send_heartbeat
+from nephthys.views.home import AppHomeView
 from nephthys.views.modals.create_team_tag import get_create_team_tag_modal
 
 
@@ -26,7 +27,7 @@ async def create_team_tag_view_callback(
     tag = TeamTag(name=name)
     await tag.save()
 
-    await open_app_home("team-tags", client, user_id)
+    await open_app_home(AppHomeView.TEAM_TAGS, client, user_id)
 
 
 async def create_team_tag_btn_callback(

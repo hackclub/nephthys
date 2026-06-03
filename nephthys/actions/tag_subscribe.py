@@ -8,6 +8,7 @@ from nephthys.database.tables import User
 from nephthys.database.tables import UserTagSubscription
 from nephthys.events.app_home_opened import open_app_home
 from nephthys.utils.logging import send_heartbeat
+from nephthys.views.home import AppHomeView
 
 
 async def tag_subscribe_callback(
@@ -42,4 +43,4 @@ async def tag_subscribe_callback(
         sub = UserTagSubscription(user=user.id, tag=int(tag_id))
         await sub.save()
 
-    await open_app_home("team-tags", client, slack_id)
+    await open_app_home(AppHomeView.TEAM_TAGS, client, slack_id)

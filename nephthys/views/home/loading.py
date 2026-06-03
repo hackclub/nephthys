@@ -1,8 +1,9 @@
+from nephthys.events.app_home_opened import AppHomeView
 from nephthys.utils.env import env
 from nephthys.views.home.components.header import get_header
 
 
-def get_loading_view(home_type: str):
+def get_loading_view(home_type: AppHomeView):
     return {
         "type": "home",
         "blocks": [

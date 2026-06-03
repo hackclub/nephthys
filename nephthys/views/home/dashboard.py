@@ -7,6 +7,7 @@ from blockkit import Home
 from nephthys.database.tables import User
 from nephthys.utils.env import env
 from nephthys.utils.performance import perf_timer
+from nephthys.views.home import AppHomeView
 from nephthys.views.home.components.header import get_header_components
 from nephthys.views.home.components.leaderboards import get_leaderboard_components
 from nephthys.views.home.components.ticket_status_pie import (
@@ -38,7 +39,7 @@ async def get_dashboard_view(slack_user: str, db_user: User | None):
 
     return Home(
         [
-            *get_header_components(db_user, "dashboard"),
+            *get_header_components(db_user, AppHomeView.DASHBOARD),
             Header(":rac_graph: funny circle and line things"),
             pie_chart,
             *leaderboard,

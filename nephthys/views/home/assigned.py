@@ -4,12 +4,13 @@ from nephthys.database.enums import TicketStatus
 from nephthys.database.tables import Ticket
 from nephthys.database.tables import User
 from nephthys.utils.ticket_methods import get_question_message_link
+from nephthys.views.home import AppHomeView
 from nephthys.views.home.components.error_screen import error_screen
 from nephthys.views.home.components.header import get_header
 
 
 async def get_assigned_tickets_view(user: User | None):
-    header = get_header(user, "assigned-tickets")
+    header = get_header(user, AppHomeView.ASSIGNED_TICKETS)
 
     if not user or not user.helper:
         return error_screen(

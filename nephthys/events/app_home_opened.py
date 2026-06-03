@@ -10,6 +10,7 @@ from nephthys.database.tables import User
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.performance import perf_timer
+from nephthys.views.home import AppHomeView
 from nephthys.views.home.assigned import get_assigned_tickets_view
 from nephthys.views.home.category_tags import get_category_tags_view
 from nephthys.views.home.dashboard import get_dashboard_view
@@ -18,12 +19,13 @@ from nephthys.views.home.loading import get_loading_view
 from nephthys.views.home.stats import get_stats_view
 from nephthys.views.home.team_tags import get_team_tags_view
 
-DEFAULT_VIEW = "dashboard"
+
+DEFAULT_VIEW = AppHomeView.DASHBOARD
 
 
 async def on_app_home_opened(event: dict[str, Any], client: AsyncWebClient):
-    user_id = event["user"]
-    await open_app_home(DEFAULT_VIEW, client, user_id)
+    slack_id = event["user"]
+    await open_app_home(DEFAULT_VIEW, client, slack_id)
 
 
 APP_HOME_RENDER_DURATION = Histogram(
@@ -36,10 +38,10 @@ APP_HOME_RENDER_DURATION = Histogram(
 # Map of the last-requested view for each Slack user
 # This prevents a view that took a while to render overwriting the view you want
 # Entries are deleted once the view is published
-last_requested_views: dict[str, str] = {}
+last_requested_views: dict[str, AppHomeView] = {}
 
 
-async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
+async def open_app_home(home_type: AppHomeView, client: AsyncWebClient, user_id: str):
     last_requested_views[user_id] = home_type
     try:
         await client.views_publish(view=get_loading_view(home_type), user_id=user_id)
@@ -52,23 +54,16 @@ async def open_app_home(home_type: str, client: AsyncWebClient, user_id: str):
             home_type=home_type,
         ):
             match home_type:
-                case "dashboard":
+                case AppHomeView.DASHBOARD:
                     view = await get_dashboard_view(slack_user=user_id, db_user=user)
-                case "assigned-tickets":
+                case AppHomeView.ASSIGNED_TICKETS:
                     view = await get_assigned_tickets_view(user)
-                case "team-tags":
+                case AppHomeView.TEAM_TAGS:
                     view = await get_team_tags_view(user)
-                case "category-tags":
+                case AppHomeView.CATEGORY_TAGS:
                     view = await get_category_tags_view(user)
-                case "my-stats":
+                case AppHomeView.MY_STATS:
                     view = await get_stats_view(user)
-                case _:
-                    await send_heartbeat(
-                        f"Attempted to load unknown app home type {home_type} for <@{user_id}>"
-                    )
-                    view = get_error_view(
-                        f"This shouldn't happen, please tell <@{env.slack_maintainer_id}> that app home case `_` was hit with home type `{home_type}`"
-                    )
     except Exception as e:
         logging.error(f"Error opening app home: {e}")
         tb = traceback.format_exception(e)

@@ -6,17 +6,17 @@ from blockkit.core import ModalBlock
 
 from nephthys.database.tables import User
 from nephthys.utils.env import env
-from nephthys.views.home import APP_HOME_VIEWS
+from nephthys.views.home import AppHomeView
 
 
-def header_buttons(current_view: str):
+def header_buttons(current_view: AppHomeView):
     buttons = Actions()
 
-    for view in APP_HOME_VIEWS:
-        style = Button.PRIMARY if view.id == current_view else None
+    for view in AppHomeView:
+        style = Button.PRIMARY if view is current_view else None
         buttons.add_element(
             Button(
-                text=view.name,
+                text=view.label,
                 action_id=view.id,
                 style=style,
             )
@@ -29,7 +29,9 @@ def title_line():
     return Header(f":rac_cute: {env.app_title}")
 
 
-def get_header(user: User | None, current: str = "dashboard") -> list[dict]:
+def get_header(
+    user: User | None, current: AppHomeView = AppHomeView.DASHBOARD
+) -> list[dict]:
     """Returns the app home header in Slack API JSON format
 
     Deprecated over using blockkit and `get_header_components()`
@@ -42,7 +44,7 @@ def get_header(user: User | None, current: str = "dashboard") -> list[dict]:
 
 
 def get_header_components(
-    user: User | None, current: str = "dashboard"
+    user: User | None, current: AppHomeView = AppHomeView.DASHBOARD
 ) -> list[ModalBlock]:
     """Returns the app home header as blockkit components"""
     return [
