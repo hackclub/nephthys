@@ -25,7 +25,19 @@ DEFAULT_VIEW = AppHomeView.DASHBOARD
 
 async def on_app_home_opened(event: dict[str, Any], client: AsyncWebClient):
     slack_id = event["user"]
-    await open_app_home(DEFAULT_VIEW, client, slack_id)
+    user = await User.objects().get(User.slack_id == slack_id)
+    # Remember the the last view the user had open, if any
+    if user and user.app_home_last_view:
+        try:
+            initial_view = AppHomeView(user.app_home_last_view)
+        except ValueError:
+            logging.error(
+                f"Invalid app_home_last_view in DB for user_id={user.id} last_view={user.app_home_last_view}"
+            )
+            initial_view = DEFAULT_VIEW
+    else:
+        initial_view = DEFAULT_VIEW
+    await open_app_home(initial_view, client, slack_id)
 
 
 APP_HOME_RENDER_DURATION = Histogram(
