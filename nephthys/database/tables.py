@@ -29,7 +29,7 @@ class User(Table, tablename="User"):
     username = Text(null=True)
     admin = Boolean(default=False)
     helper = Boolean(default=False)
-    app_home_last_page = Text(null=True, db_column_name="appHomeLastPage")
+    app_home_last_view = Text(null=True, db_column_name="appHomeLastView")
 
     team_tag_subscriptions = M2M(table_ref("UserTagSubscription"))
 
