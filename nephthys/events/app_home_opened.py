@@ -46,6 +46,7 @@ async def open_app_home(home_type: AppHomeView, client: AsyncWebClient, user_id:
     try:
         await client.views_publish(view=get_loading_view(home_type), user_id=user_id)
 
+        # Generate the view (this is when DB queries are made)
         user = await User.objects().where(User.slack_id == user_id).first()
         logging.info(f"Opening {home_type} for {user_id}")
         async with perf_timer(
@@ -64,6 +65,18 @@ async def open_app_home(home_type: AppHomeView, client: AsyncWebClient, user_id:
                     view = await get_category_tags_view(user)
                 case AppHomeView.MY_STATS:
                     view = await get_stats_view(user)
+
+        # Check that the request hasn't been superseded by another request while we were rendering
+        user_last_requested_view = last_requested_views.get(user_id)
+        if user_last_requested_view:
+            if user_last_requested_view != home_type:
+                logging.info(f"Ignoring stale view request ({user_id}, {home_type})")
+                return
+            del last_requested_views[user_id]
+
+        # Publish the view!
+        await publish_view(client, user_id, view)
+
     except Exception as e:
         logging.error(f"Error opening app home: {e}")
         tb = traceback.format_exception(e)
@@ -80,13 +93,8 @@ async def open_app_home(home_type: AppHomeView, client: AsyncWebClient, user_id:
             messages=[f"```{tb_str}```", f"cc <@{env.slack_maintainer_id}>"],
         )
 
-    user_last_requested_view = last_requested_views.get(user_id)
-    if user_last_requested_view:
-        if user_last_requested_view != home_type:
-            logging.info(f"Ignoring stale view request ({user_id}, {home_type})")
-            return
-        del last_requested_views[user_id]
 
+async def publish_view(client: AsyncWebClient, user_id: str, view: dict[str, Any]):
     try:
         await client.views_publish(user_id=user_id, view=view)
     except SlackApiError as e:
