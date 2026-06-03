@@ -1,18 +1,19 @@
-from dataclasses import dataclass
+from enum import Enum
 
 
-@dataclass
-class View:
-    name: str
+class AppHomeView(Enum):
     id: str
-    # Not today
-    # render: Callable[[User | None], dict]
+    label: str
 
+    DASHBOARD = "dashboard", "Dashboard"
+    ASSIGNED_TICKETS = "assigned-tickets", "Assigned Tickets"
+    TEAM_TAGS = "team-tags", "Team Tags"
+    CATEGORY_TAGS = "category-tags", "Category Tags"
+    MY_STATS = "my-stats", "My Stats"
 
-APP_HOME_VIEWS: list[View] = [
-    View("Dashboard", "dashboard"),
-    View("Assigned Tickets", "assigned-tickets"),
-    View("Team Tags", "team-tags"),
-    View("Category Tags", "category-tags"),
-    View("My Stats", "my-stats"),
-]
+    def __new__(cls, id: str, label: str):
+        member = object.__new__(cls)
+        member._value_ = id
+        member.id = id
+        member.label = label
+        return member

@@ -3,11 +3,12 @@ import logging
 from nephthys.database.tables import TeamTag
 from nephthys.database.tables import User
 from nephthys.database.tables import UserTagSubscription
+from nephthys.views.home import AppHomeView
 from nephthys.views.home.components.header import get_header
 
 
 async def get_team_tags_view(user: User | None) -> dict:
-    header = get_header(user, "team-tags")
+    header = get_header(user, AppHomeView.TEAM_TAGS)
     is_admin = bool(user and user.admin)
     is_helper = bool(user and user.helper)
     tags = await TeamTag.objects()

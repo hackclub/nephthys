@@ -7,13 +7,14 @@ from blockkit import Section
 
 from nephthys.database.tables import CategoryTag
 from nephthys.database.tables import User
+from nephthys.views.home import AppHomeView
 from nephthys.views.home.components.header import get_header_components
 
 
 async def get_category_tags_view(user: User | None) -> dict:
     is_admin = bool(user and user.admin)
 
-    header = get_header_components(user, "category-tags")
+    header = get_header_components(user, AppHomeView.CATEGORY_TAGS)
 
     if not is_admin:
         return Home(
