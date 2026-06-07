@@ -12,12 +12,12 @@ class Alchemize(Transcript):
     team_channel: str = "C0AU2U67G0P"
 
     faq_link: str = "https://hackclub.enterprise.slack.com/docs/T0266FRGM/F0ASVGKKBRD"
-    first_ticket_create: str = """
+    first_ticket_create: str = f"""
 Heya (user)! Welcome to the Alchemize support channel! Someone from our team will be here to help you out soon.
 If you haven't already, have a read through <{faq_link}|*the FAQ*> – it will likely contain the answer you're looking for!
 If your question has been answered, please hit the button below to mark it as resolved!
     """
-    ticket_create: str = """
+    ticket_create: str = f"""
 Hi (user), welcome back to the Alchemize support channel! Someone should be along to help you soon.
 As a reminder, you can take a look at <{faq_link}|*the FAQ*> while you wait – it might contain the answer to your question! :D
 """
