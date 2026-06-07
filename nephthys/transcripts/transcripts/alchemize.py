@@ -6,7 +6,7 @@ class Alchemize(Transcript):
     program_name: str = "Alchemize"
     program_owner: str = "U096RMRG03G" # @coolcream also @aoishik(U0A5NKH93BJ)
 
-    help_channel: str = "C0ASVK0HHEX" #alchemize-help
+    help_channel: str = "C0ASVK0HHEX" # #alchemize-help
     ticket_channel: str = "C0B22UW9FLG"
     team_channel: str = "C0AU2U67G0P"
 
