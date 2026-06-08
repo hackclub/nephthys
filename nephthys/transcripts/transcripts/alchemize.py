@@ -22,7 +22,7 @@ Hi (user), welcome back to the Alchemize support channel! Someone should be alon
 As a reminder, you can take a look at <{faq_link}|*the FAQ*> while you wait – it might contain the answer to your question! :D
 """
     resolve_ticket_button: str = "Mark As Resolved"
-    ticket_resolve: str = f"<@{{user_id}}> has marked this as resolved. Feel free to make a new post in <#{help_channel}>, if you think this was a mistake, you may reopen this ticket. More questions? Send another message in <#{help_channel}> and we'll be there to help too!"
+    ticket_resolve: str = f"<@{{user_id}}> has marked this as resolved. If you think this was a mistake, you may reopen this ticket. More questions? Feel free to send another message in <#{help_channel}> and we'll be there to help too!"
 
     not_allowed_channel: str = f"Heya, it looks like you're not supposed to be in that channel, pls talk to <@{program_owner}> If that's wrong."
     faq_macro: str = f"""
