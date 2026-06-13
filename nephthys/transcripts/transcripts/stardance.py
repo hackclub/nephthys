@@ -35,7 +35,7 @@ More questions? Send another message in <#{help_channel}> and we'll be there to 
     faq_macro: str = f"""
 Hi (user), this question is already answered in our FAQ!
 
-Here's the link again: <{faq_link}|*Flavortown FAQ*>.
+Here's the link again: <{faq_link}|*Stardance FAQ*>.
 
 _I've marked this question as resolved, so please start a new thread if you need more help_
     """
