@@ -105,7 +105,7 @@ class Transcript(BaseModel):
     )
 
     hackatime_macro: str = Field(
-        default="Hi (user), could you ask that question in <#C0AFG0XGGMP>? :rac_cute:\n\nYou'll get better help for this Hackatime-specific question there!\n\n_I've marked this thread as resolved_",
+        default="Hi (user), could you send that question to the Hackatime team at https://letterbird.co/hackatime? :rac_cute:\n\nThey'll be able to provide better help for Hackatime-specific issues!\n\n_I've marked this thread as resolved_",
         description="Message to be sent when the Hackatime macro is used",
     )
 
