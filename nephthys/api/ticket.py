@@ -20,13 +20,12 @@ def user_to_json(user: dict[str, Any]) -> dict | None:
     }
 
 
-def ticket_to_json(ticket: dict[str, Any]) -> dict:
+def ticket_to_json(ticket: dict[str, Any], include_description: bool = False) -> dict:
     """Converts a Ticket record (represented as a dict) to an API JSON format"""
     # I hate using dicts here because we get no type hinting :fear:
-    return {
+    json = {
         "id": ticket["id"],
         "title": ticket["title"],
-        "description": ticket["description"],
         "status": ticket["status"],
         "opened_by": user_to_json(ticket["openedById"]),
         "closed_by": user_to_json(ticket["closedById"]),
@@ -37,6 +36,9 @@ def ticket_to_json(ticket: dict[str, Any]) -> dict:
         "closed_at": ticket["closedAt"].isoformat() if ticket["closedAt"] else None,
         "message_ts": ticket["msgTs"],
     }
+    if include_description:
+        json["description"] = ticket["description"]
+    return json
 
 
 async def ticket_info(req: Request):
