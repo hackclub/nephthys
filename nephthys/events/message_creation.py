@@ -24,6 +24,7 @@ from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.performance import perf_timer
 from nephthys.utils.slack_user import get_user_profile
 from nephthys.utils.ticket_methods import delete_and_clean_up_ticket
+from nephthys.utils.ticket_methods import ThreadGoneError
 
 # Message subtypes that should be handled by on_message (messages with no subtype are always handled)
 ALLOWED_SUBTYPES = ["file_share", "me_message", "thread_broadcast"]
@@ -180,10 +181,16 @@ async def handle_new_question(
     )
     ticket_url = f"https://hackclub.slack.com/archives/{env.slack_ticket_channel}/p{ticket_message_ts.replace('.', '')}"
 
-    async with perf_timer("Sending user-facing FAQ message"):
-        user_facing_message = await send_user_facing_message(
-            event, client, text=user_facing_message_text, ticket_url=ticket_url
+    try:
+        async with perf_timer("Sending user-facing FAQ message"):
+            user_facing_message = await send_user_facing_message(
+                event, client, text=user_facing_message_text, ticket_url=ticket_url
+            )
+    except ThreadGoneError:
+        logging.warning(
+            f"Cancelling ticket-creation actions because thread appears to be gone thread_ts={event['ts']}"
         )
+        return
 
     async with perf_timer(
         "AI ticket title generation", TICKET_TITLE_GENERATION_DURATION
@@ -249,6 +256,9 @@ async def handle_new_question(
             raise e
         # This means the parent message has been deleted while we've been processing it
         # therefore we should unsend the bot messages and remove the ticket from the DB
+        logging.warning(
+            f"Top-level message for thread_ts={event['ts']} has been deleted. Cleaning up and deleting ticket_id={ticket.id}"
+        )
         await delete_and_clean_up_ticket(ticket)
 
 
@@ -267,7 +277,7 @@ async def send_user_facing_message(
     Returns:
         The Slack API response containing the posted message.
     """
-    return await client.chat_postMessage(
+    response = await client.chat_postMessage(
         channel=event["channel"],
         text=text,
         blocks=[
@@ -304,6 +314,17 @@ async def send_user_facing_message(
         unfurl_links=True,
         unfurl_media=True,
     )
+    msg: dict = response["message"]  # type: ignore (assuming it exists)
+    msg_ts = msg.get("ts")
+    if not msg_ts:
+        raise ValueError(f"User-facing message has no ts: {msg}")
+    if not msg.get("thread_ts"):
+        logging.warning(
+            f"User-facing message was sent outside of thread. Attempted to send to thread_ts={event['ts']}. Unsending."
+        )
+        await client.chat_delete(channel=event["channel"], ts=msg_ts)
+        raise ThreadGoneError()
+    return msg
 
 
 async def on_message(event: Dict[str, Any], client: AsyncWebClient):
