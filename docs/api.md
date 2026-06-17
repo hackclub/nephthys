@@ -92,7 +92,6 @@ Returns an array of ticket objects. Ticket objects look like this:
 interface Ticket {
   id: number
   title: string
-  description: string
   status: "OPEN" | "CLOSED" | "IN_PROGRESS"
   opened_by: User | null
   closed_by: User | null
@@ -113,6 +112,8 @@ interface User {
   username: string | null
 }
 ```
+
+Note that the `description` field was removed from the API on 16 June 2026 to comply with the [Hack Club Slack Scraping Policy](https://news.hackclub.com/news/scraping-use-policy/), as it contains message content. It may be exposed through an authenticated API in the future. For now, the `title` field can be used as a summarised alternative of the ticket content.
 
 ## `/api/ticket?id=<TICKET_ID>`
 
