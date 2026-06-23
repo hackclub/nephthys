@@ -17,7 +17,7 @@ def get_loading_view(home_type: AppHomeView):
             },
             {
                 "type": "image",
-                "image_url": f"{env.base_url}/public/loading.gif",
+                "image_url": r"https://raw.githubusercontent.com/hackclub/nephthys/refs/heads/main/nephthys/public/loading.gif",
                 "alt_text": "Loading...",
             },
         ],
