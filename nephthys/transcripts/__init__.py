@@ -37,4 +37,5 @@ transcripts: List[Type[Transcript]] = [
     StardanceAmbassadors,
     Stardance,
     Alchemize,
+    Outpost,
 ]
