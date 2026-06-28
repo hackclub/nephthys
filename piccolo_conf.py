@@ -9,7 +9,7 @@ if not db_url:
 
 DB = PostgresEngine(
     config={"dsn": db_url},
-    # Uncomment for debugging:s
+    # Uncomment for debugging:
     # log_queries=True,
     # log_responses=True,
 )
