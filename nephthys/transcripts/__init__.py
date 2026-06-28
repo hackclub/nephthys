@@ -7,6 +7,7 @@ from nephthys.transcripts.transcripts.beest import Beest
 from nephthys.transcripts.transcripts.construct import Construct
 from nephthys.transcripts.transcripts.fallout import Fallout
 from nephthys.transcripts.transcripts.flavortown import Flavortown
+from nephthys.transcripts.transcripts.hcai import HCAI
 from nephthys.transcripts.transcripts.hctg import Hctg
 from nephthys.transcripts.transcripts.help import Help
 from nephthys.transcripts.transcripts.identity import Identity
@@ -29,6 +30,7 @@ transcripts: List[Type[Transcript]] = [
     Jumpstart,
     Stasis,
     Hctg,
+    HCAI,
     Fallout,
     Lynx,
     Nest,
