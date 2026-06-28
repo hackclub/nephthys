@@ -104,7 +104,9 @@ async def handle_message_in_thread(event: Dict[str, Any], db_user: User | None):
 
     # Ensure the ticket is assigned to the helper who last sent a message
     if db_user and db_user.helper and ticket_message.status != TicketStatus.CLOSED:
-        print(f"Assigning ticket {ticket_message.id} to helper {db_user.username}")
+        logging.info(
+            f"Assigning ticket ticket_id={ticket_message.id} to helper user_id={db_user.id}"
+        )
         await Ticket.update(
             {
                 Ticket.assigned_to: db_user.id,
