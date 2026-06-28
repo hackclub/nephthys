@@ -104,6 +104,9 @@ async def handle_message_in_thread(event: Dict[str, Any], db_user: User | None):
 
     # Ensure the ticket is assigned to the helper who last sent a message
     if db_user and db_user.helper and ticket_message.status != TicketStatus.CLOSED:
+        logging.info(
+            f"Assigning ticket ticket_id={ticket_message.id} to helper user_id={db_user.id}"
+        )
         await Ticket.update(
             {
                 Ticket.assigned_to: db_user.id,
@@ -230,6 +233,9 @@ async def handle_new_question(
             msg_ts=event["ts"],
             ticket_ts=ticket_message_ts,
             opened_by=db_user_id,
+            assigned_at=None,
+            closed_at=None,
+            reopened_at=None,
         )
         if category_tag_id:
             ticket.category_tag = category_tag_id
