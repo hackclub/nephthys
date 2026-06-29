@@ -7,8 +7,12 @@ db_url = environ.get("DATABASE_URL")
 if not db_url:
     raise ValueError("DATABASE_URL environment variable is not set")
 
-DB = PostgresEngine(config={"dsn": db_url})
+DB = PostgresEngine(
+    config={"dsn": db_url},
+    # Uncomment for debugging:
+    # log_queries=True,
+    # log_responses=True,
+)
 
 # A list of paths to piccolo apps
-# e.g. ['blog.piccolo_app']
 APP_REGISTRY = AppRegistry(apps=["nephthys.piccolo_app"])
