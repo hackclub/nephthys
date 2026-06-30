@@ -11,7 +11,7 @@ class Outpost(Transcript):
     ticket_channel: str = "C0BCQJLCYDD"
     team_channel: str = "C0BD9MB5FJ8"
 
-    faq_link: str = "https://stardance.hackclub.com/resources/outpost-faq"
+    faq_link: str = "hack.af/outpost-info"
     identity_help_channel: str = "C092833JXKK"
 
     first_ticket_create: str = f"""
