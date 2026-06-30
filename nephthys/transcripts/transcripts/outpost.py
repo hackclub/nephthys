@@ -7,7 +7,7 @@ class Outpost(Transcript):
     program_name: str = "outpost"
     program_owner: str = "U08TCSANHDX"
 
-    help_channel: str = "C0BCFMU9KD3"
+    help_channel: str = "C0BDYK5QQEM"
     ticket_channel: str = "C0BCQJLCYDD"
     team_channel: str = "C0BD9MB5FJ8"
 
@@ -15,7 +15,7 @@ class Outpost(Transcript):
     identity_help_channel: str = "C092833JXKK"
 
     first_ticket_create: str = f"""
-heya (user)! welcome to outpost! an outpost team member will come by to help you soon but please read the <{faq_link}|faq>, for answers to common questions. 
+heya (user)! welcome to outpost! an outpost team member will come by to help you soon but please read the <{faq_link}|faq> for answers to common questions. 
 if your question has been answered, please hit the button below to mark it as resolved
 """
     ticket_create: str = f"an outpost team member will be with you asap, in the mean time please read the faq <{faq_link}|here> to make sure your question hasn't already been answered. if it has been, please hit the button below to mark it as resolved :3"
