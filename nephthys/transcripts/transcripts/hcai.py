@@ -1,7 +1,7 @@
 from nephthys.transcripts.transcript import Transcript
 
 
-class HCAI(Transcript):
+class Hcai(Transcript):
     """Transcript for Hack Club AI"""
 
     program_name: str = "HCAI"
