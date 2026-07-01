@@ -1,5 +1,3 @@
-from logging import fatal
-
 from nephthys.transcripts.transcript import Transcript
 
 
@@ -13,7 +11,6 @@ class HCAI(Transcript):
     ticket_channel: str = "C0BEF63483A"
     team_channel: str = "C0BDHH4SGDT"
 
-#    faq_link: str = "https://hackclub.enterprise.slack.com/docs/T0266FRGM/F0A7XQT5D96"
     faq_link: str = "https://hackclub.enterprise.slack.com/docs/T0266FRGM/F0A7XQT5D96"
     resolve_ticket_button: str = "i get it now!"
 
