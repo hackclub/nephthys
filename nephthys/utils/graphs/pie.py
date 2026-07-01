@@ -15,18 +15,12 @@ def generate_pie_chart(
         textprops=dict(color=text_colour),
     )
 
-    if len(result) == 3:
-        wedges, texts, autotexts = result
-    else:
-        wedges, texts = result
-        autotexts = []
-
+    texts, auto_texts = result.texts
     for text in texts:
         text.set_color(text_colour)
-
-    for autotext in autotexts:
-        autotext.set_color("black")
-        autotext.set_fontsize(10)
+    for text in auto_texts:
+        text.set_color("black")
+        text.set_fontsize(10)
 
     ax.axis("equal")
     fig.patch.set_facecolor(bg_colour)
