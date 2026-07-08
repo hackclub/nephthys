@@ -14,9 +14,9 @@ from nephthys.views.home import AppHomeView
 from nephthys.views.home.components.error_screen import error_screen
 from nephthys.views.home.components.header import get_header_components
 
-# Each ticket needs 2 blocks, and the heading takes up 3 blocks.
-# Maximum blocks per view is 100.
-TICKETS_PER_PAGE = 48
+# Each ticket needs 2 blocks, and the heading takes up 5 blocks (I think)
+# Maximum Slack blocks per view is 100.
+TICKETS_PER_PAGE = 47
 
 
 def pagination_buttons(page: int, total_pages: int) -> Actions:
@@ -24,9 +24,8 @@ def pagination_buttons(page: int, total_pages: int) -> Actions:
     for p in range(1, total_pages + 1):
         buttons.add_element(
             Button(
-                text=str(p),
-                action_id="assigned-tickets-page",
-                value=str(p),
+                text=f"Page {p}",
+                action_id=f"assigned-tickets-page-{p}",
                 style=Button.PRIMARY if p == page else None,
             )
         )
@@ -44,7 +43,7 @@ async def get_assigned_tickets_view(user: User | None, page: int = 1):
         )
 
     total = await Ticket.count().where(
-        (Ticket.assigned_to == user.id) & (Ticket.status != TicketStatus.CLOSED)
+        (Ticket.assigned_to == user) & (Ticket.status != TicketStatus.CLOSED)
     )
 
     if total == 0:
@@ -59,7 +58,7 @@ async def get_assigned_tickets_view(user: User | None, page: int = 1):
 
     tickets = (
         await Ticket.objects(Ticket.opened_by)
-        .where((Ticket.assigned_to == user.id) & (Ticket.status != TicketStatus.CLOSED))
+        .where((Ticket.assigned_to == user) & (Ticket.status != TicketStatus.CLOSED))
         .order_by(Ticket.created_at, ascending=True)
         .limit(TICKETS_PER_PAGE)
         .offset((page - 1) * TICKETS_PER_PAGE)

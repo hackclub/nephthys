@@ -1,4 +1,5 @@
 import logging
+import re
 from typing import Any
 from typing import Dict
 
@@ -111,13 +112,13 @@ for view in AppHomeView:
     app.action(view.id)(manage_home_switcher)
 
 
-@app.action("assigned-tickets-page")
+@app.action(re.compile(r"assigned-tickets-page-\d+"))
 async def handle_assigned_tickets_page(
     ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
 ):
     await ack()
     user_id = body["user"]["id"]
-    page = int(body["actions"][0]["value"])
+    page = int(body["actions"][0]["action_id"].rsplit("-", 1)[-1])
     await open_app_home(AppHomeView.ASSIGNED_TICKETS, client, user_id, page=page)
 
 
