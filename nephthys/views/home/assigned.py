@@ -1,4 +1,9 @@
 import pytz
+from blockkit import Button
+from blockkit import Divider
+from blockkit import Header
+from blockkit import Home
+from blockkit import Section
 
 from nephthys.database.enums import TicketStatus
 from nephthys.database.tables import Ticket
@@ -6,11 +11,11 @@ from nephthys.database.tables import User
 from nephthys.utils.ticket_methods import get_question_message_link
 from nephthys.views.home import AppHomeView
 from nephthys.views.home.components.error_screen import error_screen
-from nephthys.views.home.components.header import get_header
+from nephthys.views.home.components.header import get_header_components
 
 
 async def get_assigned_tickets_view(user: User | None):
-    header = get_header(user, AppHomeView.ASSIGNED_TICKETS)
+    header = get_header_components(user, AppHomeView.ASSIGNED_TICKETS)
 
     if not user or not user.helper:
         return error_screen(
@@ -38,39 +43,22 @@ async def get_assigned_tickets_view(user: User | None):
             f"<@{ticket.opened_by.slack_id}>" if ticket.opened_by else "unknown user"
         )
         ticket_blocks.append(
-            {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": f"*{ticket.title}*\n _from {opened_by_str}. {time_ago_str}_",
-                },
-                "accessory": {
-                    "type": "button",
-                    "text": {
-                        "type": "plain_text",
-                        "text": ":rac_info: view ticket",
-                        "emoji": True,
-                    },
-                    "action_id": f"view-ticket-{ticket.msg_ts}",
-                    "url": get_question_message_link(ticket),
-                    "value": ticket.msg_ts,
-                },
-            }
+            Section(
+                text=f"*{ticket.title}*\n _from {opened_by_str}. {time_ago_str}_",
+                accessory=Button(
+                    text=":rac_info: view ticket",
+                    action_id=f"view-ticket-{ticket.msg_ts}",
+                    url=get_question_message_link(ticket),
+                    value=ticket.msg_ts,
+                ),
+            )
         )
-        ticket_blocks.append({"type": "divider"})
+        ticket_blocks.append(Divider())
 
-    return {
-        "type": "home",
-        "blocks": [
+    return Home(
+        [
             *header,
-            {
-                "type": "header",
-                "text": {
-                    "type": "plain_text",
-                    "text": ":rac_cute: here are your assigned tickets <3",
-                    "emoji": True,
-                },
-            },
+            Header(":rac_cute: here are your assigned tickets <3"),
             *ticket_blocks,
-        ],
-    }
+        ]
+    ).build()
