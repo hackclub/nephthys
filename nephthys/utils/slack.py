@@ -111,6 +111,16 @@ for view in AppHomeView:
     app.action(view.id)(manage_home_switcher)
 
 
+@app.action("assigned-tickets-page")
+async def handle_assigned_tickets_page(
+    ack: AsyncAck, body: Dict[str, Any], client: AsyncWebClient
+):
+    await ack()
+    user_id = body["user"]["id"]
+    page = int(body["actions"][0]["value"])
+    await open_app_home(AppHomeView.ASSIGNED_TICKETS, client, user_id, page=page)
+
+
 @app.event("member_joined_channel")
 async def handle_member_joined_channel(event: Dict[str, Any], client: AsyncWebClient):
     await channel_join(ack=AsyncAck(), event=event, client=client)

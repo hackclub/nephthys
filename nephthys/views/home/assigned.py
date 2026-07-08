@@ -1,4 +1,5 @@
 import pytz
+from blockkit import Actions
 from blockkit import Button
 from blockkit import Divider
 from blockkit import Header
@@ -13,8 +14,26 @@ from nephthys.views.home import AppHomeView
 from nephthys.views.home.components.error_screen import error_screen
 from nephthys.views.home.components.header import get_header_components
 
+# Each ticket needs 2 blocks, and the heading takes up 3 blocks.
+# Maximum blocks per view is 100.
+TICKETS_PER_PAGE = 48
 
-async def get_assigned_tickets_view(user: User | None):
+
+def pagination_buttons(page: int, total_pages: int) -> Actions:
+    buttons = Actions()
+    for p in range(1, total_pages + 1):
+        buttons.add_element(
+            Button(
+                text=str(p),
+                action_id="assigned-tickets-page",
+                value=str(p),
+                style=Button.PRIMARY if p == page else None,
+            )
+        )
+    return buttons
+
+
+async def get_assigned_tickets_view(user: User | None, page: int = 1):
     header = get_header_components(user, AppHomeView.ASSIGNED_TICKETS)
 
     if not user or not user.helper:
@@ -24,16 +43,27 @@ async def get_assigned_tickets_view(user: User | None):
             ":rac_believes_in_theory_about_green_lizards_and_space_lasers: only helpers can be assigned to tickets, so you have none - zero responsibility!",
         )
 
-    tickets = await Ticket.objects(Ticket.opened_by).where(
+    total = await Ticket.count().where(
         (Ticket.assigned_to == user.id) & (Ticket.status != TicketStatus.CLOSED)
     )
 
-    if not tickets:
+    if total == 0:
         return error_screen(
             header,
             ":rac_cute: no assigned tickets",
             ":rac_believes_in_theory_about_green_lizards_and_space_lasers: you don't have any assigned tickets right now!",
         )
+
+    total_pages = (total + TICKETS_PER_PAGE - 1) // TICKETS_PER_PAGE
+    page = max(1, min(page, total_pages))
+
+    tickets = (
+        await Ticket.objects(Ticket.opened_by)
+        .where((Ticket.assigned_to == user.id) & (Ticket.status != TicketStatus.CLOSED))
+        .order_by(Ticket.created_at, ascending=True)
+        .limit(TICKETS_PER_PAGE)
+        .offset((page - 1) * TICKETS_PER_PAGE)
+    )
 
     ticket_blocks = []
     for ticket in tickets:
@@ -54,6 +84,9 @@ async def get_assigned_tickets_view(user: User | None):
             )
         )
         ticket_blocks.append(Divider())
+
+    if total_pages > 1:
+        ticket_blocks.append(pagination_buttons(page, total_pages))
 
     return Home(
         [
