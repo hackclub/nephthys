@@ -76,6 +76,7 @@ async def open_app_home(
         # Generate the view (this is when DB queries are made)
         user = await User.objects().where(User.slack_id == user_id).first()
         logging.info(f"Opening {home_type} for {user_id}")
+
         async with perf_timer(
             f"Rendering app home (type={home_type})",
             APP_HOME_RENDER_DURATION,
@@ -105,6 +106,11 @@ async def open_app_home(
 
         # Publish the view!
         await publish_view(client, user_id, view)
+
+        # Record the user's last-viewed page for future visits
+        if user:
+            user.app_home_last_view = home_type.value
+            await user.save()
 
     except Exception as e:
         logging.error(f"Error opening app home: {e}")
