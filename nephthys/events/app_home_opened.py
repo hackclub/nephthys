@@ -127,6 +127,7 @@ async def open_app_home(
             f"`{err_type}` opening app home for <@{user_id}>",
             messages=[f"```{tb_str}```", f"cc <@{env.slack_maintainer_id}>"],
         )
+        await publish_view(client, user_id, view)
 
 
 async def publish_view(client: AsyncWebClient, user_id: str, view: dict[str, Any]):
