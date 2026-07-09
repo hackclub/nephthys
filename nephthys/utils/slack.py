@@ -91,7 +91,6 @@ async def manage_home_switcher(ack: AsyncAck, body, client: AsyncWebClient):
     await ack()
     user_id = body["user"]["id"]
     action_id = body["actions"][0]["action_id"]
-    user = await User.objects().where(User.slack_id == user_id).first()
     try:
         view = AppHomeView(action_id)
     except ValueError:
@@ -101,11 +100,6 @@ async def manage_home_switcher(ack: AsyncAck, body, client: AsyncWebClient):
         return
 
     await open_app_home(view, client, user_id)
-    # Edge case: if the user viewing App Home isn't in the DB, they won't
-    # have their last view saved and restored.
-    if user:
-        user.app_home_last_view = view.value
-        await user.save()
 
 
 for view in AppHomeView:
