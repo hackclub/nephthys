@@ -1,5 +1,6 @@
 import logging
 import traceback
+from dataclasses import dataclass
 from typing import Any
 
 from prometheus_client import Histogram
@@ -18,6 +19,12 @@ from nephthys.views.home.error import get_error_view
 from nephthys.views.home.loading import get_loading_view
 from nephthys.views.home.stats import get_stats_view
 from nephthys.views.home.team_tags import get_team_tags_view
+
+
+@dataclass
+class RequestedView:
+    home_type: AppHomeView
+    page: int | None = None
 
 
 DEFAULT_VIEW = AppHomeView.DASHBOARD
@@ -53,11 +60,16 @@ APP_HOME_RENDER_DURATION = Histogram(
 # Map of the last-requested view for each Slack user
 # This prevents a view that took a while to render overwriting the view you want
 # Entries are deleted once the view is published
-last_requested_views: dict[str, AppHomeView] = {}
+last_requested_views: dict[str, RequestedView] = {}
 
 
-async def open_app_home(home_type: AppHomeView, client: AsyncWebClient, user_id: str):
-    last_requested_views[user_id] = home_type
+async def open_app_home(
+    home_type: AppHomeView,
+    client: AsyncWebClient,
+    user_id: str,
+    page: int | None = None,
+):
+    last_requested_views[user_id] = RequestedView(home_type, page)
     try:
         await client.views_publish(view=get_loading_view(home_type), user_id=user_id)
 
@@ -73,7 +85,7 @@ async def open_app_home(home_type: AppHomeView, client: AsyncWebClient, user_id:
                 case AppHomeView.DASHBOARD:
                     view = await get_dashboard_view(slack_user=user_id, db_user=user)
                 case AppHomeView.ASSIGNED_TICKETS:
-                    view = await get_assigned_tickets_view(user)
+                    view = await get_assigned_tickets_view(user, page=page or 1)
                 case AppHomeView.TEAM_TAGS:
                     view = await get_team_tags_view(user)
                 case AppHomeView.CATEGORY_TAGS:
@@ -84,8 +96,10 @@ async def open_app_home(home_type: AppHomeView, client: AsyncWebClient, user_id:
         # Check that the request hasn't been superseded by another request while we were rendering
         user_last_requested_view = last_requested_views.get(user_id)
         if user_last_requested_view:
-            if user_last_requested_view != home_type:
-                logging.info(f"Ignoring stale view request ({user_id}, {home_type})")
+            if user_last_requested_view != RequestedView(home_type, page):
+                logging.info(
+                    f"Ignoring stale view request slack_id={user_id} view={home_type} page={page}"
+                )
                 return
             del last_requested_views[user_id]
 
