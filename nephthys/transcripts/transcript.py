@@ -119,6 +119,16 @@ class Transcript(BaseModel):
         description="Message to inform users that low-quality votes will get rejected",
     )
 
+    max_tokens_macro: str | None = Field(
+        default=None,
+        description="Message explaining max_tokens for OpenRouter",
+    )
+
+    no_money_macro: str | None = Field(
+        default=None,
+        description="Message for credits ran out",
+    )
+
     not_allowed_channel: str = Field(
         default="", description="Message for unauthorized channel access"
     )
