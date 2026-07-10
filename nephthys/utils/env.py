@@ -86,6 +86,24 @@ class Environment:
         else:
             self.stale_ticket_days = None
 
+        # AI BASE URL(No dependancy on HCAI) Defaults to HC AI
+        AI_BASE_URL_str = os.environ.get("AI_BASE_URL")
+        if not AI_BASE_URL_str:
+            AI_BASE_URL_str = "https://ai.hackclub.com/proxy/v1"
+        self.AI_BASE_URL = AI_BASE_URL_str
+
+        # MODEL FOR TICKET CREATION
+        AI_MODEL_TICKET_str = os.environ.get("AI_MODEL_TICKET")
+        if not AI_MODEL_TICKET_str:
+            AI_MODEL_TICKET_str = "openai/gpt-oss-120b"
+        self.AI_MODEL_TICKET = AI_MODEL_TICKET_str
+
+        # MODEL FOR Category Tag
+        AI_MODEL_CATEGORY_TAG_str = os.environ.get("AI_MODEL_CATEGORY_TAG")
+        if not AI_MMODEL_CATEGORY_TAG_str:
+            AI_MODEL_CATEGORY_TAG_str = "google/gemini-3-flash-preview"
+        self.AI_MODEL_CATEGORY_TAG = AI_MODEL_CATEGORY_TAG_str
+
         unset = [key for key, value in self.__dict__.items() if value == "unset"]
 
         if unset:
@@ -120,7 +138,7 @@ class Environment:
             if self.hack_club_ai_api_key
             else None
         )
-
+        
         # Cache whether the user token has workspace admin privileges
         self._workspace_admin_available: bool | Literal["unchecked"] = "unchecked"
 
