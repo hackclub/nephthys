@@ -14,7 +14,7 @@ def postgresql_code_block(sql: str) -> str:
     DO $nephthys_migration_block$ 
         BEGIN
         {sql}
-        END
+        END;
     $nephthys_migration_block$;
     """
 
