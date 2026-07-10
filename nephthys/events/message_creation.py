@@ -377,7 +377,7 @@ async def generate_ticket_title(text: str):
     if not env.ai_client:
         return "No title available from AI."
 
-    model = "openai/gpt-oss-120b"
+    model = env.ai_title_model
     try:
         response = await env.ai_client.chat.completions.create(
             model=model,
@@ -423,7 +423,7 @@ async def generate_category_tag(text: str) -> int | None:
     if not env.ai_client:
         return None
 
-    model = "google/gemini-3-flash-preview"
+    model = env.ai_tag_model
     try:
         response = await env.ai_client.chat.completions.create(
             model=model,

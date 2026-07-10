@@ -34,6 +34,10 @@ class Environment:
 
         self.uptime_url = os.environ.get("UPTIME_URL")
         self.hack_club_ai_api_key = os.environ.get("HACK_CLUB_AI_API_KEY")
+        self.ai_title_model = os.environ.get("AI_TITLE_MODEL", "openai/gpt-oss-120b")
+        self.ai_tag_model = os.environ.get(
+            "AI_TAG_MODEL", "google/gemini-3-flash-preview"
+        )
 
         self.otel_logs_url = os.environ.get("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT")
         self.otel_service_name = os.environ.get("OTEL_SERVICE_NAME", "nephthys")
