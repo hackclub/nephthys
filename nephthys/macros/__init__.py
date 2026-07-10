@@ -8,6 +8,8 @@ from nephthys.macros.fraud import Fraud
 from nephthys.macros.hackatime import Hackatime
 from nephthys.macros.hello_world import HelloWorld
 from nephthys.macros.identity import Identity
+from nephthys.macros.max_tokens import MaxTokens
+from nephthys.macros.no_money import NoMoney
 from nephthys.macros.reopen import Reopen
 from nephthys.macros.resolve import Resolve
 from nephthys.macros.shipcertqueue import ShipCertQueue
@@ -38,6 +40,8 @@ macro_list: list[type[Macro]] = [
     Hackatime,
     VoteQuality,
     VoteQueue,
+    MaxTokens,
+    NoMoney,
 ]
 
 macros = [macro() for macro in macro_list]

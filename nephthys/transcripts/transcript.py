@@ -119,6 +119,16 @@ class Transcript(BaseModel):
         description="Message to inform users that low-quality votes will get rejected",
     )
 
+    max_tokens_macro: str | None = Field(
+        default=None,
+        description="A macro for explaining how to fix insufficient credits errors",
+    )
+
+    no_money_macro: str | None = Field(
+        default=None,
+        description="Message informing users that HackClub AI is out of credits",
+    )
+
     not_allowed_channel: str = Field(
         default="", description="Message for unauthorized channel access"
     )
