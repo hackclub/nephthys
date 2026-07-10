@@ -132,7 +132,7 @@ class Environment:
         self.slack_client = AsyncWebClient(token=self.slack_bot_token)
         self.ai_client = (
             AsyncOpenAI(
-                base_url="https://ai.hackclub.com/proxy/v1",
+                base_url=self.AI_BASE_URL,
                 api_key=self.hack_club_ai_api_key,
             )
             if self.hack_club_ai_api_key
