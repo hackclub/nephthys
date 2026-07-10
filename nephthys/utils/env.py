@@ -98,10 +98,7 @@ class Environment:
             AI_MODEL_TICKET_str = "openai/gpt-oss-120b"
         self.AI_MODEL_TICKET = AI_MODEL_TICKET_str
 
-        # MODEL FOR Category Tag
-        AI_MODEL_CATEGORY_TAG_str = os.environ.get("AI_MODEL_CATEGORY_TAG")
-        if not AI_MMODEL_CATEGORY_TAG_str:
-            AI_MODEL_CATEGORY_TAG_str = "google/gemini-3-flash-preview"
+        if not AI_MODEL_CATEGORY_TAG_str:
         self.AI_MODEL_CATEGORY_TAG = AI_MODEL_CATEGORY_TAG_str
 
         unset = [key for key, value in self.__dict__.items() if value == "unset"]
