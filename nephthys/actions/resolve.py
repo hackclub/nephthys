@@ -1,5 +1,7 @@
 import logging
 from datetime import datetime
+from datetime import timedelta
+from datetime import UTC
 
 from blockkit import Actions
 from blockkit import Button
@@ -16,6 +18,8 @@ from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.permissions import can_resolve
 from nephthys.utils.ticket_methods import delete_message
 from nephthys.utils.ticket_methods import reply_to_ticket
+
+THREAD_CREDIT_CUTOFF = timedelta(hours=48)
 
 
 async def resolve(
@@ -60,19 +64,26 @@ async def resolve(
         )
         return
 
-    if not resolving_user.helper and ticket.assigned_to:
-        new_resolving_user = (
-            await User.objects().where(User.id == ticket.assigned_to.id).first()
-        )
-        if new_resolving_user:
-            resolving_user = new_resolving_user
+    now = datetime.now(UTC)
 
-    now = datetime.now()
+    # If the last message in the thread is recent, credit goes to the last
+    # helper who replied (ticket.assigned_to) rather than whoever clicked
+    # resolve. This prevents rewarding "stealing" active threads, while
+    # still rewarding closing stale, already-answered threads.
+    credit_user = resolving_user
+    if (
+        ticket.assigned_to
+        and ticket.last_msg_at is not None
+        and (now - ticket.last_msg_at) <= THREAD_CREDIT_CUTOFF
+    ):
+        credit_user = ticket.assigned_to
+    elif not resolving_user.helper and ticket.assigned_to:
+        credit_user = ticket.assigned_to
 
     await Ticket.update(
         {
             Ticket.status: TicketStatus.CLOSED,
-            Ticket.closed_by: resolving_user.id,
+            Ticket.closed_by: credit_user.id,
             Ticket.closed_at: now,
         }
     ).where(Ticket.msg_ts == ts)
@@ -87,9 +98,9 @@ async def resolve(
 
     # Build the "ticket resolved!" message
     text = (
-        env.transcript.ticket_resolve.format(user_id=resolver)
+        env.transcript.ticket_resolve.format(user_id=resolving_user.slack_id)
         if not stale
-        else env.transcript.ticket_resolve_stale.format(user_id=resolver)
+        else env.transcript.ticket_resolve_stale.format(user_id=resolving_user.slack_id)
     )
     actions = Actions()
     if env.enable_feedback:
@@ -115,6 +126,13 @@ async def resolve(
             text=text,
             blocks=[Section(text), actions],
         )
+        if resolving_user.helper and credit_user.slack_id != resolving_user.slack_id:
+            await client.chat_postEphemeral(
+                channel=env.slack_help_channel,
+                thread_ts=ts,
+                user=resolving_user.slack_id,
+                text=f"by the way! since this is still an active ticket, i've credited this resolve to <@{credit_user.slack_id}>",
+            )
     if add_reaction:
         await client.reactions_add(
             channel=env.slack_help_channel,
@@ -142,4 +160,6 @@ async def resolve(
             channel_id=env.slack_ticket_channel, message_ts=tkt.ticket_ts
         )
 
-    logging.info(f"Resolved ticket ts={ts} resolving_user={resolving_user.slack_id}")
+    logging.info(
+        f"Resolved ticket ts={ts} by slack_id={resolving_user.slack_id} credit_to={credit_user.slack_id}"
+    )
