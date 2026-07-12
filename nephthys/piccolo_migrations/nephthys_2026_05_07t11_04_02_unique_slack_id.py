@@ -12,6 +12,6 @@ async def forwards():
         migration_id=ID,
         app_name="nephthys",
         description=DESCRIPTION,
-        forwards="""CREATE UNIQUE INDEX IF NOT EXISTS "User_slackId_key" ON "User" ("slackId")""",
-        backwards='''DROP INDEX IF EXISTS "User_slackId_key"''',
+        forwards="""CREATE UNIQUE INDEX IF NOT EXISTS "User_slackId_key" ON "User" ("slackId");""",
+        backwards="""DROP INDEX IF EXISTS "User_slackId_key";""",
     )
