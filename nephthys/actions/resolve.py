@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from datetime import timedelta
+from datetime import UTC
 
 from blockkit import Actions
 from blockkit import Button
@@ -63,7 +64,7 @@ async def resolve(
         )
         return
 
-    now = datetime.now()
+    now = datetime.now(UTC)
 
     # If the last message in the thread is recent, credit goes to the last
     # helper who replied (ticket.assigned_to) rather than whoever clicked
@@ -125,6 +126,13 @@ async def resolve(
             text=text,
             blocks=[Section(text), actions],
         )
+        if resolving_user.helper and credit_user.slack_id != resolving_user.slack_id:
+            await client.chat_postEphemeral(
+                channel=env.slack_help_channel,
+                thread_ts=ts,
+                user=resolving_user.slack_id,
+                text=f"by the way! since this is still an active ticket, i've credited this resolve to <@{credit_user.slack_id}>",
+            )
     if add_reaction:
         await client.reactions_add(
             channel=env.slack_help_channel,
