@@ -98,9 +98,9 @@ async def resolve(
 
     # Build the "ticket resolved!" message
     text = (
-        env.transcript.ticket_resolve.format(user_id=credit_user.slack_id)
+        env.transcript.ticket_resolve.format(user_id=resolving_user.slack_id)
         if not stale
-        else env.transcript.ticket_resolve_stale.format(user_id=credit_user.slack_id)
+        else env.transcript.ticket_resolve_stale.format(user_id=resolving_user.slack_id)
     )
     actions = Actions()
     if env.enable_feedback:
