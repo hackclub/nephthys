@@ -72,12 +72,12 @@ async def resolve(
     # still rewarding closing stale, already-answered threads.
     credit_user = resolving_user
     if (
-        ticket.assigned_to
+        ticket.assigned_to.id
         and ticket.last_msg_at is not None
         and (now - ticket.last_msg_at) <= THREAD_CREDIT_CUTOFF
     ):
         credit_user = ticket.assigned_to
-    elif not resolving_user.helper and ticket.assigned_to:
+    elif not resolving_user.helper and ticket.assigned_to.id:
         credit_user = ticket.assigned_to
 
     await Ticket.update(
