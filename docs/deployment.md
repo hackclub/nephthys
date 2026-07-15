@@ -102,6 +102,13 @@ Note: These steps have to be done by a Workspace Admin (otherwise it will be una
    # Tickets inactive for this many days will be automatically closed
    # Leave unset to disable
    STALE_TICKET_DAYS="" # e.g. 7
+   # AI settings
+   # Any OpenAI compatible base url
+   HACK_CLUB_AI_BASE_URL="https://ai.hackclub.com/proxy/v1"
+   # Model for the titles
+   AI_TITLE_MODEL="openai/gpt-oss-120b"
+   # Model for tagging
+   AI_TAG_MODEL="google/gemini-3-flash-preview"
    ```
 
 4. Don't forget to click **Save All Environment Variables**
