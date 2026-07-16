@@ -34,6 +34,13 @@ class Environment:
 
         self.uptime_url = os.environ.get("UPTIME_URL")
         self.hack_club_ai_api_key = os.environ.get("HACK_CLUB_AI_API_KEY")
+        self.ai_base_url = os.environ.get(
+            "HACK_CLUB_AI_BASE_URL", "https://ai.hackclub.com/proxy/v1"
+        )
+        self.ai_title_model = os.environ.get("AI_TITLE_MODEL", "openai/gpt-oss-120b")
+        self.ai_tag_model = os.environ.get(
+            "AI_TAG_MODEL", "google/gemini-3-flash-preview"
+        )
 
         self.otel_logs_url = os.environ.get("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT")
         self.otel_service_name = os.environ.get("OTEL_SERVICE_NAME", "nephthys")
@@ -114,7 +121,7 @@ class Environment:
         self.slack_client = AsyncWebClient(token=self.slack_bot_token)
         self.ai_client = (
             AsyncOpenAI(
-                base_url="https://ai.hackclub.com/proxy/v1",
+                base_url=self.ai_base_url,
                 api_key=self.hack_club_ai_api_key,
             )
             if self.hack_club_ai_api_key
