@@ -82,14 +82,24 @@ async def add_thread_to_delete_queue(channel_id: str, thread_ts: str):
             "Attempted to add invalid thread to delete queue: channel_id or thread_ts is missing."
         )
         return
-    await delete_queue.put((channel_id, thread_ts))
-    messages = await client.conversations_replies(channel=channel_id, ts=thread_ts)
+    try:
+        messages = await client.conversations_replies(channel=channel_id, ts=thread_ts)
+    except SlackApiError as e:
+        error = e.response.get("error") if e.response else None
+        if error in {"message_not_found", "thread_not_found"}:
+            await send_heartbeat(
+                f"Thread {thread_ts} in channel {channel_id} was already deleted."
+            )
+            return
+        raise
+
     msgs = messages.get("messages", [])
-    if not msgs:
-        return
+    # Remove replies before the parent so Slack doesn't leave a tombstone with
+    # visible replies while the queue is being processed.
     for message in msgs:
-        if "ts" in message:
+        if message.get("ts") and message["ts"] != thread_ts:
             await delete_queue.put((channel_id, message["ts"]))
+    await delete_queue.put((channel_id, thread_ts))
 
     await send_heartbeat(
         f"Added thread {thread_ts} in channel {channel_id} to delete queue."

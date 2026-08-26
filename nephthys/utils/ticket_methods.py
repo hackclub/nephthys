@@ -6,7 +6,9 @@ from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.database.tables import BotMessage
 from nephthys.database.tables import Ticket
+from nephthys.utils.delete_thread import add_thread_to_delete_queue
 from nephthys.utils.env import env
+from nephthys.utils.logging import send_heartbeat
 
 
 class ThreadGoneError(Exception):
@@ -61,12 +63,7 @@ async def reply_to_ticket(
 
 async def delete_bot_replies(ticket_ref: int):
     """Deletes all bot replies sent in a ticket thread"""
-    ticket = await Ticket.objects().where(Ticket.id == ticket_ref).first()
-    if not ticket:
-        raise ValueError(f"Ticket with ID {ticket_ref} does not exist")
     bot_msgs = await BotMessage.objects().where(BotMessage.ticket == ticket_ref)
-    if not bot_msgs:
-        raise ValueError(f"userFacingMsgs is not present on Ticket ID {ticket_ref}")
     for bot_msg in bot_msgs:
         await delete_message(bot_msg.channel_id, bot_msg.ts)
         await bot_msg.remove()
@@ -79,6 +76,38 @@ async def delete_and_clean_up_ticket(ticket: Ticket):
     await delete_message(env.slack_ticket_channel, ticket.ticket_ts)
     # TODO deal with DMs to tag subscribers?
     await Ticket.delete().where(Ticket.id == ticket.id)
+
+
+async def discard_ticket(ticket: Ticket, client: AsyncWebClient) -> None:
+    """Remove every artifact of a ticket whose parent question was deleted.
+
+    Each cleanup operation tolerates already-deleted Slack state so duplicate
+    deletion events can safely retry this workflow.
+    """
+    await delete_bot_replies(ticket.id)
+
+    for reaction in ("thinking_face", "white_check_mark"):
+        try:
+            await client.reactions_remove(
+                channel=env.slack_help_channel,
+                timestamp=ticket.msg_ts,
+                name=reaction,
+            )
+        except SlackApiError as e:
+            if e.response.get("error") not in {"no_reaction", "message_not_found"}:
+                raise
+
+    if await env.workspace_admin_available():
+        await add_thread_to_delete_queue(
+            channel_id=env.slack_ticket_channel, thread_ts=ticket.ticket_ts
+        )
+    else:
+        # Without the workspace-admin token, the bot can only delete its own
+        # backend parent message; helper replies require the queued admin path.
+        await delete_message(env.slack_ticket_channel, ticket.ticket_ts)
+
+    await Ticket.delete().where(Ticket.id == ticket.id)
+    await send_heartbeat(f"Discarded deleted ticket ts={ticket.msg_ts}.")
 
 
 def get_question_message_link(ticket: Ticket) -> str:
