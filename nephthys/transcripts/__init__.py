@@ -16,6 +16,7 @@ from nephthys.transcripts.transcripts.lynx import Lynx
 from nephthys.transcripts.transcripts.midnight import Midnight
 from nephthys.transcripts.transcripts.nest import Nest
 from nephthys.transcripts.transcripts.outpost import Outpost
+from nephthys.transcripts.transcripts.snowglobe import Snowglobe
 from nephthys.transcripts.transcripts.stardance import Stardance
 from nephthys.transcripts.transcripts.stardance_ambassadors import StardanceAmbassadors
 from nephthys.transcripts.transcripts.stasis import Stasis
@@ -40,4 +41,5 @@ transcripts: List[Type[Transcript]] = [
     Stardance,
     Alchemize,
     Outpost,
+    Snowglobe,
 ]
