@@ -38,6 +38,12 @@ Sometimes it’s nice to be able to do things quickly... Here’s where macros c
 - `?votequeue` - there's a large voting backlog, please be patient
 - `?votequality` - low-quality votes get discarded by the platform; please vote well!
 
+#### HCAI-specific macros
+
+- `?search` - web search / Exa API deprecation notice and link
+- `?max_tokens` - explanation of max_tokens for OpenRouter request limits
+- `?no_money` - inform user that credits are temporarily depleted
+
 ### Stale
 
 Tickets that have not had a response for more than 3 days will automatically be closed as stale. The last helper to respond in the thread gets credit for closing them

@@ -108,6 +108,10 @@ async def send_backend_message(
         ),
         username=display_name,
         icon_url=profile_pic,
+        metadata={
+            "event_type": "nephthys_ticket_message",
+            "event_payload": {"source_user_id": author_user_id},
+        },
         unfurl_links=True,
         unfurl_media=True,
     )
