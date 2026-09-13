@@ -25,17 +25,17 @@ if your question has been answered, please hit the button below to mark it as re
     not_allowed_channel: str = f"heya, it looks like you're not supposed to be in that channel, pls talk to <@{program_owner}> if that's wrong"
     faq_macro: str = f"ooh, it looks like that question's answered in our FAQ! Have a look at <{faq_link}|*the FAQ*>"
 
-    max_tokens_macro: str = (
+    max_tokens_macro: str | None = (
         "Try setting the `max_tokens` value in your request. OpenRouter is slightly pessimistic about "
         "adhering to the daily limit — it can reject requests it thinks will go over the limit.\n"
         "If you set `max_tokens`, OpenRouter calculates the pricing from that."
     )
-    no_money_macro: str = (
+    no_money_macro: str | None = (
         "Hack Club AI is out of credits! They will be refilled soon when Mahad refills them. "
         "Until then, you can use `openrouter/free` or other free models. "
         "I've closed this ticket for you."
     )
-    search_macro: str = (
+    search_macro: str | None = (
         "We recommend using the Exa API! The old search API (https://search.hackclub.com/) is deprecated. "
         "Check out the docs here: https://docs.ai.hackclub.com/api/exa.html"
     )
