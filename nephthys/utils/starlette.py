@@ -1,9 +1,11 @@
+import secrets
 from pathlib import Path
 
 from prometheus_client import CONTENT_TYPE_LATEST
 from prometheus_client import generate_latest
 from slack_bolt.adapter.starlette.async_handler import AsyncSlackRequestHandler
 from starlette.applications import Starlette
+from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.responses import RedirectResponse
@@ -14,6 +16,8 @@ from starlette.staticfiles import StaticFiles
 from starlette_exporter import PrometheusMiddleware
 
 from nephthys.__main__ import main
+from nephthys.api.hack_club_auth import authorize
+from nephthys.api.hack_club_auth import login
 from nephthys.api.stats import stats
 from nephthys.api.stats_range import stats_range
 from nephthys.api.stats_v2 import stats_v2
@@ -79,10 +83,15 @@ app = Starlette(
         Route(path="/api/ticket", endpoint=ticket_info, methods=["GET"]),
         Route(path="/health", endpoint=health, methods=["GET"]),
         Route(path="/metrics", endpoint=metrics, methods=["GET"]),
+        Route(path="/login", endpoint=login, methods=["GET"]),
+        Route(path="/oauth/callback", endpoint=authorize, methods=["GET"]),
         Mount("/public", app=StaticFiles(directory=STATIC_DIR), name="static"),
     ],
     lifespan=main,
 )
+
+# for HCA OAuth2
+app.add_middleware(SessionMiddleware, secret_key=secrets.token_urlsafe(16))
 
 app.add_middleware(
     PrometheusMiddleware,
