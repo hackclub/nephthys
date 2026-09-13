@@ -1,5 +1,6 @@
 import logging
 import os
+from dataclasses import dataclass
 from typing import Literal
 
 from aiohttp import ClientSession
@@ -23,6 +24,13 @@ def get_environ_bool(name: str, default: bool) -> bool:
     if value in {"0", "false", "f", "no", "n", "off"}:
         return False
     raise ValueError(f"Invalid boolean env var {name}={value!r}")
+
+
+@dataclass
+class HCAConfig:
+    client_id: str
+    client_secret: str
+    base_url: str
 
 
 class Environment:
@@ -69,6 +77,21 @@ class Environment:
         self.daily_summary = get_environ_bool("DAILY_SUMMARY", default=True)
         self.enable_feedback = get_environ_bool("ENABLE_FEEDBACK", default=False)
         self.app_title = os.environ.get("APP_TITLE", "helper heidi")
+
+        hca_client_id = os.environ.get("HCA_CLIENT_ID")
+        hca_client_secret = os.environ.get("HCA_CLIENT_SECRET")
+        if hca_client_id and hca_client_secret:
+            self.hca = HCAConfig(
+                client_id=hca_client_id,
+                client_secret=hca_client_secret,
+                base_url=os.environ.get("HCA_BASE_URL", "https://auth.hackclub.com"),
+            )
+        elif (not hca_client_id) and (not hca_client_secret):
+            self.hca = None
+        else:
+            raise ValueError(
+                "Both of HCA_CLIENT_ID and HCA_CLIENT_SECRET must be set; or neither must be set (for no HCA integration)"
+            )
 
         self.port = int(os.environ.get("PORT", 3000))
 
