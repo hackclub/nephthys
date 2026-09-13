@@ -28,7 +28,7 @@ def is_day(tz: timezone):
             try:
                 location_result = lookup(city, database())
                 if hasattr(location_result, "locations"):
-                    location = list(location_result.locations.values())[0]
+                    location = list(location_result.locations.values())[0]  # type: ignore
                 else:
                     location = location_result
             except KeyError:
@@ -38,7 +38,7 @@ def is_day(tz: timezone):
     except Exception:
         location = LocationInfo("Default", "Default", "UTC", 0, 0)
 
-    s = sun(location.observer, date=now.date(), tzinfo=tz)
+    s = sun(location.observer, date=now.date(), tzinfo=tz)  # type: ignore
 
     # check if current time is between sunrise and sunset
     sunrise = s["sunrise"]

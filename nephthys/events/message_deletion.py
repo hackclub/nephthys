@@ -34,7 +34,10 @@ async def handle_question_deletion(
     bot_user_id = bot_info.get("user_id")
     bot_replies = []
     non_bot_replies = []
-    for msg in thread_history["messages"]:
+    messages = thread_history["messages"]
+    if not messages:
+        logging.error(f"Failed to fetch messages in thread ts={deleted_msg['ts']}")
+    for msg in messages or []:
         if msg["ts"] == deleted_msg["ts"]:
             continue  # Ignore top-level message
         if msg["user"] == bot_user_id:
