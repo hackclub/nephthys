@@ -44,8 +44,16 @@ async def authorize(req: Request):
     token = await oauth.hca.authorize_access_token(req)
     res = await oauth.hca.get("me", token=token)
     res.raise_for_status()
-    identity = res.json()["identity"]
+    identity: dict = res.json()["identity"]
     hca_id = identity["id"]
-    slack_id = identity["slack_id"]
+    slack_id = identity.get("slack_id")
+    if not slack_id:
+        logging.info(f"Failed log-in attempt (no Slack ID) hca_id={hca_id}")
+        return Response(
+            "Sorry! You must have a Hack Club Slack account to access the Nephthys Lobby.",
+            status_code=403,
+        )
+    req.session["hca_id"] = hca_id
+    req.session["slack_id"] = slack_id
     logging.info(f"User signed in hca_id={hca_id} slack_id={slack_id}")
-    return Response("yay!")
+    return Response(f"Welcome {slack_id}!")
