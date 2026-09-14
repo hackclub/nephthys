@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ app_title }} lobby</title>
+  <style>
+    html {
+      font-family: sans-serif;
+      color-scheme: light dark;
+    }
+  </style>
+</head>
+
+<body>
+  {% if user %}
+  Hello {{ user.slack_id }}!
+  {% else %}
+  <p><em>you step into Heidi's lobby.</em></p>
+
+  <p>hi! uh, before you go any further, could I ask you to <a href="/lobby/login">log in with Hack Club Auth</a>?</p>
+  {% endif %}
+</body>
+
+</html>

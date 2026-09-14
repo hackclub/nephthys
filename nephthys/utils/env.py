@@ -1,6 +1,7 @@
 import logging
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Literal
 
 from aiohttp import ClientSession
@@ -10,6 +11,10 @@ from slack_sdk.web.async_client import AsyncWebClient
 
 from nephthys.transcripts import transcripts
 from nephthys.transcripts.transcript import Transcript
+
+# Static paths
+STATIC_DIR = Path(Path.cwd() / "nephthys" / "public")
+TEMPLATES_DIR = Path(Path.cwd() / "nephthys" / "templates")
 
 load_dotenv(override=True)
 

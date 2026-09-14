@@ -2,8 +2,10 @@ import logging
 
 from authlib.integrations.starlette_client import OAuth
 from starlette.requests import Request
+from starlette.responses import RedirectResponse
 from starlette.responses import Response
 
+from nephthys.database.tables import User
 from nephthys.utils.env import env
 
 hca_config = env.hca
@@ -53,7 +55,16 @@ async def authorize(req: Request):
             "Sorry! You must have a Hack Club Slack account to access the Nephthys Lobby.",
             status_code=403,
         )
+
+    # Upsert the user in the database
+    db_user = await User.objects().get_or_create(User.slack_id == slack_id)
+
+    # Store details in a signed session cookie - the user is now "logged in"
     req.session["hca_id"] = hca_id
     req.session["slack_id"] = slack_id
-    logging.info(f"User signed in hca_id={hca_id} slack_id={slack_id}")
-    return Response(f"Welcome {slack_id}!")
+    req.session["user_id"] = db_user.id
+
+    logging.info(
+        f"User signed in hca_id={hca_id} slack_id={slack_id} user_id={db_user.id}"
+    )
+    return RedirectResponse(url=req.url_for("lobby"))

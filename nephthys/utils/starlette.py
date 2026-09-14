@@ -1,5 +1,4 @@
 import secrets
-from pathlib import Path
 
 from prometheus_client import CONTENT_TYPE_LATEST
 from prometheus_client import generate_latest
@@ -19,6 +18,7 @@ from starlette_exporter import PrometheusMiddleware
 from nephthys.__main__ import main
 from nephthys.api.hack_club_auth import authorize
 from nephthys.api.hack_club_auth import login
+from nephthys.api.lobby.lobby import lobby
 from nephthys.api.stats import stats
 from nephthys.api.stats_range import stats_range
 from nephthys.api.stats_v2 import stats_v2
@@ -26,6 +26,7 @@ from nephthys.api.ticket import ticket_info
 from nephthys.api.tickets import tickets_list
 from nephthys.api.user import user_stats
 from nephthys.utils.env import env
+from nephthys.utils.env import STATIC_DIR
 from nephthys.utils.slack import app as slack_app
 
 req_handler = AsyncSlackRequestHandler(slack_app)
@@ -69,8 +70,6 @@ async def root(req: Request):
     return RedirectResponse(url="https://github.com/hackclub/nephthys")
 
 
-STATIC_DIR = Path(Path.cwd() / "nephthys" / "public")
-
 app = Starlette(
     debug=True if env.environment != "production" else False,
     routes=[
@@ -84,9 +83,10 @@ app = Starlette(
         Route(path="/api/ticket", endpoint=ticket_info, methods=["GET"]),
         Route(path="/health", endpoint=health, methods=["GET"]),
         Route(path="/metrics", endpoint=metrics, methods=["GET"]),
-        Route(path="/login", endpoint=login, methods=["GET"]),
         Route(path="/oauth/callback", endpoint=authorize, methods=["GET"]),
         Mount("/public", app=StaticFiles(directory=STATIC_DIR), name="static"),
+        Route(path="/lobby", endpoint=lobby, methods=["GET"]),
+        Route(path="/lobby/login", endpoint=login, methods=["GET"]),
     ],
     lifespan=main,
 )
