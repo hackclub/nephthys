@@ -23,6 +23,7 @@ from nephthys.transcripts.transcripts.stardance import Stardance
 from nephthys.transcripts.transcripts.stardance_ambassadors import StardanceAmbassadors
 from nephthys.transcripts.transcripts.stasis import Stasis
 from nephthys.transcripts.transcripts.summer_of_making import SummerOfMaking
+from nephthys.transcripts.transcripts.terra import Terra
 
 transcripts: List[Type[Transcript]] = [
     Identity,
@@ -46,4 +47,5 @@ transcripts: List[Type[Transcript]] = [
     Atlantis,
     Snowglobe,
     Capitol,
+    Terra,
 ]
