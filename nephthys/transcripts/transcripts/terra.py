@@ -5,7 +5,7 @@ class Terra(Transcript):
     """Transcript for Terra"""
 
     program_name: str = "Terra"
-    program_owner: str = "U07VC9705D4" # miggy
+    program_owner: str = "U07VC9705D4"  # miggy
 
     help_channel: str = "C0B7KLRAFFW"
     ticket_channel: str = "C0C1YG7CUJH"
