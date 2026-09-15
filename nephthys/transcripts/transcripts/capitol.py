@@ -5,9 +5,7 @@ class Capitol(Transcript):
     """Transcript for Capitol."""
 
     program_name: str = "Capitol"
-    # TODO: set this to the Slack ID of the support manager for this program
-    program_owner: str = "U0000000000"
-
+    program_owner: str = "U0BCQD74Y03" # archer
     help_channel: str = "C0BT42D77U5"
     ticket_channel: str = "C0C1JPL8K6X"
     team_channel: str = "C0C1P2R1LTY"
