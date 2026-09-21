@@ -183,7 +183,7 @@ class APIKey(Table, tablename="api_key"):
         references=User,
         db_column_name="user_id",
     )
-    name = Text()
+    label = Text()
     api_key_hash = Text(unique=True)
     api_key_censored = Text()
     created_at = Timestamptz(default=TimestamptzNow())
