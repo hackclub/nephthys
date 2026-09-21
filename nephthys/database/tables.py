@@ -175,18 +175,3 @@ class Feedback(Table, tablename="Feedback"):
     rating = FeedbackRatingColumn()
     text = Varchar(null=True, length=32000)
     created_at = Timestamptz(default=TimestamptzNow(), db_column_name="createdAt")
-
-
-# All tables must be listed here so that piccolo_app.py can find them.
-# This list is used for generating auto migrations.
-ALL_TABLES = [
-    User,
-    Ticket,
-    QuestionTag,
-    TeamTag,
-    CategoryTag,
-    BotMessage,
-    TagsOnTickets,
-    UserTagSubscription,
-    Feedback,
-]
