@@ -17,7 +17,7 @@ CREATE TABLE api_key (
     user_id INT NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
     api_key_hash BYTEA NOT NULL UNIQUE,
     api_key_censored TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 """,
         backwards="""
