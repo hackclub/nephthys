@@ -15,7 +15,23 @@
 
 <body>
   {% if user %}
-  Hello {{ user.slack_id }}!
+  <h1>Heidi's lobby ({{ app_title }})</h1>
+  <p>welcome {{ user.slack_id }} :)</p>
+  <p>here are some things you can do! </p>
+  <ul>
+    <li><a href="/lobby/api_keys">create or manage your API keys</a></li>
+  </ul>
+
+  <p>oh, and if you need to, you can <a href="/lobby/logout" title=";'(">log out</a>.</p>
+
+  <details>
+    <summary>details for nerds</summary>
+    <ul>
+      <li>your slack ID: {{ user.slack_id }}</li>
+      <li>your Nephthys user ID: {{ user.id }}</li>
+      {# <li>your HCA user ID</li> #}
+    </ul>
+  </details>
   {% else %}
   <p><em>you step into Heidi's lobby.</em></p>
 

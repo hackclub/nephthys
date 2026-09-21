@@ -30,7 +30,7 @@ hca_not_configured_response = Response(
 )
 
 
-async def login(req: Request):
+async def log_in(req: Request):
     if not hca_config:
         return hca_not_configured_response
 
@@ -67,4 +67,9 @@ async def authorize(req: Request):
     logging.info(
         f"User signed in hca_id={hca_id} slack_id={slack_id} user_id={db_user.id}"
     )
+    return RedirectResponse(url=req.url_for("lobby"))
+
+
+async def log_out(req: Request):
+    req.session.clear()
     return RedirectResponse(url=req.url_for("lobby"))

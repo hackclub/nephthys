@@ -41,3 +41,14 @@ async def lobby(req: Request):
         **app_context(),
     }
     return templates.TemplateResponse(req, "lobby.jinja", context=context)
+
+
+async def api_keys(req: Request):
+    user = await get_logged_in_user(req)
+    if not user:
+        return templates.TemplateResponse(req, "you_must_be_logged_in.jinja")
+    context = {
+        "user": user,
+        **app_context(),
+    }
+    return templates.TemplateResponse(req, "api_keys.jinja", context=context)
