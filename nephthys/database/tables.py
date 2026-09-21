@@ -175,3 +175,15 @@ class Feedback(Table, tablename="Feedback"):
     rating = FeedbackRatingColumn()
     text = Varchar(null=True, length=32000)
     created_at = Timestamptz(default=TimestamptzNow(), db_column_name="createdAt")
+
+
+class APIKey(Table, tablename="api_key"):
+    id = Serial(primary_key=True, unique=True)
+    user = ForeignKey(
+        references=User,
+        db_column_name="user_id",
+    )
+    name = Text()
+    api_key_hash = Text(unique=True)
+    api_key_censored = Text()
+    created_at = Timestamptz(default=TimestamptzNow())
