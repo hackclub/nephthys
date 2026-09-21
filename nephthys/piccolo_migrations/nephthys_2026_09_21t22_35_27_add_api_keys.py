@@ -15,7 +15,7 @@ CREATE TABLE api_key (
     id SERIAL PRIMARY KEY,
     label TEXT NOT NULL,
     user_id INT NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
-    api_key_hash TEXT NOT NULL UNIQUE,
+    api_key_hash BYTEA NOT NULL UNIQUE,
     api_key_censored TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

@@ -1,4 +1,5 @@
 from piccolo.columns import Boolean
+from piccolo.columns import Bytea
 from piccolo.columns import ForeignKey
 from piccolo.columns import LazyTableReference
 from piccolo.columns import M2M
@@ -184,6 +185,6 @@ class APIKey(Table, tablename="api_key"):
         db_column_name="user_id",
     )
     label = Text()
-    api_key_hash = Text(unique=True)
+    api_key_hash = Bytea(unique=True)
     api_key_censored = Text()
     created_at = Timestamptz(default=TimestamptzNow())
