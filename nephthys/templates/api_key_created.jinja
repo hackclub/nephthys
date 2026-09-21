@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Key Created - {{ app_title }}</title>
+  <style>
+    html {
+      font-family: sans-serif;
+      color-scheme: light dark;
+    }
+  </style>
+</head>
+
+<body>
+  <p><em>excellent job!</em></p>
+  <p>here's your new API key:</p>
+  <pre>{{ api_key }}</pre>
+  <p>please copy it now, because you won't see it again!</p>
+  <p><em>and you'll keep it safe, won't you?</em></p>
+
+  <p>got your API key safely stored? go back to <a href="{{ url_for('api_keys') }}">your API keys</a></p>
+</body>
+
+</html>

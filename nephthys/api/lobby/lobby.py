@@ -1,10 +1,14 @@
 import logging
+from hashlib import sha256
+from secrets import token_urlsafe
 from typing import Any
 
 import jinja2
 from starlette.requests import Request
+from starlette.responses import Response
 from starlette.templating import Jinja2Templates
 
+from nephthys.database.tables import APIKey
 from nephthys.database.tables import User
 from nephthys.utils.env import env
 from nephthys.utils.env import TEMPLATES_DIR
@@ -20,6 +24,13 @@ def app_context() -> dict[str, Any]:
     return {
         "app_title": env.app_title,
     }
+
+
+def bad_request(message: str) -> Response:
+    return Response(
+        f"bad request! >:(\n\n{message}",
+        status_code=400,
+    )
 
 
 async def get_logged_in_user(req: Request) -> User | None:
@@ -47,8 +58,44 @@ async def api_keys(req: Request):
     user = await get_logged_in_user(req)
     if not user:
         return templates.TemplateResponse(req, "you_must_be_logged_in.jinja")
+    user_api_keys = (
+        await APIKey.objects().where(APIKey.user == user.id).order_by(APIKey.created_at)
+    )
     context = {
         "user": user,
+        "api_keys": user_api_keys,
         **app_context(),
     }
     return templates.TemplateResponse(req, "api_keys.jinja", context=context)
+
+
+async def create_api_key(req: Request):
+    user = await get_logged_in_user(req)
+    if not user:
+        return templates.TemplateResponse(req, "you_must_be_logged_in.jinja")
+    form_data = await req.form()
+    label = form_data.get("label")
+    if type(label) is not str:
+        return bad_request("expected a string but got a file?")
+    label = label.strip()
+    if not label:
+        return bad_request("you must specify a label for your API key.")
+    if len(label) >= 256:
+        return bad_request("your API key label is too long, woah!")
+
+    api_key = "sk_neph_" + token_urlsafe(32)
+    censored_api_key = api_key[:8] + "..." + api_key[-8:]
+    api_key_hash = sha256(api_key.encode("utf-8")).digest()
+    db_api_key = APIKey(
+        label=label,
+        user=user,
+        api_key_hash=api_key_hash,
+        api_key_censored=censored_api_key,
+    )
+    await db_api_key.save()
+
+    context = {
+        "api_key": api_key,
+        **app_context(),
+    }
+    return templates.TemplateResponse(req, "api_key_created.jinja", context=context)

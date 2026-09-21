@@ -20,6 +20,7 @@ from nephthys.api.lobby.hack_club_auth import authorize
 from nephthys.api.lobby.hack_club_auth import log_in
 from nephthys.api.lobby.hack_club_auth import log_out
 from nephthys.api.lobby.lobby import api_keys
+from nephthys.api.lobby.lobby import create_api_key
 from nephthys.api.lobby.lobby import lobby
 from nephthys.api.stats import stats
 from nephthys.api.stats_range import stats_range
@@ -91,6 +92,7 @@ app = Starlette(
         Route(path="/lobby/login", endpoint=log_in, methods=["GET"]),
         Route(path="/lobby/logout", endpoint=log_out, methods=["GET"]),
         Route(path="/lobby/api_keys", endpoint=api_keys, methods=["GET"]),
+        Route(path="/lobby/api_keys/create", endpoint=create_api_key, methods=["POST"]),
     ],
     lifespan=main,
 )

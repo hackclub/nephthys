@@ -10,6 +10,16 @@
       font-family: sans-serif;
       color-scheme: light dark;
     }
+
+    input#api-key-label {
+      width: 15em;
+    }
+
+    input,
+    button {
+      font-size: 1rem;
+      margin-block: 0.5em;
+    }
   </style>
 </head>
 
@@ -19,7 +29,13 @@
 
   <h2>create a new API key?</h2>
 
-  <p>form coming soon</p>
+  <form method="POST" action="/lobby/api_keys/create">
+    <div>
+      <label for="api-key-label">give your API key a name:</label>
+      <input type="text" id="api-key-label" name="label" required />
+    </div>
+    <button type="submit">make it.</button>
+  </form>
 
   <h2>your API keys</h2>
 
