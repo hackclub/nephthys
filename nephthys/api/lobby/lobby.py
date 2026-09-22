@@ -109,7 +109,7 @@ async def create_api_key(req: Request):
         )
 
     api_key = "sk_neph_" + token_urlsafe(32)
-    censored_api_key = api_key[:8] + "..." + api_key[-8:]
+    censored_api_key = api_key[:12] + "..." + api_key[-4:]
     api_key_hash = sha256(api_key.encode("utf-8")).digest()
     db_api_key = APIKey(
         label=label,
