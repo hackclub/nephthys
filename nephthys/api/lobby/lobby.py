@@ -75,13 +75,31 @@ async def create_api_key(req: Request):
         return templates.TemplateResponse(req, "you_must_be_logged_in.jinja")
     form_data = await req.form()
     label = form_data.get("label")
+
+    # Validate input
+    MAX_LABEL_LEN = 256
     if type(label) is not str:
         return bad_request("expected a string but got a file?")
     label = label.strip()
     if not label:
         return bad_request("you must specify a label for your API key.")
-    if len(label) >= 256:
+    if len(label) >= MAX_LABEL_LEN:
         return bad_request("your API key label is too long, woah!")
+
+    # Validate other restrictions
+    MAX_USER_API_KEYS = 500
+    existing_api_keys: int = await APIKey.count().where(APIKey.user == user.id)
+    if existing_api_keys >= MAX_USER_API_KEYS:
+        return bad_request(
+            f"that's too many API keys! please contact support if you need more than {MAX_USER_API_KEYS} API keys"
+        )
+    duplicate_label_api_keys = await APIKey.count().where(
+        (APIKey.user == user.id) & (APIKey.label == label)
+    )
+    if duplicate_label_api_keys:
+        return bad_request(
+            f'you already have an API key called "{label}".\nplease choose a different label.'
+        )
 
     api_key = "sk_neph_" + token_urlsafe(32)
     censored_api_key = api_key[:8] + "..." + api_key[-8:]
