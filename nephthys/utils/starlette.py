@@ -1,10 +1,7 @@
-import secrets
-
 from prometheus_client import CONTENT_TYPE_LATEST
 from prometheus_client import generate_latest
 from slack_bolt.adapter.starlette.async_handler import AsyncSlackRequestHandler
 from starlette.applications import Starlette
-from starlette.datastructures import Secret
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -97,12 +94,13 @@ app = Starlette(
     lifespan=main,
 )
 
-# for HCA OAuth2
-app.add_middleware(
-    SessionMiddleware,
-    secret_key=Secret(secrets.token_urlsafe(32)),
-    max_age=365 * 86400,  # 365 days, in seconds
-)
+if env.hca:
+    # required for HCA OAuth2
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=env.hca.session_secret,
+        max_age=365 * 86400,  # 365 days, in seconds
+    )
 
 app.add_middleware(
     PrometheusMiddleware,

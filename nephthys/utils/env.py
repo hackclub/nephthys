@@ -1,5 +1,6 @@
 import logging
 import os
+import secrets
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
@@ -8,6 +9,7 @@ from aiohttp import ClientSession
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from slack_sdk.web.async_client import AsyncWebClient
+from starlette.datastructures import Secret
 
 from nephthys.transcripts import transcripts
 from nephthys.transcripts.transcript import Transcript
@@ -36,6 +38,35 @@ class HCAConfig:
     client_id: str
     client_secret: str
     base_url: str
+    session_secret: Secret
+
+
+def create_hca_config(environment: str) -> HCAConfig | None:
+    hca_client_id = os.environ.get("HCA_CLIENT_ID")
+    hca_client_secret = os.environ.get("HCA_CLIENT_SECRET")
+    session_secret = os.environ.get("SESSION_SECRET")
+    if (not hca_client_id) and (not hca_client_secret):
+        return None
+    if (not hca_client_id) or (not hca_client_secret):
+        raise ValueError(
+            "Both of HCA_CLIENT_ID and HCA_CLIENT_SECRET must be set; or neither must be set (for no HCA integration)"
+        )
+    if not session_secret:
+        if environment != "development":
+            raise ValueError(
+                "SESSION_SECRET environment variable must be set when HCA integration is enabled"
+            )
+        logging.info(
+            "Generating random session signing secret for development (set SESSION_SECRET to persist sessions)"
+        )
+        session_secret = secrets.token_urlsafe(32)
+
+    return HCAConfig(
+        client_id=hca_client_id,
+        client_secret=hca_client_secret,
+        base_url=os.environ.get("HCA_BASE_URL", "https://auth.hackclub.com"),
+        session_secret=Secret(session_secret),
+    )
 
 
 class Environment:
@@ -82,21 +113,7 @@ class Environment:
         self.daily_summary = get_environ_bool("DAILY_SUMMARY", default=True)
         self.enable_feedback = get_environ_bool("ENABLE_FEEDBACK", default=False)
         self.app_title = os.environ.get("APP_TITLE", "helper heidi")
-
-        hca_client_id = os.environ.get("HCA_CLIENT_ID")
-        hca_client_secret = os.environ.get("HCA_CLIENT_SECRET")
-        if hca_client_id and hca_client_secret:
-            self.hca = HCAConfig(
-                client_id=hca_client_id,
-                client_secret=hca_client_secret,
-                base_url=os.environ.get("HCA_BASE_URL", "https://auth.hackclub.com"),
-            )
-        elif (not hca_client_id) and (not hca_client_secret):
-            self.hca = None
-        else:
-            raise ValueError(
-                "Both of HCA_CLIENT_ID and HCA_CLIENT_SECRET must be set; or neither must be set (for no HCA integration)"
-            )
+        self.hca = create_hca_config(self.environment)
 
         self.port = int(os.environ.get("PORT", 3000))
 
