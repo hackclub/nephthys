@@ -3,6 +3,7 @@ from datetime import datetime
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from nephthys.api.auth import authenticate_request
 from nephthys.api.ticket import ticket_to_json
 from nephthys.database.enums import TicketStatus
 from nephthys.database.tables import TeamTag
@@ -10,6 +11,8 @@ from nephthys.database.tables import Ticket
 
 
 async def tickets_list(req: Request):
+    include_description = await authenticate_request(req)
+
     filter_status = req.query_params.get("status")
     if filter_status:
         try:
@@ -67,4 +70,6 @@ async def tickets_list(req: Request):
 
     tickets = await query.order_by(Ticket.created_at)
 
-    return JSONResponse([ticket_to_json(t) for t in tickets])
+    return JSONResponse(
+        [ticket_to_json(t, include_description=include_description) for t in tickets]
+    )

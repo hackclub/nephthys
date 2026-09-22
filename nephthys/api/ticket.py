@@ -3,6 +3,7 @@ from typing import Any
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from nephthys.api.auth import authenticate_request
 from nephthys.database.tables import TeamTag
 from nephthys.database.tables import Ticket
 
@@ -42,6 +43,8 @@ def ticket_to_json(ticket: dict[str, Any], include_description: bool = False) ->
 
 
 async def ticket_info(req: Request):
+    include_description = await authenticate_request(req)
+
     try:
         ticket_id = int(req.query_params["id"])
     except KeyError:
@@ -64,4 +67,4 @@ async def ticket_info(req: Request):
 
     if not ticket:
         return JSONResponse({"error": "ticket_not_found"}, status_code=404)
-    return JSONResponse(ticket_to_json(ticket))
+    return JSONResponse(ticket_to_json(ticket, include_description=include_description))

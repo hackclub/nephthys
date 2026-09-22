@@ -13,6 +13,7 @@ from starlette.staticfiles import StaticFiles
 from starlette_exporter import PrometheusMiddleware
 
 from nephthys.__main__ import main
+from nephthys.api.auth import InvalidAPIKeyError
 from nephthys.api.lobby.hack_club_auth import authorize
 from nephthys.api.lobby.hack_club_auth import log_in
 from nephthys.api.lobby.hack_club_auth import log_out
@@ -71,8 +72,17 @@ async def root(req: Request):
     return RedirectResponse(url="https://github.com/hackclub/nephthys")
 
 
+async def invalid_api_key(req: Request, exc: Exception):
+    return JSONResponse(
+        {"error": "invalid_api_key"},
+        status_code=401,
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
 app = Starlette(
     debug=True if env.environment != "production" else False,
+    exception_handlers={InvalidAPIKeyError: invalid_api_key},
     routes=[
         Route(path="/", endpoint=root, methods=["GET"]),
         Route(path="/slack/events", endpoint=endpoint, methods=["POST"]),
