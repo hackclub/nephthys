@@ -35,7 +35,7 @@ async def log_in(req: Request):
         return hca_not_configured_response
 
     hca = oauth.create_client("hca")
-    redirect_uri = req.url_for("authorize")
+    redirect_uri = env.base_url + "/oauth/callback"
     return await hca.authorize_redirect(req, redirect_uri)
 
 
@@ -67,9 +67,9 @@ async def authorize(req: Request):
     logging.info(
         f"User signed in hca_id={hca_id} slack_id={slack_id} user_id={db_user.id}"
     )
-    return RedirectResponse(url=req.url_for("lobby"))
+    return RedirectResponse(url="/lobby")
 
 
 async def log_out(req: Request):
     req.session.clear()
-    return RedirectResponse(url=req.url_for("lobby"))
+    return RedirectResponse(url="/lobby")
