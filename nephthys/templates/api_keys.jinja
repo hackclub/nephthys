@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Keys - {{ app_title }}</title>
+  <style>
+    html {
+      font-family: sans-serif;
+      color-scheme: light dark;
+    }
+
+    input#api-key-label {
+      width: 15em;
+    }
+
+    input,
+    form button {
+      font-size: 1rem;
+      margin-block: 0.5em;
+    }
+
+    table {
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 0.25em 1em 0.25em 0;
+      text-align: left;
+    }
+
+    .label-column {
+      width: 10em;
+      max-width: 20em;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Manage API keys ({{ app_title }})</h1>
+  <p><em>welcome :) you can create and manage your Nephthys API keys from here.</em></p>
+
+  <h2>create a new API key?</h2>
+
+  <form method="POST" action="/lobby/api_keys/create">
+    <div>
+      <label for="api-key-label">give your API key a name:</label>
+      <input type="text" id="api-key-label" name="label" required />
+    </div>
+    <button type="submit">make it.</button>
+  </form>
+
+  <h2>view your API keys</h2>
+
+  {% if api_keys %}
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>label</th>
+          <th>key</th>
+          <th>created</th>
+          <th>actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for api_key in api_keys %}
+        <tr>
+          <td class="label-column">{{ api_key.label }}</td>
+          <td><code>{{ api_key.api_key_censored }}</code></td>
+          <td title="{{ api_key.created_at }}">{{ api_key.created_at.strftime("%Y-%m-%d") }}</td>
+          <td>
+            <button type="button" class="delete-api-key" data-api-key-id="{{ api_key.id }}"
+              data-api-key-label="{{ api_key.label }}">Delete</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p><em>well, there's nothing here yet... but you can change that!</em></p>
+  {% endif %}
+
+  <h2>rules for using API keys</h2>
+
+  <p>API keys give you access to non-public content, such as message content from the Hack Club Slack.
+    When accessing message content, the <a href="https://news.hackclub.com/news/scraping-use-policy/">Slack Scraping Use
+      Policy</a> applies.
+    Notably:
+  </p>
+
+  <ul>
+    <li>You must not make messages publicly accessible on the open web</li>
+    <li>You must not train AI models on messages</li>
+  </ul>
+
+  <p>For more information about how to use API keys, check out the <a
+      href="https://github.com/hackclub/nephthys/blob/main/docs/api.md#authentication">API documentation</a> on GitHub!
+  </p>
+
+  <script>
+    document.querySelectorAll("button.delete-api-key").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const label = button.dataset.apiKeyLabel
+        if (!confirm(`oh! do you definitely want to delete the API key "${label}"? this really can't be undone!`)) {
+          return
+        }
+
+        button.disabled = true
+        try {
+          const url = new URL(`/lobby/api_keys/${button.dataset.apiKeyId}`, window.location.origin)
+          const response = await fetch(url, { method: "DELETE" })
+          if (response.ok) return window.location.reload()
+
+          alert("sorry! request to delete the API key failed :(")
+        } catch (error) {
+          console.error("Failed to delete API key", error)
+          alert("sorry! error while deleting the api key... check console perhaps?")
+        }
+        button.disabled = false
+      })
+    })
+  </script>
+</body>
+
+</html>

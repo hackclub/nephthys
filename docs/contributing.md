@@ -47,3 +47,11 @@ We prefer splitting code up into many Python files over having large files with 
 
 We now have the [`blockkit` library](https://blockkit.botsignals.co/) (!!) for building fancy Slack messages and views with buttons, dropdowns, etc.
 All new code should use `blockkit`, but note that existing code likely still uses raw JSON objects.
+
+## Piccolo
+
+[Piccolo](https://github.com/piccolo-orm/piccolo) is the project's ORM. It has some quirks that I will get around to documenting/reporting at some point, but it works reasonably well.
+
+Prefer to use the [objects API](https://piccolo-orm.readthedocs.io/en/latest/piccolo/query_types/objects.html) where possible.
+
+All our migrations are written manually with raw SQL, because our schema has some features (e.g. enums, multi-column UNIQUE INDEXes) that Piccolo doesn't quite support (yet).

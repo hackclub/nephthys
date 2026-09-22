@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ app_title }} lobby</title>
+  <style>
+    html {
+      font-family: sans-serif;
+      color-scheme: light dark;
+    }
+  </style>
+</head>
+
+<body>
+  {% if user %}
+  <h1>Heidi's lobby ({{ app_title }})</h1>
+  <p>welcome {{ user.slack_id }} :)</p>
+  <p>here are some things you can do! </p>
+  <ul>
+    <li><a href="/lobby/api_keys">create or manage your API keys</a></li>
+  </ul>
+
+  <p>oh, and if you need to, you can <a href="/lobby/logout" title=";'(">log out</a>.</p>
+
+  <details>
+    <summary>details for nerds</summary>
+    <ul>
+      <li>your slack ID: {{ user.slack_id }}</li>
+      <li>your Nephthys user ID: {{ user.id }}</li>
+      {# <li>your HCA user ID</li> #}
+    </ul>
+  </details>
+  {% else %}
+  <p><em>you step into Heidi's lobby.</em></p>
+
+  <p>hi! uh, before you go any further, could I ask you to <a href="/lobby/login">log in with Hack Club Auth</a>?</p>
+  {% endif %}
+</body>
+
+</html>

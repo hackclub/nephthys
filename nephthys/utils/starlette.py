@@ -1,9 +1,8 @@
-from pathlib import Path
-
 from prometheus_client import CONTENT_TYPE_LATEST
 from prometheus_client import generate_latest
 from slack_bolt.adapter.starlette.async_handler import AsyncSlackRequestHandler
 from starlette.applications import Starlette
+from starlette.middleware.sessions import SessionMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.responses import RedirectResponse
@@ -14,6 +13,14 @@ from starlette.staticfiles import StaticFiles
 from starlette_exporter import PrometheusMiddleware
 
 from nephthys.__main__ import main
+from nephthys.api.auth import InvalidAPIKeyError
+from nephthys.api.lobby.hack_club_auth import authorize
+from nephthys.api.lobby.hack_club_auth import log_in
+from nephthys.api.lobby.hack_club_auth import log_out
+from nephthys.api.lobby.lobby import api_keys
+from nephthys.api.lobby.lobby import create_api_key
+from nephthys.api.lobby.lobby import delete_api_key
+from nephthys.api.lobby.lobby import lobby
 from nephthys.api.stats import stats
 from nephthys.api.stats_range import stats_range
 from nephthys.api.stats_v2 import stats_v2
@@ -21,6 +28,7 @@ from nephthys.api.ticket import ticket_info
 from nephthys.api.tickets import tickets_list
 from nephthys.api.user import user_stats
 from nephthys.utils.env import env
+from nephthys.utils.env import STATIC_DIR
 from nephthys.utils.slack import app as slack_app
 
 req_handler = AsyncSlackRequestHandler(slack_app)
@@ -60,14 +68,42 @@ async def metrics(req: Request):
     return Response(main_metrics, media_type=CONTENT_TYPE_LATEST)
 
 
+async def lobby_fallback(req: Request):
+    SORRY = "Lobby is not available!\n\nThe maintainer of this Nephthys instance needs to set up HCA integration for the lobby and API keys to work. Sorry!"
+    return Response(SORRY, status_code=501)
+
+
 async def root(req: Request):
     return RedirectResponse(url="https://github.com/hackclub/nephthys")
 
 
-STATIC_DIR = Path(Path.cwd() / "nephthys" / "public")
+async def invalid_api_key(req: Request, exc: Exception):
+    return JSONResponse(
+        {"error": "invalid_api_key"},
+        status_code=401,
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+lobby_submount = (
+    Mount(
+        "/lobby",
+        routes=[
+            Route(path="/", endpoint=lobby, methods=["GET"]),
+            Route(path="/login", endpoint=log_in, methods=["GET"]),
+            Route(path="/logout", endpoint=log_out, methods=["GET"]),
+            Route(path="/api_keys", endpoint=api_keys, methods=["GET"]),
+            Route(path="/api_keys/create", endpoint=create_api_key, methods=["POST"]),
+            Route(path="/api_keys/{id}", endpoint=delete_api_key, methods=["DELETE"]),
+        ],
+    )
+    if env.hca
+    else Route(path="/lobby", endpoint=lobby_fallback, methods=["GET"])
+)
 
 app = Starlette(
     debug=True if env.environment != "production" else False,
+    exception_handlers={InvalidAPIKeyError: invalid_api_key},
     routes=[
         Route(path="/", endpoint=root, methods=["GET"]),
         Route(path="/slack/events", endpoint=endpoint, methods=["POST"]),
@@ -79,10 +115,21 @@ app = Starlette(
         Route(path="/api/ticket", endpoint=ticket_info, methods=["GET"]),
         Route(path="/health", endpoint=health, methods=["GET"]),
         Route(path="/metrics", endpoint=metrics, methods=["GET"]),
+        Route(path="/oauth/callback", endpoint=authorize, methods=["GET"]),
         Mount("/public", app=StaticFiles(directory=STATIC_DIR), name="static"),
+        lobby_submount,
     ],
     lifespan=main,
 )
+
+if env.hca:
+    # required for HCA OAuth2
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=env.hca.session_secret,
+        https_only=True,
+        max_age=365 * 86400,  # 365 days, in seconds
+    )
 
 app.add_middleware(
     PrometheusMiddleware,
