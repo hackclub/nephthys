@@ -21,6 +21,12 @@ jinja_env = jinja2.Environment(
 templates = Jinja2Templates(env=jinja_env)
 
 
+def you_must_be_logged_in(req: Request):
+    return templates.TemplateResponse(
+        req, "you_must_be_logged_in.jinja", status_code=401
+    )
+
+
 def app_context() -> dict[str, Any]:
     return {
         "app_title": env.app_title,
@@ -66,7 +72,7 @@ async def lobby(req: Request):
 async def api_keys(req: Request):
     user = await get_logged_in_user(req)
     if not user:
-        return templates.TemplateResponse(req, "you_must_be_logged_in.jinja")
+        return you_must_be_logged_in(req)
     user_api_keys = (
         await APIKey.objects().where(APIKey.user == user.id).order_by(APIKey.created_at)
     )
@@ -81,7 +87,7 @@ async def api_keys(req: Request):
 async def create_api_key(req: Request):
     user = await get_logged_in_user(req)
     if not user:
-        return templates.TemplateResponse(req, "you_must_be_logged_in.jinja")
+        return you_must_be_logged_in(req)
     form_data = await req.form()
     label = form_data.get("label")
 
@@ -143,9 +149,7 @@ async def create_api_key(req: Request):
 async def delete_api_key(req: Request):
     user = await get_logged_in_user(req)
     if not user:
-        return templates.TemplateResponse(
-            req, "you_must_be_logged_in.jinja", status_code=401
-        )
+        return you_must_be_logged_in(req)
 
     if not is_same_origin_request(req):
         logging.warning(
