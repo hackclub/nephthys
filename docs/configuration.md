@@ -17,7 +17,7 @@ These should always be configured.
 | `ENVIRONMENT` | Required | Set to `production` for production or staging deployments | `development` |
 | `PORT` | Optional | HTTP server port | `3000` |
 | `SLACK_USER_TOKEN` | Required | Slack bot user token | _N/A_ |
-| `SLACK_BOT_TOKEN` | Required |  Slack bot bot token | _N/A_ |
+| `SLACK_BOT_TOKEN` | Required | Slack bot bot token | _N/A_ |
 | `SLACK_SIGNING_SECRET` | Required | Slack bot signing secret | _N/A_ |
 | `SLACK_MAINTAINER_ID` | Required | Slack user ID to ping on certain exceptions | _N/A_ |
 | `SLACK_HEARTBEAT_CHANNEL` | Required | Channel where "heartbeat" (debug) messages are set | _N/A_ |
@@ -71,6 +71,24 @@ This feature is recommended.
 | Variable | Required? | Description | Default |
 | -------- | --------- | ----------- | ------- |
 | `ENABLE_FEEDBACK` | Required | Enable the feedback prompt | `false` |
+
+## HCA integration (for Nephthys Lobby and API keys)
+
+Configuring Hack Club Auth (HCA) integration allows Hack Clubbers to log into the Lobby and create API keys for privileged API access.
+
+If this is not configured, the Lobby will be unavailable (although API keys in the database will continue to work). It is recommended to configure HCA to provide a way for API users to access to privileged data (message contents).
+
+To set this up, you'll need to create a [new HCA Oauth app](https://auth.hackclub.com/developer/apps/new) (you must have developer mode enabled on HCA) with the `slack_id` scope. The redirect URI should be your Nephthys base URL + `/oauth/callback`.
+
+The `SESSION_SECRET` is a secret key used to sign session cookies. If someone gains access to it, they can impersonate any user. Generate one securely with a command like `openssl rand -base64 32`
+
+<!-- prettier-ignore -->
+| Variable | Required? | Description | Default |
+| -------- | --------- | ----------- | ------- |
+| `HCA_CLIENT_ID` | Required | Client ID from your HCA OAuth App | _N/A_ |
+| `HCA_CLIENT_SECRET` | Required | Client secret from your HCA OAuth App | _N/A_ |
+| `SESSION_SECRET` | Required | Secure, randomly-generated secret key for signing sessions | _N/A_ |
+| `HCA_BASE_URL` | Optional | The base URL for HCA | `https://auth.hackclub.com` |
 
 ## OpenTelemetry log drain
 
