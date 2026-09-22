@@ -68,6 +68,11 @@ async def metrics(req: Request):
     return Response(main_metrics, media_type=CONTENT_TYPE_LATEST)
 
 
+async def lobby_fallback(req: Request):
+    SORRY = "Lobby is not available!\n\nThe maintainer of this Nephthys instance needs to set up HCA integration for the lobby and API keys to work. Sorry!"
+    return Response(SORRY, status_code=501)
+
+
 async def root(req: Request):
     return RedirectResponse(url="https://github.com/hackclub/nephthys")
 
@@ -79,6 +84,22 @@ async def invalid_api_key(req: Request, exc: Exception):
         headers={"WWW-Authenticate": "Bearer"},
     )
 
+
+lobby_submount = (
+    Mount(
+        "/lobby",
+        routes=[
+            Route(path="/", endpoint=lobby, methods=["GET"]),
+            Route(path="/login", endpoint=log_in, methods=["GET"]),
+            Route(path="/logout", endpoint=log_out, methods=["GET"]),
+            Route(path="/api_keys", endpoint=api_keys, methods=["GET"]),
+            Route(path="/api_keys/create", endpoint=create_api_key, methods=["POST"]),
+            Route(path="/api_keys/{id}", endpoint=delete_api_key, methods=["DELETE"]),
+        ],
+    )
+    if env.hca
+    else Route(path="/lobby", endpoint=lobby_fallback, methods=["GET"])
+)
 
 app = Starlette(
     debug=True if env.environment != "production" else False,
@@ -96,12 +117,7 @@ app = Starlette(
         Route(path="/metrics", endpoint=metrics, methods=["GET"]),
         Route(path="/oauth/callback", endpoint=authorize, methods=["GET"]),
         Mount("/public", app=StaticFiles(directory=STATIC_DIR), name="static"),
-        Route(path="/lobby", endpoint=lobby, methods=["GET"]),
-        Route(path="/lobby/login", endpoint=log_in, methods=["GET"]),
-        Route(path="/lobby/logout", endpoint=log_out, methods=["GET"]),
-        Route(path="/lobby/api_keys", endpoint=api_keys, methods=["GET"]),
-        Route(path="/lobby/api_keys/create", endpoint=create_api_key, methods=["POST"]),
-        Route(path="/lobby/api_keys/{id}", endpoint=delete_api_key, methods=["DELETE"]),
+        lobby_submount,
     ],
     lifespan=main,
 )
