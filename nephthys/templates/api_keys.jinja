@@ -88,6 +88,23 @@
   <p><em>well, there's nothing here yet... but you can change that!</em></p>
   {% endif %}
 
+  <h2>rules for using API keys</h2>
+
+  <p>API keys give you access to non-public content, such as message content from the Hack Club Slack.
+    When accessing message content, the <a href="https://news.hackclub.com/news/scraping-use-policy/">Slack Scraping Use
+      Policy</a> applies.
+    Notably:
+  </p>
+
+  <ul>
+    <li>You must not make messages publicly accessible on the open web</li>
+    <li>You must not train AI models on messages</li>
+  </ul>
+
+  <p>For more information about how to use API keys, check out the <a
+      href="https://github.com/hackclub/nephthys/blob/main/docs/api.md#authentication">API documentation</a> on GitHub!
+  </p>
+
   <script>
     document.querySelectorAll("button.delete-api-key").forEach((button) => {
       button.addEventListener("click", async () => {
