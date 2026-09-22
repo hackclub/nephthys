@@ -2,6 +2,7 @@ import logging
 from hashlib import sha256
 from secrets import token_urlsafe
 from typing import Any
+from urllib.parse import urlparse
 
 import jinja2
 from starlette.requests import Request
@@ -31,6 +32,14 @@ def bad_request(message: str) -> Response:
         f"bad request! >:(\n\n{message}",
         status_code=400,
     )
+
+
+def is_same_origin_request(req: Request) -> bool:
+    """Strict same-origin check for DELETE requests coming from browsers"""
+    origin = req.headers.get("origin")
+    if not origin:
+        return False
+    return urlparse(origin).netloc == req.url.netloc
 
 
 async def get_logged_in_user(req: Request) -> User | None:
@@ -129,3 +138,42 @@ async def create_api_key(req: Request):
     return templates.TemplateResponse(
         req, "api_key_created.jinja", context=context, status_code=201
     )
+
+
+async def delete_api_key(req: Request):
+    user = await get_logged_in_user(req)
+    if not user:
+        return templates.TemplateResponse(
+            req, "you_must_be_logged_in.jinja", status_code=401
+        )
+
+    if not is_same_origin_request(req):
+        logging.warning(
+            f"user_id={user.id} attempted delete API key; request was not same-origin"
+        )
+        return bad_request("CSRF detected :O (request must be same-origin)")
+
+    id_param = req.path_params.get("id")
+    if not id_param:
+        logging.info(f"user_id={user.id} attempted delete API key with no id param")
+        return bad_request("no API key id specified.")
+    try:
+        api_key_id = int(id_param)
+    except ValueError:
+        logging.info(f"user_id={user.id} attempted delete API key with invalid id")
+        return bad_request("invalid API key id.")
+
+    # Important: Only allow deleting your own API keys!
+    deleted = (
+        await APIKey.delete()
+        .where((APIKey.id == api_key_id) & (APIKey.user == user.id))
+        .returning(APIKey.id)
+    )
+    if not deleted:
+        logging.info(
+            f"user_id={user.id} attempted delete non-existent/unowned API key api_key_id={api_key_id}"
+        )
+        return Response("no API key with that id.", status_code=404)
+
+    logging.info(f"user_id={user.id} deleted API key id={api_key_id}")
+    return Response(status_code=204)

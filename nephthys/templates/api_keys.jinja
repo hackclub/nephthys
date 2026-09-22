@@ -16,7 +16,7 @@
     }
 
     input,
-    button {
+    form button {
       font-size: 1rem;
       margin-block: 0.5em;
     }
@@ -75,7 +75,10 @@
           <td class="label-column">{{ api_key.label }}</td>
           <td><code>{{ api_key.api_key_censored }}</code></td>
           <td title="{{ api_key.created_at }}">{{ api_key.created_at.strftime("%Y-%m-%d") }}</td>
-          <td><a href="/lobby/api_keys/delete?id={{ api_key.id }}">Delete</a></td>
+          <td>
+            <button type="button" class="delete-api-key" data-api-key-id="{{ api_key.id }}"
+              data-api-key-label="{{ api_key.label }}">Delete</button>
+          </td>
         </tr>
         {% endfor %}
       </tbody>
@@ -84,6 +87,30 @@
   {% else %}
   <p><em>well, there's nothing here yet... but you can change that!</em></p>
   {% endif %}
+
+  <script>
+    document.querySelectorAll("button.delete-api-key").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const label = button.dataset.apiKeyLabel
+        if (!confirm(`oh! do you definitely want to delete the API key "${label}"? this really can't be undone!`)) {
+          return
+        }
+
+        button.disabled = true
+        try {
+          const url = new URL(`/lobby/api_keys/${button.dataset.apiKeyId}`, window.location.origin)
+          const response = await fetch(url, { method: "DELETE" })
+          if (response.ok) return window.location.reload()
+
+          alert("sorry! request to delete the API key failed :(")
+        } catch (error) {
+          console.error("Failed to delete API key", error)
+          alert("sorry! error while deleting the api key... check console perhaps?")
+        }
+        button.disabled = false
+      })
+    })
+  </script>
 </body>
 
 </html>
