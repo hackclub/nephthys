@@ -69,6 +69,18 @@ def create_hca_config(environment: str) -> HCAConfig | None:
     )
 
 
+def get_base_url() -> str:
+    if base_url := os.environ.get("BASE_URL"):
+        return base_url.rstrip("/")
+    if coolify_url := os.environ.get("COOLIFY_URL"):
+        logging.info(f"Using base URL from Coolify: base_url={coolify_url}")
+        return coolify_url.rstrip("/")
+    # Falling back to this means that it'll use assets served by nephthys.hackclub.com, which does work
+    FALLBACK_URL = "https://nephthys.hackclub.com"
+    logging.warning(f"Using fallback base_url={FALLBACK_URL}")
+    return FALLBACK_URL.rstrip("/")
+
+
 class Environment:
     def __init__(self):
         self.slack_bot_token = os.environ.get("SLACK_BOT_TOKEN", "unset")
@@ -101,9 +113,7 @@ class Environment:
             or default_log_level
         )
         self.log_level_otel = os.environ.get("LOG_LEVEL_OTEL", logging.INFO)
-        self.base_url: str = os.environ.get(
-            "BASE_URL", "https://nephthys.hackclub.com"
-        ).rstrip("/")
+        self.base_url: str = get_base_url()
 
         self.slack_help_channel = os.environ.get("SLACK_HELP_CHANNEL", "unset")
         self.slack_ticket_channel = os.environ.get("SLACK_TICKET_CHANNEL", "unset")
