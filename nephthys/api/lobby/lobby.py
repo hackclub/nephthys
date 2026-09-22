@@ -79,17 +79,23 @@ async def create_api_key(req: Request):
     # Validate input
     MAX_LABEL_LEN = 256
     if type(label) is not str:
+        logging.warning(
+            f"user_id={user.id} attempted create API key; invalid form param type {type(label)}"
+        )
         return bad_request("expected a string but got a file?")
     label = label.strip()
     if not label:
+        logging.info(f"user_id={user.id} attempted create API key with no label")
         return bad_request("you must specify a label for your API key.")
     if len(label) >= MAX_LABEL_LEN:
+        logging.info(f"user_id={user.id} attempted create API key with too long label")
         return bad_request("your API key label is too long, woah!")
 
     # Validate other restrictions
     MAX_USER_API_KEYS = 500
     existing_api_keys: int = await APIKey.count().where(APIKey.user == user.id)
     if existing_api_keys >= MAX_USER_API_KEYS:
+        logging.warning(f"user_id={user.id} attempted create too many API keys")
         return bad_request(
             f"that's too many API keys! please contact support if you need more than {MAX_USER_API_KEYS} API keys"
         )
@@ -97,6 +103,7 @@ async def create_api_key(req: Request):
         (APIKey.user == user.id) & (APIKey.label == label)
     )
     if duplicate_label_api_keys:
+        logging.info(f"user_id={user.id} attempted create API key with duplicate label")
         return bad_request(
             f'you already have an API key called "{label}".\nplease choose a different label.'
         )
@@ -109,6 +116,9 @@ async def create_api_key(req: Request):
         user=user,
         api_key_hash=api_key_hash,
         api_key_censored=censored_api_key,
+    )
+    logging.info(
+        f'user_id={user.id} created new API key label="{label}" key={censored_api_key}'
     )
     await db_api_key.save()
 

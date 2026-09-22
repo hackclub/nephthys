@@ -48,6 +48,10 @@ venv = ".venv"
 [tool.hatch.envs.default]
 path = "./.venv/"
 
+[tool.ruff.lint]
+# ignore root-logger-call
+ignore = ["LOG015"]
+
 [tool.ruff.lint.isort]
 force-single-line = true
 order-by-type = false
