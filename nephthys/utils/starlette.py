@@ -127,6 +127,7 @@ if env.hca:
     app.add_middleware(
         SessionMiddleware,
         secret_key=env.hca.session_secret,
+        https_only=True,
         max_age=365 * 86400,  # 365 days, in seconds
     )
 
