@@ -68,48 +68,23 @@ Note: These steps have to be done by a Workspace Admin (otherwise it will be una
    PROGRAM="flavortown"
    # Choose a title to be shown to helpers at the top of the App Home
    APP_TITLE="Heidi the Assistant"
-   # Hack Club AI API key for generating ticket titles (highly recommended)
-   HACK_CLUB_AI_API_KEY="sk-hc-v1-..."
    # Set this to the URL where the bot will be hosted
    BASE_URL="https://summer.nephthys.hackclub.com"
    ```
 
-3. There's more optional environment variables that you can set, which I shall document here:
+3. There's some optional environment variables that are recommended to set:
 
    ```bash
-   # Export logs to an OpenTelemetry endpoint (optional)
-   # example using Loki:
-   OTEL_EXPORTER_OTLP_LOGS_ENDPOINT="https://loki.example.com/otlp/v1/logs"
-   # If HTTP Basic Authentication is required for the OTLP endpoint, specify it here
-   # If your password has special characters, switch to normal view to add it, and check the "Is Literal?" checkbox
-   OTEL_EXPORTER_OTLP_LOGS_BASIC_AUTH="username:password"
-   # You can change the OTel service name if you want, but you don't have to
-   OTEL_SERVICE_NAME="nephthys"
-   # Set this to false to disable daily summary messages in the BTS channel
-   DAILY_SUMMARY=true
+   # Hack Club AI API key for generating ticket titles (highly recommended)
+   HACK_CLUB_AI_API_KEY="sk-hc-v1-..."
    # Set the log level (defaults to "WARNING" in production)
-   LOG_LEVEL="WARNING"
-   # Override the log level for console output
-   LOG_LEVEL_STDERR="WARNING"
-   # Override the log level for OpenTelemetry output
-   LOG_LEVEL_OTEL="WARNING"
-
+   LOG_LEVEL="INFO"
    # Allow the poster of a question to give feedback after their ticket is resolved
    # Feedback is stored in the "Feedback" table. Disabled by default.
-   ENABLE_FEEDBACK=false
-
-   # Optional: Enable stale ticket auto-close
-   # Tickets inactive for this many days will be automatically closed
-   # Leave unset to disable
-   STALE_TICKET_DAYS="" # e.g. 7
-   # AI settings
-   # Any OpenAI compatible base url
-   HACK_CLUB_AI_BASE_URL="https://ai.hackclub.com/proxy/v1"
-   # Model for the titles
-   AI_TITLE_MODEL="openai/gpt-oss-120b"
-   # Model for tagging
-   AI_TAG_MODEL="google/gemini-3-flash-preview"
+   ENABLE_FEEDBACK=true
    ```
+
+   For a full list of configuration options available (including changing the LLM provider), see [configuration.md](configuration.md).
 
 4. Don't forget to click **Save All Environment Variables**
 
