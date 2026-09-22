@@ -5,7 +5,7 @@ e.g. in Coolify or a Docker compose file, or loaded from a `.env` file.
 
 For development, copying and editing the [`.env.sample`](../.env.sample)
 file is the easiest way to get started, but for production there are some
-more options and features that you may with to configure.
+more options and features that you may wish to configure.
 
 ## Core environment variables
 
