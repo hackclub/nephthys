@@ -20,6 +20,25 @@
       font-size: 1rem;
       margin-block: 0.5em;
     }
+
+    table {
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 0.25em 1em 0.25em 0;
+      text-align: left;
+    }
+
+    .label-column {
+      width: 10em;
+      max-width: 20em;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
   </style>
 </head>
 
@@ -37,9 +56,34 @@
     <button type="submit">make it.</button>
   </form>
 
-  <h2>your API keys</h2>
+  <h2>view your API keys</h2>
 
-  <p>table coming soon</p>
+  {% if api_keys %}
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>label</th>
+          <th>key</th>
+          <th>created</th>
+          <th>actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for api_key in api_keys %}
+        <tr>
+          <td class="label-column">{{ api_key.label }}</td>
+          <td><code>{{ api_key.api_key_censored }}</code></td>
+          <td title="{{ api_key.created_at }}">{{ api_key.created_at.strftime("%Y-%m-%d") }}</td>
+          <td><a href="/lobby/api_keys/delete?id={{ api_key.id }}">Delete</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p><em>well, there's nothing here yet... but you can change that!</em></p>
+  {% endif %}
 </body>
 
 </html>
