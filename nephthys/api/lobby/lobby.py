@@ -98,4 +98,6 @@ async def create_api_key(req: Request):
         "api_key": api_key,
         **app_context(),
     }
-    return templates.TemplateResponse(req, "api_key_created.jinja", context=context)
+    return templates.TemplateResponse(
+        req, "api_key_created.jinja", context=context, status_code=201
+    )
