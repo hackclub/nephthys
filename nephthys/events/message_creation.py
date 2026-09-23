@@ -19,6 +19,7 @@ from nephthys.events.message.send_backend_message import backend_message_blocks
 from nephthys.events.message.send_backend_message import backend_message_fallback_text
 from nephthys.events.message.send_backend_message import send_backend_message
 from nephthys.macros import run_macro
+from nephthys.utils.ai import ai_client
 from nephthys.utils.env import env
 from nephthys.utils.logging import send_heartbeat
 from nephthys.utils.performance import perf_timer
@@ -373,23 +374,25 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                 )
 
 
-async def generate_ticket_title(text: str):
-    if not env.ai_client:
-        return "No title available from AI."
+async def generate_ticket_title(text: str) -> str | None:
+    if not ai_client:
+        return None
 
     model = env.ai_title_model
     try:
-        response = await env.ai_client.chat.completions.create(
+        response = await ai_client.chat.completions.create(
             model=model,
             messages=[
                 {
                     "role": "system",
                     "content": (
-                        "You are a helpful assistant that helps organise tickets for Hack Club's support team. You're going to take in a message and give it a title."
-                        "You will return no other content. Do NOT use title case but use capital letter at start of sentence + use capital letters for terms/proper nouns."
-                        "Avoid quote marks. Even if it's silly please summarise it. Use no more than 7 words, but as few as possible"
-                        "When mentioning Flavortown, do *NOT* change it to 'flavor town' or 'flavour town'. Hack Club should *NOT* be changed to 'hackclub'."
-                        "Hackatime, Flavortown, and Hack Club should always be capitalized correctly. Same goes for terms like VSCode, PyCharm, API, and GitHub."
+                        "You are a helpful assistant that helps organise tickets for Hack Club's support team. You're going to take in a message and give it a title. "
+                        "The title will be used for internal dashboards, short ticket lists, and other similar places. "
+                        "You will return no other content. Use proper sentence case, not title case. Avoid quote marks."
+                        "Even if it's silly please summarise it. Be aware, you cannot see uploaded attachments. "
+                        "Use no more than 7 words, but as few as possible. "
+                        "Some internal terms you should spell/capitalise correctly: Hack Club, Hackatime, Stardance. "
+                        "Also correctly capitalise terms like VSCode, PyCharm, API, and GitHub."
                     ),
                 },
                 {
@@ -400,11 +403,11 @@ async def generate_ticket_title(text: str):
         )
     except OpenAIError as e:
         await send_heartbeat(f"Failed to get AI response for ticket creation: {e}")
-        return "No title provided by AI."
+        return None
 
     if not (len(response.choices) and response.choices[0].message.content):
         await send_heartbeat(f"AI title generation is missing content: {response}")
-        return "No title provided by AI."
+        return None
     title = response.choices[0].message.content.strip()
     # Capitalise first letter
     title = title[0].upper() + title[1:] if len(title) > 1 else title.upper()
@@ -420,12 +423,12 @@ async def generate_category_tag(text: str) -> int | None:
     tag_options = ", ".join([tag.name for tag in category_tags])
     tag_map = {tag.name.lower(): tag for tag in category_tags}
 
-    if not env.ai_client:
+    if not ai_client:
         return None
 
     model = env.ai_tag_model
     try:
-        response = await env.ai_client.chat.completions.create(
+        response = await ai_client.chat.completions.create(
             model=model,
             messages=[
                 {

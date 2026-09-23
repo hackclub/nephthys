@@ -29,19 +29,55 @@ These should always be configured.
 | `APP_TITLE` | Required | A title to be shown to helpers at the top of the App Home, and in the Lobby | _N/A_ |
 | `BASE_URL` | Required | Public HTTPS URL that the bot's web server is accessible from | _N/A_ |
 
-## AI (Hack Club AI)
+## AI provider
 
-It is highly recommended to configure a LLM provider, which is used to generate ticket titles and categorise tickets.
+It is highly recommended to configure an AI provider, which is used to generate ticket titles and categories using an LLM.
 
-The default provider is [Hack Club AI](https://ai.hackclub.com/). If you're not a Hack Clubber, you can specify a different OpenRouter-compatible or OpenAI-compatible endpoint for API requests.
+There's a few different options to configure it, depending on which provider you want to use. I'd recommend Hack Club AI.
 
-If you don't wish to use AI features, you can skip this section. Note that ticket titles will be unavailable.
+If you don't wish to use AI features, you can skip this section.
+
+### AI provider - Hack Club AI
+
+[Hack Club AI](https://ai.hackclub.com/) is free for Hack Clubbers. If you're over 18, you'll have to pick a third-party provider.
+
+[Create an API key](https://ai.hackclub.com/keys) and set it as `HACK_CLUB_AI_API_KEY`.
+
+| Variable                | Required? | Description               | Default                            |
+| ----------------------- | --------- | ------------------------- | ---------------------------------- |
+| `HACK_CLUB_AI_API_KEY`  | Required  | Hack Club AI API key      | _N/A_                              |
+| `HACK_CLUB_AI_BASE_URL` | Optional  | Base URL for Hack Club AI | `https://ai.hackclub.com/proxy/v1` |
+
+### AI provider - OpenRouter
+
+[OpenRouter](https://openrouter.ai/workspaces/) is the suggested commercial AI provider (others are available). Just provide an `OPENROUTER_API_KEY`.
+
+Using OpenRouter may enable extra features in the future, e.g. ticket categorisation using Jev.
+
+| Variable              | Required? | Description                        | Default                        |
+| --------------------- | --------- | ---------------------------------- | ------------------------------ |
+| `OPENROUTER_API_KEY`  | Required  | OpenRouter API key                 | _N/A_                          |
+| `OPENROUTER_BASE_URL` | Optional  | Any OpenRouter-compatible base URL | `https://openrouter.ai/api/v1` |
+
+### AI provider - Generic
+
+You can also use any AI provider that has an OpenAI-compatible API. In this case, a base URL is required.
+
+> [!NOTE]
+> Nephthys feeds Slack messages to LLMs, so to comply with the [Slack Scraping Policy](https://news.hackclub.com/news/scraping-use-policy/), you must use an API provider that does **not** use your prompts to train models.
+
+| Variable      | Required? | Description                    | Default |
+| ------------- | --------- | ------------------------------ | ------- |
+| `AI_BASE_URL` | Required  | Any OpenAI-compatible base URL | _N/A_   |
+| `AI_API_KEY`  | Required  | API key                        | _N/A_   |
+
+### AI models
+
+You can configure which models are used for different AI tasks.
 
 <!-- prettier-ignore -->
 | Variable | Required? | Description | Default |
 | -------- | --------- | ----------- | ------- |
-| `HACK_CLUB_AI_API_KEY` | Required | Hack Club AI API key for generating ticket titles | _N/A_ |
-| `HACK_CLUB_AI_BASE_URL` | Optional | Any OpenAI compatible base url | `https://ai.hackclub.com/proxy/v1` |
 | `AI_TITLE_MODEL` | Optional | Model for generating ticket titles | `openai/gpt-oss-120b` |
 | `AI_TAG_MODEL` | Optional | Model for categorising tickets | `google/gemini-3-flash-preview` |
 
