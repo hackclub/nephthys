@@ -376,7 +376,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
 
 async def generate_ticket_title(text: str) -> str | None:
     if not ai_client:
-        return "No title available from AI."
+        return None
 
     model = env.ai_title_model
     try:
@@ -403,11 +403,11 @@ async def generate_ticket_title(text: str) -> str | None:
         )
     except OpenAIError as e:
         await send_heartbeat(f"Failed to get AI response for ticket creation: {e}")
-        return "No title provided by AI."
+        return None
 
     if not (len(response.choices) and response.choices[0].message.content):
         await send_heartbeat(f"AI title generation is missing content: {response}")
-        return "No title provided by AI."
+        return None
     title = response.choices[0].message.content.strip()
     # Capitalise first letter
     title = title[0].upper() + title[1:] if len(title) > 1 else title.upper()
