@@ -70,9 +70,15 @@ async def open_app_home(
     page: int | None = None,
 ):
     last_requested_views[user_id] = RequestedView(home_type, page)
+    loading_view = get_loading_view(home_type)
     try:
-        await client.views_publish(view=get_loading_view(home_type), user_id=user_id)
+        await client.views_publish(view=loading_view, user_id=user_id)
+    except Exception as e:
+        logging.error(
+            f'Error publishing loading view user_id={user_id} error="{e}" view="{loading_view}"'
+        )
 
+    try:
         # Generate the view (this is when DB queries are made)
         user = await User.objects().where(User.slack_id == user_id).first()
         logging.info(f"Opening {home_type} for {user_id}")
