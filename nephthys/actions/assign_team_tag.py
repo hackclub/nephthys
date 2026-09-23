@@ -92,7 +92,7 @@ async def assign_team_tag_callback(
         await client.chat_postMessage(
             channel=u["id"],
             text=(
-                f"New ticket for {formatted_tags}! *{ticket.title}*\n"
+                f"New ticket for {formatted_tags}! *{ticket.title or ticket.description}*\n"
                 f"<{url}|ticket> <{ticket_url}|bts ticket>"
             ),
         )

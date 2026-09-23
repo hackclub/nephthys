@@ -73,7 +73,7 @@ async def get_assigned_tickets_view(user: User | None, page: int = 1):
         )
         ticket_blocks.append(
             Section(
-                text=f"*{ticket.title}*\n _from {opened_by_str}. {time_ago_str}_",
+                text=f"*{ticket.title or ''}*\n _from {opened_by_str}. {time_ago_str}_",
                 accessory=Button(
                     text=":rac_info: view ticket",
                     action_id=f"view-ticket-{ticket.msg_ts}",
