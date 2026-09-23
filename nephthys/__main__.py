@@ -33,6 +33,7 @@ except ImportError:
     pass
 
 logging.basicConfig(level=logging.NOTSET)
+logging.root.setLevel(logging.NOTSET)
 stderr_logger = logging.StreamHandler()
 stderr_logger.setLevel(parse_level_name(env.log_level_stderr))
 stderr_logger.setFormatter(logging.Formatter(logging.BASIC_FORMAT))
