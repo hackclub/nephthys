@@ -3,11 +3,13 @@
     "bytea",
     "Coolify",
     "Hackatime",
-    "hackclub",
     "HCAI",
     "noul",
     "OpenRouter",
+    "submount",
+    "hackclub",
     "sk_neph",
-    "submount"
+    "submount",
+    "Timestamptz"
   ]
 }
