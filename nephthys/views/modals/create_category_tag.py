@@ -14,7 +14,15 @@ def get_create_category_tag_modal():
                 block_id="category_tag_name",
                 element=PlainTextInput(action_id="category_tag_name"),
             ),
-            # future: description
+            Input(
+                label="Description",
+                block_id="category_tag_description",
+                element=PlainTextInput(
+                    action_id="category_tag_description", multiline=True
+                ),
+                hint="Recommended - provide a brief description and/or examples of what this category should include.",
+                optional=True,
+            ),
             # future: slug
         ],
     ).build()
