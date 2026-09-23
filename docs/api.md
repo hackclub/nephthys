@@ -98,7 +98,9 @@ Returns an array of ticket objects. Ticket objects look like this:
 ```ts
 interface Ticket {
   id: number
-  title: string
+  // "No title provided by AI." means no title is available: I suggest
+  // displaying truncated description (if possible) or ticket ID, instead
+  title: string | "No title provided by AI."
   status: "OPEN" | "CLOSED" | "IN_PROGRESS"
   opened_by: User | null
   closed_by: User | null

@@ -26,7 +26,7 @@ def ticket_to_json(ticket: dict[str, Any], include_description: bool = False) ->
     # I hate using dicts here because we get no type hinting :fear:
     json = {
         "id": ticket["id"],
-        "title": ticket["title"],
+        "title": ticket["title"] or "No title provided by AI.",
         "status": ticket["status"],
         "opened_by": user_to_json(ticket["openedById"]),
         "closed_by": user_to_json(ticket["closedById"]),
