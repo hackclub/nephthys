@@ -1,17 +1,20 @@
+from blockkit import Context
 from blockkit import Input
 from blockkit import Modal
 from blockkit import PlainTextInput
+from blockkit import Text
 
 from nephthys.database.tables import CategoryTag
 
 
 def get_edit_category_tag_modal(tag: CategoryTag):
     return Modal(
-        title=":rac_info: edit category",
+        title=f'edit category: "{tag.name}"',
         callback_id="edit_category_tag",
         submit=":rac_question: save",
         private_metadata=str(tag.id),
         blocks=[
+            Context([Text(f"Slug: `{tag.slug}` (this can't be changed)")]),
             Input(
                 label="Category name",
                 block_id="category_tag_name",
@@ -27,7 +30,7 @@ def get_edit_category_tag_modal(tag: CategoryTag):
                     initial_value=tag.description,
                     multiline=True,
                 ),
-                hint="Optional — helps explain when this category should be used.",
+                hint="Recommended - provide a brief description and/or examples of what this category should include.",
                 optional=True,
             ),
         ],
