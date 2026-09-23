@@ -98,8 +98,8 @@ class Environment:
 
         self.uptime_url = os.environ.get("UPTIME_URL")
         self.ai_title_model = os.environ.get("AI_TITLE_MODEL", "openai/gpt-oss-120b")
-        self.ai_tag_model = os.environ.get(
-            "AI_TAG_MODEL", "google/gemini-3-flash-preview"
+        self.ai_category_model = os.environ.get(
+            "AI_CATEGORY_MODEL", "typesafe/jev-1.13"
         )
 
         self.otel_logs_url = os.environ.get("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT")

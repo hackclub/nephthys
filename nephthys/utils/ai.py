@@ -122,6 +122,9 @@ class OpenRouterClient(AIClient):
         state: str | dict | list,
         questions: dict[str, DecisionQuestion],
     ) -> DecisionsResponse:
+        """Calls a Typesafe-System-One-style decisions endpoint.
+
+        Raises a `HTTPStatusError` on API error."""
         response = await self.http_client.post(
             "/api/alpha/decisions",
             json={"model": model, "state": state, "questions": questions},
