@@ -7,7 +7,6 @@ from typing import Literal
 
 from aiohttp import ClientSession
 from dotenv import load_dotenv
-from openai import AsyncOpenAI
 from slack_sdk.web.async_client import AsyncWebClient
 from starlette.datastructures import Secret
 
@@ -174,14 +173,6 @@ class Environment:
         )
 
         self.slack_client = AsyncWebClient(token=self.slack_bot_token)
-        self.ai_client = (
-            AsyncOpenAI(
-                base_url=self.ai_base_url,
-                api_key=self.hack_club_ai_api_key,
-            )
-            if self.hack_club_ai_api_key
-            else None
-        )
 
         # Cache whether the user token has workspace admin privileges
         self._workspace_admin_available: bool | Literal["unchecked"] = "unchecked"
