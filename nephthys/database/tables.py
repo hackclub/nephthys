@@ -39,7 +39,7 @@ class User(Table, tablename="User"):
 
 class Ticket(Table, tablename="Ticket"):
     id = Serial(primary_key=True, unique=True)
-    title = Text()
+    title = Text(null=True)
     description = Text()
     status = TicketStatusColumn(default=TicketStatus.OPEN)
 

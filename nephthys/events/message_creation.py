@@ -374,7 +374,7 @@ async def on_message(event: Dict[str, Any], client: AsyncWebClient):
                 )
 
 
-async def generate_ticket_title(text: str) -> str:
+async def generate_ticket_title(text: str) -> str | None:
     if not ai_client:
         return "No title available from AI."
 
