@@ -1,4 +1,3 @@
-from os import environ
 from typing import Any
 from typing import Literal
 from typing import NotRequired
@@ -7,6 +6,8 @@ from typing import TypedDict
 import httpx
 import openai.resources
 from openai import AsyncOpenAI
+
+from nephthys.utils.env import get_environ
 
 type StructuredGuidance = str | dict[str, Any] | list[Any]
 
@@ -131,14 +132,14 @@ class OpenRouterClient(AIClient):
 
 
 def get_ai_client_from_environment() -> AIClient | None:
-    generic_api_key = environ.get("AI_API_KEY")
-    generic_base_url = environ.get("AI_BASE_URL")
-    hcai_api_key = environ.get("HACK_CLUB_AI_API_KEY")
-    hcai_base_url = environ.get(
+    generic_api_key = get_environ("AI_API_KEY")
+    generic_base_url = get_environ("AI_BASE_URL")
+    hcai_api_key = get_environ("HACK_CLUB_AI_API_KEY")
+    hcai_base_url = get_environ(
         "HACK_CLUB_AI_BASE_URL", "https://ai.hackclub.com/proxy/v1"
     )
-    openrouter_api_key = environ.get("OPENROUTER_API_KEY")
-    openrouter_base_url = environ.get(
+    openrouter_api_key = get_environ("OPENROUTER_API_KEY")
+    openrouter_base_url = get_environ(
         "OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1"
     )
     if openrouter_api_key:

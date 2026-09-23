@@ -4,6 +4,7 @@ import secrets
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
+from typing import overload
 
 from aiohttp import ClientSession
 from dotenv import load_dotenv
@@ -18,6 +19,14 @@ STATIC_DIR = Path(Path.cwd() / "nephthys" / "public")
 TEMPLATES_DIR = Path(Path.cwd() / "nephthys" / "templates")
 
 load_dotenv(override=True)
+
+
+@overload
+def get_environ[T: str](key: str, default: T) -> str | T: ...
+@overload
+def get_environ(key: str, default: None = None) -> str | None: ...
+def get_environ(key: str, default: str | None = None) -> str | None:
+    return os.environ.get(key, default)
 
 
 def get_environ_bool(name: str, default: bool) -> bool:
