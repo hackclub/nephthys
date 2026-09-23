@@ -97,10 +97,6 @@ class Environment:
         self.slack_app_token = os.environ.get("SLACK_APP_TOKEN")
 
         self.uptime_url = os.environ.get("UPTIME_URL")
-        self.hack_club_ai_api_key = os.environ.get("HACK_CLUB_AI_API_KEY")
-        self.ai_base_url = os.environ.get(
-            "HACK_CLUB_AI_BASE_URL", "https://ai.hackclub.com/proxy/v1"
-        )
         self.ai_title_model = os.environ.get("AI_TITLE_MODEL", "openai/gpt-oss-120b")
         self.ai_tag_model = os.environ.get(
             "AI_TAG_MODEL", "google/gemini-3-flash-preview"
