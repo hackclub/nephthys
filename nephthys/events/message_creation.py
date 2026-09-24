@@ -4,6 +4,8 @@ from typing import Any
 
 from httpx import HTTPStatusError
 from openai import OpenAIError
+from openai.types.chat import ChatCompletion
+from prometheus_client import Counter
 from prometheus_client import Histogram
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
@@ -39,6 +41,13 @@ TICKET_TITLE_GENERATION_DURATION = Histogram(
 TICKET_CATEGORY_GENERATION_DURATION = Histogram(
     "nephthys_ticket_category_generation_duration_seconds",
     "How long it takes to generate a category tag using AI",
+)
+
+
+AI_TOKENS = Counter(
+    "nephthys_ai_tokens_total",
+    "Number of tokens used for AI requests",
+    ["task", "type", "model"],
 )
 
 
@@ -375,7 +384,7 @@ async def generate_ticket_title(text: str) -> str | None:
 
     model = env.ai_title_model
     try:
-        response = await ai_client.chat.completions.create(
+        response: ChatCompletion = await ai_client.chat.completions.create(
             model=model,
             reasoning_effort="low",
             messages=[
@@ -404,6 +413,14 @@ async def generate_ticket_title(text: str) -> str | None:
     if not (len(response.choices) and response.choices[0].message.content):
         await send_heartbeat(f"AI title generation is missing content: {response}")
         return None
+
+    # Track token usage
+    input = response.usage.prompt_tokens if response.usage else None
+    output = response.usage.completion_tokens if response.usage else None
+    if input and output:
+        AI_TOKENS.labels(task="ticket_title", type="input", model=model).inc(input)
+        AI_TOKENS.labels(task="ticket_title", type="output", model=model).inc(output)
+
     title = response.choices[0].message.content.strip()
     # Capitalise first letter
     title = title[0].upper() + title[1:] if len(title) > 1 else title.upper()
@@ -465,7 +482,9 @@ async def generate_category_tag(text: str) -> CategoryTag | None:
         logging.error(f'AI chose invalid category tag name: "{chosen_category}"')
         return None
 
-    tokens = response.get("usage", {}).get("input_tokens", "?")
+    tokens = response.get("usage", {}).get("input_tokens")
+    if tokens:
+        AI_TOKENS.labels(task="category_tag", type="input", model=model).inc(tokens)
     logging.info(
         f"Successfully generated category tag category={category_tag.slug} confidence={category_answer.get('confidence', '?')} tokens={tokens}"
     )
