@@ -107,6 +107,7 @@ interface Ticket {
   assigned_to: User | null
   reopened_by: User | null
   team_tags: Array<string>
+  category_tag: string | null
   // Timestamps in ISO 8601 format
   created_at: string
   closed_at: string | null

@@ -1,4 +1,5 @@
 import logging
+import re
 
 from asyncpg.exceptions import UniqueViolationError
 from slack_bolt.async_app import AsyncAck
@@ -40,10 +41,29 @@ async def create_category_tag_view_callback(
     ]["value"]
     name = raw_name.strip() if raw_name else ""
 
+    raw_slug = body["view"]["state"]["values"]["category_tag_slug"][
+        "category_tag_slug"
+    ]["value"]
+    slug = raw_slug.strip() if raw_slug else ""
+
+    raw_description = body["view"]["state"]["values"]["category_tag_description"][
+        "category_tag_description"
+    ]["value"]
+    description = raw_description.strip() if raw_description else ""
+
     if not name:
         await ack(
             response_action="errors",
             errors={"category_tag_name": "Category name cannot be empty."},
+        )
+        return
+
+    if not re.fullmatch(r"[a-z0-9]+(?:_[a-z0-9]+)*", slug):
+        await ack(
+            response_action="errors",
+            errors={
+                "category_tag_slug": "Slug must be snake_case, e.g. hackatime_problems."
+            },
         )
         return
 
@@ -56,16 +76,29 @@ async def create_category_tag_view_callback(
         return
 
     try:
-        tag = CategoryTag(name=name, created_by=user.id)
-        await tag.save()
-    except UniqueViolationError:
-        logging.warning(f"Duplicate category tag name: {name}")
-        await ack(
-            response_action="errors",
-            errors={
-                "category_tag_name": f"A category tag named '{name}' already exists."
-            },
+        tag = CategoryTag(
+            name=name,
+            slug=slug,
+            description=description or None,
+            created_by=user.id,
         )
+        await tag.save()
+    except UniqueViolationError as e:
+        constraint_name = getattr(e, "constraint_name", None)
+        if constraint_name and "slug" in constraint_name:
+            logging.warning(f"Duplicate category tag slug: {slug}")
+            await ack(
+                response_action="errors",
+                errors={"category_tag_slug": f"The slug '{slug}' is already in use."},
+            )
+        else:
+            logging.warning(f"Duplicate category tag name: {name}")
+            await ack(
+                response_action="errors",
+                errors={
+                    "category_tag_name": f"A category tag named '{name}' already exists."
+                },
+            )
         return
 
     await ack()

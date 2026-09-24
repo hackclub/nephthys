@@ -32,7 +32,19 @@ async def get_category_tags_view(user: User | None) -> dict:
         tag_blocks.append(Section(":rac_nooo: no category tags yet — add one below!"))
     else:
         for tag in category_tags:
-            tag_blocks.append(Section(f"*{tag.name}*"))
+            text = f"*{tag.name}*"
+            if tag.description:
+                text += f"\n{tag.description}"
+            tag_blocks.append(
+                Section(
+                    text,
+                    accessory=Button(
+                        text="edit",
+                        action_id="edit-category-tag",
+                        value=str(tag.id),
+                    ),
+                )
+            )
 
     return Home(
         [

@@ -58,6 +58,7 @@ async def tickets_list(req: Request):
         *Ticket.closed_by._.all_columns(),
         *Ticket.assigned_to._.all_columns(),
         *Ticket.reopened_by._.all_columns(),
+        *Ticket.category_tag._.all_columns(),
         Ticket.team_tags(TeamTag.name),
     ).output(nested=True)
 

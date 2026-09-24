@@ -117,6 +117,8 @@ class TeamTag(Table, tablename="Tag"):
 class CategoryTag(Table, tablename="CategoryTag"):
     id = Serial(primary_key=True, unique=True)
     name = Text(unique=True)
+    slug = Text(unique=True)
+    description = Text(null=True)
     created_by = ForeignKey(references=User, db_column_name="createdById", null=True)
     created_at = Timestamptz(default=TimestamptzNow(), db_column_name="createdAt")
 

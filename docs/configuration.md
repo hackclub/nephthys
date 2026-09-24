@@ -33,13 +33,15 @@ These should always be configured.
 
 It is highly recommended to configure an AI provider, which is used to generate ticket titles and categories using an LLM.
 
-There's a few different options to configure it, depending on which provider you want to use. I'd recommend Hack Club AI.
+There's a few different options to configure it, depending on which provider you want to use. I'd recommend OpenRouter.
 
 If you don't wish to use AI features, you can skip this section.
 
 ### AI provider - Hack Club AI
 
 [Hack Club AI](https://ai.hackclub.com/) is free for Hack Clubbers. If you're over 18, you'll have to pick a third-party provider.
+
+Hack Club AI does not support Typesafe AI's Jev model, so category tags will be unavailable.
 
 [Create an API key](https://ai.hackclub.com/keys) and set it as `HACK_CLUB_AI_API_KEY`.
 
@@ -52,7 +54,10 @@ If you don't wish to use AI features, you can skip this section.
 
 [OpenRouter](https://openrouter.ai/workspaces/) is the suggested commercial AI provider (others are available). Just provide an `OPENROUTER_API_KEY`.
 
-Using OpenRouter may enable extra features in the future, e.g. ticket categorisation using Jev.
+If OpenRouter is configured, a decision model ([Jev 1.13](https://openrouter.ai/typesafe/jev-1.13)) will be used to automatically assign tickets to categories.
+
+> [!NOTE]
+> To comply with the [Slack Scraping Policy](https://news.hackclub.com/news/scraping-use-policy/), ensure that data training is disabled on the [account](https://openrouter.ai/settings/privacy) and workspace level (see [OpenRouter's docs](https://openrouter.ai/docs/guides/privacy/provider-logging#training-on-prompts)).
 
 | Variable              | Required? | Description                        | Default                        |
 | --------------------- | --------- | ---------------------------------- | ------------------------------ |
@@ -62,6 +67,8 @@ Using OpenRouter may enable extra features in the future, e.g. ticket categorisa
 ### AI provider - Generic
 
 You can also use any AI provider that has an OpenAI-compatible API. In this case, a base URL is required.
+
+Category tags are currently disabled when using a generic AI provider, but let me know if you think that should change.
 
 > [!NOTE]
 > Nephthys feeds Slack messages to LLMs, so to comply with the [Slack Scraping Policy](https://news.hackclub.com/news/scraping-use-policy/), you must use an API provider that does **not** use your prompts to train models.
