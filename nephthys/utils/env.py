@@ -97,7 +97,9 @@ class Environment:
         self.slack_app_token = os.environ.get("SLACK_APP_TOKEN")
 
         self.uptime_url = os.environ.get("UPTIME_URL")
-        self.ai_title_model = os.environ.get("AI_TITLE_MODEL", "openai/gpt-oss-120b")
+        self.ai_title_model = os.environ.get(
+            "AI_TITLE_MODEL", "deepseek/deepseek-v4.1-flash"
+        )
         self.ai_category_model = os.environ.get(
             "AI_CATEGORY_MODEL", "typesafe/jev-1.13"
         )

@@ -377,6 +377,7 @@ async def generate_ticket_title(text: str) -> str | None:
     try:
         response = await ai_client.chat.completions.create(
             model=model,
+            reasoning_effort="low",
             messages=[
                 {
                     "role": "system",
