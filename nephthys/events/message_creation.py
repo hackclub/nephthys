@@ -457,8 +457,9 @@ async def generate_category_tag(text: str) -> CategoryTag | None:
         logging.error(f'AI chose invalid category tag name: "{chosen_category}"')
         return None
 
+    tokens = response.get("usage", {}).get("input_tokens", "?")
     logging.info(
-        f"Successfully generated category tag category={category_tag.slug} confidence={category_answer.get('confidence', '?')} tokens={response['usage']['input_tokens']}"
+        f"Successfully generated category tag category={category_tag.slug} confidence={category_answer.get('confidence', '?')} tokens={tokens}"
     )
 
     return category_tag
