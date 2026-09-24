@@ -33,6 +33,9 @@ def ticket_to_json(ticket: dict[str, Any], include_description: bool = False) ->
         "assigned_to": user_to_json(ticket["assignedToId"]),
         "reopened_by": user_to_json(ticket["reopenedById"]),
         "team_tags": [str(t) for t in ticket["team_tags"]],
+        "category_tag": ticket["categoryTagId"]["slug"]
+        if ticket["categoryTagId"]
+        else None,
         "created_at": ticket["createdAt"].isoformat(),
         "closed_at": ticket["closedAt"].isoformat() if ticket["closedAt"] else None,
         "message_ts": ticket["msgTs"],
@@ -58,6 +61,7 @@ async def ticket_info(req: Request):
             *Ticket.closed_by._.all_columns(),
             *Ticket.assigned_to._.all_columns(),
             *Ticket.reopened_by._.all_columns(),
+            *Ticket.category_tag._.all_columns(),
             Ticket.team_tags(TeamTag.name),
         )
         .output(nested=True)
