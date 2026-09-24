@@ -9,7 +9,7 @@ from nephthys.database.tables import CategoryTag
 
 def get_edit_category_tag_modal(tag: CategoryTag):
     return Modal(
-        title=f'edit category: "{tag.name}"',
+        title="edit category tag",
         callback_id="edit_category_tag",
         submit=":rac_question: save",
         private_metadata=str(tag.id),
