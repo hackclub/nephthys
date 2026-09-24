@@ -439,8 +439,16 @@ async def generate_category_tag(text: str) -> CategoryTag | None:
             },
         )
     except HTTPStatusError as e:
+        logging.error(
+            f'Failed to categorise ticket text="{text}" error="{e}" response="{e.response.text}"'
+        )
+        await send_heartbeat(
+            f"Failed to get AI response for tag generation: {e}", [e.response.text]
+        )
+        return None
+    except Exception as e:
         logging.error(f'Failed to categorise ticket text="{text}" error="{e}"')
-        await send_heartbeat(f"Failed to get AI response for tag generation: {e}")
+        await send_heartbeat(f"Unexpected error in tag generation: {e}")
         return None
 
     category_answer = response["answers"].get("category")
