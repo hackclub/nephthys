@@ -3,6 +3,7 @@ from datetime import timedelta
 from datetime import timezone
 from io import BytesIO
 
+import matplotlib.pyplot as plt
 import numpy as np
 from blockkit import Image
 
@@ -17,7 +18,9 @@ from nephthys.utils.time import is_day
 LAST_DAYS = 7
 
 
-async def generate_ticket_status_pie_image(tz: timezone | None = None) -> bytes:
+async def generate_ticket_status_pie_image(
+    tz: timezone | None = None,
+) -> bytes | None:
     """Generates a pie chart showing percentages of open/closed/in progress
     tickets over the last 7 days, renders it as a PNG and returns it as bytes."""
     is_daytime = is_day(tz) if tz else True
@@ -59,9 +62,12 @@ async def generate_ticket_status_pie_image(tz: timezone | None = None) -> bytes:
                 del labels[count]
                 del colours[count]
 
+        if not y:
+            return None
+
         b = BytesIO()
         y = np.array(y)
-        plt = generate_pie_chart(
+        fig = generate_pie_chart(
             y=y,
             labels=labels,
             colours=colours,
@@ -69,7 +75,7 @@ async def generate_ticket_status_pie_image(tz: timezone | None = None) -> bytes:
             bg_colour=bg_colour,
         )
     async with perf_timer("Saving pie chart to buffer"):
-        plt.savefig(
+        fig.savefig(
             b,
             bbox_inches="tight",
             pad_inches=0.1,
@@ -77,6 +83,7 @@ async def generate_ticket_status_pie_image(tz: timezone | None = None) -> bytes:
             dpi=300,
             format="png",
         )
+        plt.close(fig)
 
     return b.getvalue()
 
@@ -84,12 +91,14 @@ async def generate_ticket_status_pie_image(tz: timezone | None = None) -> bytes:
 async def ticket_status_pie_chart_component(tz: timezone | None = None):
     pie_chart_image = await generate_ticket_status_pie_image(tz)
 
-    async with perf_timer("Uploading pie chart"):
-        url = await upload_file(
-            file=pie_chart_image,
-            filename="ticket_status.png",
-            content_type="image/png",
-        )
+    url = None
+    if pie_chart_image:
+        async with perf_timer("Uploading pie chart"):
+            url = await upload_file(
+                file=pie_chart_image,
+                filename="ticket_status.png",
+                content_type="image/png",
+            )
 
     if not url:
         return Image(

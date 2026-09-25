@@ -115,12 +115,17 @@ you managed to close a whopping *{stats.closed_today}* tickets in the last 24 ho
 {await tickets_awaiting_response_message(tickets_awaiting_response)}
 """
 
-        await env.slack_client.files_upload_v2(
-            channel=env.slack_bts_channel,
-            file=pie_chart,  # type: ignore (we requested a raw pie chart so type is bytes)
-            title="ticket status",
-            initial_comment=msg,
-        )
+        if pie_chart:
+            await env.slack_client.files_upload_v2(
+                channel=env.slack_bts_channel,
+                file=pie_chart,
+                title="ticket status",
+                initial_comment=msg,
+            )
+        else:
+            await env.slack_client.chat_postMessage(
+                channel=env.slack_bts_channel, text=msg
+            )
 
         logging.info("Daily stats message sent successfully.")
 
