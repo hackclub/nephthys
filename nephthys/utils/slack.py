@@ -34,6 +34,7 @@ from nephthys.events.app_home_opened import on_app_home_opened
 from nephthys.events.app_home_opened import open_app_home
 from nephthys.events.channel_join import channel_join
 from nephthys.events.channel_left import channel_left
+from nephthys.events.message_creation import get_forwarded_ticket_user
 from nephthys.events.message_creation import on_message
 from nephthys.events.message_deletion import on_message_deletion
 from nephthys.options.category_tags import get_category_tags
@@ -59,6 +60,21 @@ async def handle_message(event: Dict[str, Any], client: AsyncWebClient):
                 await on_message_deletion(event, client)
             else:
                 await on_message(event, client)
+
+
+@app.event("message_metadata_posted")
+async def handle_message_metadata_posted(event: Dict[str, Any], client: AsyncWebClient):
+    channel = event["channel_id"]
+    ts = event["message_ts"]
+    history = await client.conversations_history(
+        channel=channel, latest=ts, inclusive=True, limit=1
+    )
+    messages = history.get("messages") or []
+    if not messages or messages[0].get("ts") != ts:
+        return
+    forwarded = {**messages[0], "channel": channel, "metadata": event["metadata"]}
+    if channel == env.slack_help_channel and get_forwarded_ticket_user(forwarded):
+        await on_message(forwarded, client)
 
 
 @app.action("mark_resolved")
