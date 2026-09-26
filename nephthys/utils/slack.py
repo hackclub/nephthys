@@ -63,9 +63,7 @@ async def handle_message(event: Dict[str, Any], client: AsyncWebClient):
 
 
 @app.event("message_metadata_posted")
-async def handle_message_metadata_posted(
-    event: Dict[str, Any], client: AsyncWebClient
-):
+async def handle_message_metadata_posted(event: Dict[str, Any], client: AsyncWebClient):
     channel = event["channel_id"]
     ts = event["message_ts"]
     history = await client.conversations_history(
