@@ -20,3 +20,4 @@ if your question has been answered, please hit the button below to mark it as re
     ticket_resolve: str = f"<@{{user_id}}> has marked this as resolved - make a new post in <#{help_channel}> if this was a mistake"
 
     not_allowed_channel: str = f"whoops, it looks like you're not supposed to be in that channel, pls talk to <@{program_owner}> if that's wrong"
+    
