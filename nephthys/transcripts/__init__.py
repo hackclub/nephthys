@@ -24,6 +24,7 @@ from nephthys.transcripts.transcripts.stardance_ambassadors import StardanceAmba
 from nephthys.transcripts.transcripts.stasis import Stasis
 from nephthys.transcripts.transcripts.summer_of_making import SummerOfMaking
 from nephthys.transcripts.transcripts.terra import Terra
+from nephthys.transcripts.transcripts.taiyaki import Taiyaki
 
 transcripts: List[Type[Transcript]] = [
     Identity,
@@ -48,4 +49,5 @@ transcripts: List[Type[Transcript]] = [
     Snowglobe,
     Capitol,
     Terra,
+    Taiyaki,
 ]
