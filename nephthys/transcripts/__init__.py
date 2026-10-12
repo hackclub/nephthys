@@ -4,6 +4,7 @@ from typing import Type
 from nephthys.transcripts.transcript import Transcript
 from nephthys.transcripts.transcripts.alchemize import Alchemize
 from nephthys.transcripts.transcripts.atlantis import Atlantis
+from nephthys.transcripts.transcripts.attend_haven import AttendHaven
 from nephthys.transcripts.transcripts.beest import Beest
 from nephthys.transcripts.transcripts.capitol import Capitol
 from nephthys.transcripts.transcripts.construct import Construct
@@ -48,4 +49,5 @@ transcripts: List[Type[Transcript]] = [
     Snowglobe,
     Capitol,
     Terra,
+    AttendHaven,
 ]
