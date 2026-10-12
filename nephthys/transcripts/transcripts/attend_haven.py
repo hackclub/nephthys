@@ -14,7 +14,7 @@ class AttendHaven(Transcript):
 Hi (user). Looks like this is your first time here, welcome! A member of the Attend team should be along to help you as soon as possible.
 if your question has been answered, please hit the button below to mark it as resolved.
 """
-    ticket_create: str = "Hi (user). Someone should be along to help you soon, once your question is resolved please hit the button below to mark it as resolved. Please ensure you're providing as much detail as possible. For linking to Attend users, we prefer you provide the user slug e.g. /admin/events/haven-jollyland/participants/<attendee_id>"
+    ticket_create: str = "Hi (user). Someone should be along to help you soon, once your question is resolved please hit the button below to mark it as resolved. Please ensure you're providing as much detail as possible. For linking to Attend users, we prefer you provide the user slug e.g. `/admin/events/haven-jollyland/participants/&lt;attendee_id&gt;`"
     resolve_ticket_button: str = "Mark as resolved"
     ticket_resolve: str = f"It looks like this post has been marked as resolved by <@{{user_id}}>! If you need any further help, please make a new post in <#{help_channel}> and someone'll be happy to help you out!"
     ticket_resolve_stale: str = f"It looks like this post is a bit old! If you still need help, please make a new post in <#{help_channel}> and someone'll be happy to help you out! ^~^"
