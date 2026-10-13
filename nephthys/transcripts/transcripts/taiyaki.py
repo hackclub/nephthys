@@ -10,7 +10,7 @@ class Taiyaki(Transcript):
     ticket_channel: str = "C0C841V89DY"
     team_channel: str = "C0AKYAHUL73"
 
-    faq_link: str = ""
+    faq_link: str = "https://hackclub.enterprise.slack.com/docs/T0266FRGM/F0C712C3SR5"
     first_ticket_create: str = """
 hello! I'm fih and i'm here to help you solve your questions!
 if your question has been answered, please hit the button below to mark it as resolved. ty <3!
