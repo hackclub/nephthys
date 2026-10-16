@@ -22,6 +22,7 @@
             ],
           "bot": [
                 "channels:history",
+                "metadata.message:read",
                 "channels:read",
                 "chat:write",
                 "chat:write.customize",
@@ -50,7 +51,8 @@
                 "member_joined_channel",
                 "member_left_channel",
                 "message.channels",
-                "message.groups"
+                "message.groups",
+                "message_metadata_posted"
             ]
         },
         "interactivity": {

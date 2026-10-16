@@ -338,10 +338,36 @@ async def send_user_facing_message(
     return msg
 
 
+def get_forwarded_ticket_user(event: dict[str, Any]) -> str | None:
+    metadata = event.get("metadata")
+    if not metadata:
+        message = event.get("message")
+        if isinstance(message, dict):
+            metadata = message.get("metadata")
+    if not isinstance(metadata, dict):
+        return None
+    if metadata.get("event_type") != "nephthys_plus_forward":
+        return None
+    payload = metadata.get("event_payload")
+    if not isinstance(payload, dict) or payload.get("ticket") is not True:
+        return None
+    source_user_id = payload.get("source_user_id")
+    return source_user_id if isinstance(source_user_id, str) else None
+
+
 async def on_message(event: dict[str, Any], client: AsyncWebClient):
     """
     Handle incoming messages in Slack.
     """
+    forwarded_user_id = get_forwarded_ticket_user(event)
+    if forwarded_user_id:
+        if await Ticket.objects().where(Ticket.msg_ts == event["ts"]).first():
+            return
+        forwarded_event = {**event, "user": forwarded_user_id}
+        db_user = await User.objects().where(User.slack_id == forwarded_user_id).first()
+        await handle_new_question(forwarded_event, client, db_user)
+        return
+
     if "subtype" in event and event["subtype"] not in ALLOWED_SUBTYPES:
         return
     if "bot_id" in event:
