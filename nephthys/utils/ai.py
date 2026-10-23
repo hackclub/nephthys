@@ -3,7 +3,7 @@ from typing import Literal
 from typing import NotRequired
 from typing import TypedDict
 
-import httpx
+import httpx2
 import openai.resources
 from openai import AsyncOpenAI
 
@@ -111,8 +111,8 @@ class OpenRouterClient(AIClient):
         self.api_key = api_key
         self.referrer_url = referrer_url
         self.referrer_title = referrer_title
-        self.http_client = httpx.AsyncClient(
-            base_url=httpx.URL(base_url).copy_with(path="/"),
+        self.http_client = httpx2.AsyncClient(
+            base_url=httpx2.URL(base_url).copy_with(path="/"),
             headers={"Authorization": f"Bearer {api_key}", **headers},
         )
 

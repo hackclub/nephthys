@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from httpx import HTTPStatusError
+from httpx2 import HTTPStatusError
 from openai import OpenAIError
 from openai.types.chat import ChatCompletion
 from prometheus_client import Counter
